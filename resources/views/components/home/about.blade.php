@@ -1,11 +1,12 @@
-<section class="about_us_sec">
+<section class="about_us_sec" id="about">
     <div class="container">
         <div class="about_us sec_padding">
             <div class="row">
                 <div class="col-xl-5 col-lg-6">
                     <div class="about_big_img_area h-100 text-lg-start text-center">
                         <div class="about_big_img about_img_shap_1 reveal h-100">
-                            <img src="{{asset('/images/home/dummy-img/about_img_1.png')}}" alt="about_img" class="h-100">
+                            <img src="{{ asset('/images/home/dummy-img/about_img_1.png') }}" alt="about_img"
+                                class="h-100">
                         </div>
                     </div>
                 </div>
@@ -25,17 +26,18 @@
                                     <div class="about_img_inner_info">
                                         <p class="satoshi_fontfamily fw_500 line_height_30 color_lightblack"
                                             data-aos="fade-down">
-                                            A euismod quisque nullam nulla turpis nunc id. Donec pharetra enim
-                                            lacus lectus ac integer. Rutrum ut est morbi facilisis molestie
-                                            varius aliquam vulputate id. Sit malesuada lectus ultrices nulla
-                                            tortor vestibulum urna. Sed orci etiam velit non lectus velit
-                                            tincidunt nunc sed.
+                                            Whether you're striving to build strength, lose weight, or adopt a healthier
+                                            lifestyle, John's personalized approach ensures you have the guidance and
+                                            support needed to succeed. His philosophy revolves around sustainable
+                                            habits, balanced nutrition, and effective training tailored to each
+                                            individual.
                                         </p>
                                         <ul class="satoshi_fontfamily fw_500">
-                                            <li class="reveal custom_lightSpeedInLeft">We find your trainer.
+                                            <li class="reveal custom_lightSpeedInLeft">Lose weight.
                                             </li>
-                                            <li class="reveal custom_lightSpeedInLeft">We make your plan.</li>
-                                            <li class="reveal custom_lightSpeedInLeft">Take training anywhere.
+                                            <li class="reveal custom_lightSpeedInLeft">Healthy
+                                                lifestyle.</li>
+                                            <li class="reveal custom_lightSpeedInLeft">Balanced nutrition.
                                             </li>
                                         </ul>
                                         <div class="about_us_btn reveal custom_fade_buttom">
@@ -44,7 +46,7 @@
                                                     Read More
                                                 </span>
                                                 <span class="orenge_icon whiteglow_btn">
-                                                    <img src="{{asset('/images/home/svgs/common_button_arrow.svg')}}"
+                                                    <img src="{{ asset('/images/home/svgs/common_button_arrow.svg') }}"
                                                         alt="common_button_arrow">
                                                 </span>
                                             </a>
@@ -54,7 +56,7 @@
                                 <div class="col-sm-5">
                                     <div
                                         class="about_img_inner about_img_shap_2 reveal d-xl-block d-lg-none d-sm-block d-none">
-                                        <img src="{{asset('/images/home/dummy-img/about_img_2.png')}}" alt="about_img"
+                                        <img src="{{ asset('/images/home/dummy-img/about_img_2.png') }}" alt="about_img"
                                             class="h-100">
                                     </div>
                                 </div>

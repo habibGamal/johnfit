@@ -4,6 +4,7 @@
             <div class="banner_slider_item">
                 <div class="banner_slider_img slide slide_one_home2" data-animation-in="shine_1"
                     data-delay-in="0.2">
+                    <div class="overlay"></div>
                     <div class="container">
                         <div class="banner_slider_content">
                             <h1 class="d-none">hidden</h1>
@@ -37,6 +38,7 @@
             <div class="banner_slider_item">
                 <div class="banner_slider_img slide slide_two_home_2" data-animation-in="shine_1"
                     data-delay-in="0.2">
+                    <div class="overlay"></div>
                     <div class="shine"></div>
                     <div class="container">
                         <div class="banner_slider_content">
@@ -92,7 +94,7 @@
                     </svg>
                 </span>
                 <h6 class="line_height_24 fw_500 satoshi_fontfamily color_white">
-                    +1 234 567 8899
+                    +20 12 25390914
                 </h6>
             </a>
         </div>

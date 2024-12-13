@@ -1,4 +1,4 @@
-<div class="counter_sec sec_padding">
+<div class="counter_sec sec_padding" id="counters">
     <div class="container">
         <div class="counter_area reveal custom_fade_buttom">
             <div class="row">

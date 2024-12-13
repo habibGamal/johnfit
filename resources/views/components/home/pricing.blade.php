@@ -1,12 +1,11 @@
-<section class="pricing_plan_sec">
+<section class="pricing_plan_sec" id="pricing">
     <div class="pricing_v2 bg_black sec_padding">
         <div class="container">
             <div class="pricing_plans" id="pricing_v2">
                 <div class="row justify-content-center">
                     <div class="col-lg-10 col-12">
                         <div class="common_title_area pricing_plans_title text-center">
-                            <h5
-                                class="satoshi_fontfamily fw_500 line_height_normal color_orange reveal custom_fade_top">
+                            <h5 class="satoshi_fontfamily fw_500 line_height_normal color_orange reveal custom_fade_top">
                                 Pricing Plans</h5>
                             <h3 class="pt-10 reveal custom_lightSpeedInLeft color_white">FIND PERFECT PLAN</h3>
                         </div>
@@ -26,131 +25,16 @@
                                                 <div class="col-xl-8">
                                                     <ul
                                                         class="pricing_plan_v2_points satoshi_fontfamily reveal custom_zoom_in">
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            5 Days per Week
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Free shower & lockers
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Personal yoga mat
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Free parking
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            HIT Training
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Nutrition Program
-                                                        </li>
+                                                        @foreach (['Customized diet plan.', 'Customized workout plan.', 'Monthly follow-up.'] as $feature)
+                                                            <x-home.package-feature>
+                                                                {{ $feature }}
+                                                            </x-home.package-feature>
+                                                        @endforeach
                                                     </ul>
                                                 </div>
                                                 <div class="col-xl-4">
                                                     <div class="pricing_plan_v2_button">
-                                                        <h2 class="color_white mb-20 reveal custom_zoom_in">$49
+                                                        <h2 class="color_white mb-20 reveal custom_zoom_in">333 EGP
                                                         </h2>
                                                         <div class="purches_btn reveal custom_fade_buttom">
                                                             <a href="pricing-plans-v2.html" class="orange_btn">
@@ -159,7 +43,48 @@
                                                                     Purchase Now
                                                                 </span>
                                                                 <span class="orenge_icon whiteglow_btn">
-                                                                    <img src="{{asset('/images/home/svgs/common_button_arrow.svg')}}"
+                                                                    <img src="{{ asset('/images/home/svgs/common_button_arrow.svg') }}"
+                                                                        alt="common_button_arrow">
+                                                                </span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-12 col-sm-6">
+                                    <div class="pricing_plan_v2_box">
+                                        <div class="pricing_plan_v2_head bg_white whiteglow">
+                                            <h4 class="color_orange pb-20 reveal custom_zoom_in">Normal</h4>
+                                            <p class="satoshi_fontfamily reveal custom_zoom_in">BILLED MONTHLY
+                                            </p>
+                                        </div>
+                                        <div class="pricing_plan_v2_bottom bg_black">
+                                            <div class="row">
+                                                <div class="col-xl-8">
+                                                    <ul
+                                                        class="pricing_plan_v2_points satoshi_fontfamily reveal custom_zoom_in">
+                                                        @foreach (['Personalized nutrition plan (adjustable).', 'Customized training program (home or gym).', 'Twice-monthly follow-ups via Zoom.', 'Responses to inquiries and solutions via WhatsApp within 48-72 hours.', 'Adaptive and personalized training plan (adjustable).', 'Tailored diet plan (adjustable).'] as $feature)
+                                                            <x-home.package-feature>
+                                                                {{ $feature }}
+                                                            </x-home.package-feature>
+                                                        @endforeach
+                                                    </ul>
+                                                </div>
+                                                <div class="col-xl-4">
+                                                    <div class="pricing_plan_v2_button">
+                                                        <h2 class="color_white mb-20 reveal custom_zoom_in">555 EGP
+                                                        </h2>
+                                                        <div class="purches_btn reveal custom_fade_buttom">
+                                                            <a href="pricing-plans-v2.html" class="orange_btn">
+                                                                <span class="orenge_text orangeglow_btn"
+                                                                    data-hover="Purchase Now">
+                                                                    Purchase Now
+                                                                </span>
+                                                                <span class="orenge_icon whiteglow_btn">
+                                                                    <img src="{{ asset('/images/home/svgs/common_button_arrow.svg') }}"
                                                                         alt="common_button_arrow">
                                                                 </span>
                                                             </a>
@@ -183,131 +108,17 @@
                                                 <div class="col-xl-8">
                                                     <ul
                                                         class="pricing_plan_v2_points satoshi_fontfamily reveal custom_zoom_in">
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            6 Days per Week
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Free shower & lockers
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Personal yoga mat
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Free parking
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            HIT Training
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Nutrition Program
-                                                        </li>
+                                                        @foreach (['Personalized nutrition plan (adjustable).', 'Healthy recipes to help you achieve your goals while enjoying your meals.', 'Weekly follow-ups via Zoom.', 'Daily responses to inquiries and solutions via WhatsApp.', 'Medical monitoring of your vital measurements.'] as $feature)
+                                                            <x-home.package-feature>
+                                                                {{ $feature }}
+                                                            </x-home.package-feature>
+                                                        @endforeach
+
                                                     </ul>
                                                 </div>
                                                 <div class="col-xl-4">
                                                     <div class="pricing_plan_v2_button">
-                                                        <h2 class="color_white mb-20 reveal custom_zoom_in">$79
+                                                        <h2 class="color_white mb-20 reveal custom_zoom_in">888 EGP
                                                         </h2>
                                                         <div class="purches_btn reveal custom_fade_buttom">
                                                             <a href="pricing-plans-v2.html" class="orange_btn">
@@ -316,7 +127,7 @@
                                                                     Purchase Now
                                                                 </span>
                                                                 <span class="orenge_icon whiteglow_btn">
-                                                                    <img src="{{asset('/images/home/svgs/common_button_arrow.svg')}}"
+                                                                    <img src="{{ asset('/images/home/svgs/common_button_arrow.svg') }}"
                                                                         alt="common_button_arrow">
                                                                 </span>
                                                             </a>
@@ -340,131 +151,16 @@
                                                 <div class="col-xl-8">
                                                     <ul
                                                         class="pricing_plan_v2_points satoshi_fontfamily reveal custom_zoom_in">
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            7 Days per Week
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Free shower & lockers
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Personal yoga mat
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Free parking
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            HIT Training
-                                                        </li>
-                                                        <li class="line_height_24 color_white">
-                                                            <svg width="24" height="24" viewBox="0 0 24 24"
-                                                                fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <mask style="mask-type:alpha"
-                                                                    maskUnits="userSpaceOnUse" x="0" y="0"
-                                                                    width="24" height="24">
-                                                                    <path d="M0 0H24V24H0V0Z" fill="white" />
-                                                                </mask>
-                                                                <g>
-                                                                    <path d="M7 12L12 17L22 7" stroke="#FF640D"
-                                                                        stroke-width="2" stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                    <path d="M2 12L7 17M12 12L17 7"
-                                                                        stroke="#FF640D" stroke-width="2"
-                                                                        stroke-linecap="round"
-                                                                        stroke-linejoin="round" />
-                                                                </g>
-                                                            </svg>
-                                                            Nutrition Program
-                                                        </li>
+                                                        @foreach (['Follow-up with a specialized doctor.', 'Personalized nutrition plan (adjustable).', 'Healthy recipes to help you achieve your goals while enjoying your meals.', 'Weekly follow-ups via Zoom.', 'Daily responses to inquiries and solutions via WhatsApp.', 'Medical monitoring of your vital measurements.'] as $feature)
+                                                            <x-home.package-feature>
+                                                                {{ $feature }}
+                                                            </x-home.package-feature>
+                                                        @endforeach
                                                     </ul>
                                                 </div>
                                                 <div class="col-xl-4">
                                                     <div class="pricing_plan_v2_button">
-                                                        <h2 class="color_white mb-20 reveal custom_zoom_in">$99
+                                                        <h2 class="color_white mb-20 reveal custom_zoom_in">1111 EGP
                                                         </h2>
                                                         <div class="purches_btn reveal custom_fade_buttom">
                                                             <a href="pricing-plans-v2.html" class="orange_btn">
@@ -473,7 +169,7 @@
                                                                     Purchase Now
                                                                 </span>
                                                                 <span class="orenge_icon whiteglow_btn">
-                                                                    <img src="{{asset('/images/home/svgs/common_button_arrow.svg')}}"
+                                                                    <img src="{{ asset('/images/home/svgs/common_button_arrow.svg') }}"
                                                                         alt="common_button_arrow">
                                                                 </span>
                                                             </a>

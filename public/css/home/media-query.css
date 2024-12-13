@@ -855,7 +855,7 @@
     .meet_team_v2_slider_area_meetteampage .slick-custom-arrow.slick-custom-arrow-left.slick-arrow {
         right: -15px;
     }
-    
+
     /* Pricing-Plan Page */
     section#gallery_slider_sec_Pricingplanpage .gallery_slider_area>.container-fluid {
         margin: 0 0 0 140px;
@@ -2894,7 +2894,7 @@
         height: 35px;
     }
     .header_logo img {
-        max-width: 120%;
+        max-width: 100px;
     }
     /* Our-Progress */
     .progress_img::before {

@@ -8,14 +8,14 @@
     <!-- CSS Here -->
     <link rel="shortcut icon" href="assets/images/favicon/favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{asset('css/home/all.min.css')}}">
-    <link rel="stylesheet" href="{{asset('css/home/slick.css')}}">
-    <link rel="stylesheet" href="{{asset('css/home/animate_plugin.min.css')}}">
-    <link rel="stylesheet" href="{{asset('css/home/animate.min.css')}}">
-    <link rel="stylesheet" href="{{asset('css/home/aos.css')}}">
-    <link rel="stylesheet" href="{{asset('css/home/bootstrap.min.css')}}">
-    <link rel="stylesheet" href="{{asset('css/home/style.css')}}">
-    <link rel="stylesheet" href="{{asset('css/home/media-query.min.css')}}">
+    <link rel="stylesheet" href="{{ asset('css/home/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home/slick.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home/animate_plugin.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home/animate.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home/aos.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home/media-query.css') }}">
 </head>
 
 <body>
@@ -24,7 +24,7 @@
         <div class="preloader-content">
             <div class="preloader_img_circle"></div>
             <div class="preloader_img">
-                <img src="{{asset('/images/home/preloader/fitness_preimg.gif')}}" alt="fitness_preimg">
+                <img src="{{ asset('/images/home/preloader/fitness_preimg.gif') }}" alt="fitness_preimg">
             </div>
         </div>
     </div>
@@ -44,6 +44,10 @@
 
         <!-- About-Us End -->
 
+
+        <!-- Before after Start -->
+        @include('components.home.before-after')
+        <!-- Before after End -->
 
         <!-- Calculater-BMI Start -->
         @include('components.home.calculator')
@@ -107,7 +111,7 @@
 
         <!-- footer Start -->
         <footer>
-            <div class="footer_sec bg_black">
+            <div class="footer_sec bg_black" id="contact">
                 <div class="container">
                     <div class="footer_area">
                         <div class="row">
@@ -137,13 +141,14 @@
                                             <div class="footer_logo_area">
                                                 <a href="javascript:void(0);"
                                                     class="footer_logo reveal custom_zoom_in d-block">
-                                                    <img src="{{asset('/images/home/logos/gymort_logo.png')}}" alt="gymort_logo">
+                                                    <img src="{{ asset('/images/home/logos/gymort_logo.png') }}"
+                                                        alt="gymort_logo">
                                                 </a>
                                                 <p
                                                     class="satoshi_fontfamily line_height_30 fw_500 color_lightgray reveal custom_zoom_in">
                                                     Please fell free to send us an email at <a
-                                                        href="mailto:hello@gymort.com"
-                                                        class="color_lightgray triners_icons">hello@gymort.com</a> for
+                                                        href="mailto:coach.john.info@gmail.com "
+                                                        class="color_lightgray triners_icons">coach.john.info@gmail.com </a> for
                                                     any additional inquiries</p>
                                             </div>
                                         </div>
@@ -151,32 +156,10 @@
                                             <div class="footer_quick_contact">
                                                 <h6 class="color_white reveal custom_lightSpeedInLeft">CALL US</h6>
                                                 <div class="footer_contact">
-                                                    <a href="tel:+12345678899"
-                                                        class="satoshi_fontfamily line_height_30 fw_500 color_lightgray d-block triners_icons reveal custom_zoom_in">+1
-                                                        234 567 8899</a>
-                                                    <a href="tel:+13456789900"
-                                                        class="satoshi_fontfamily line_height_30 fw_500 color_lightgray d-block triners_icons reveal custom_zoom_in">+1
-                                                        345 678 9900</a>
+                                                    <a href="tel:+201225390914"
+                                                        class="satoshi_fontfamily line_height_30 fw_500 color_lightgray d-block triners_icons reveal custom_zoom_in">+20
+                                                        12 25390914</a>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-xl-3 col-lg-4 col-sm-6">
-                                            <div class="footer_gym_time">
-                                                <h6 class="color_white reveal custom_lightSpeedInLeft">WE ARE OPEN</h6>
-                                                <p
-                                                    class="satoshi_fontfamily line_height_30 fw_500 color_lightgray reveal custom_zoom_in">
-                                                    Mon - Fri: 05:00 AM - 10:00 PM</p>
-                                                <p
-                                                    class="satoshi_fontfamily line_height_30 fw_500 color_lightgray reveal custom_zoom_in">
-                                                    Sat - Sun: 05:00 AM - 01:00 PM</p>
-                                            </div>
-                                        </div>
-                                        <div class="col-xl-3 col-lg-3 col-sm-6">
-                                            <div class="footer_address pb-30">
-                                                <h6 class="color_white reveal custom_lightSpeedInLeft">WE ARE HERE</h6>
-                                                <p
-                                                    class="satoshi_fontfamily line_height_30 fw_500 color_lightgray reveal custom_zoom_in">
-                                                    27 West 24th St New Your, NY 10010</p>
                                             </div>
                                         </div>
                                     </div>
@@ -196,10 +179,10 @@
                                         <div class="col-sm-6">
                                             <ul class="footer_social_icon">
                                                 <li class="reveal custom_zoom_in">
-                                                    <a href="https://www.facebook.com/" class="triners_icons"
+                                                    <a href="https://www.facebook.com/JohnFitEg" class="triners_icons"
                                                         target="_blank">
-                                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
+                                                        <svg width="20" height="20" viewBox="0 0 20 20"
+                                                            fill="none" xmlns="http://www.w3.org/2000/svg">
                                                             <mask style="mask-type:alpha" maskUnits="userSpaceOnUse"
                                                                 x="0" y="0" width="20" height="20">
                                                                 <rect width="20" height="20" fill="white" />
@@ -213,26 +196,10 @@
                                                     </a>
                                                 </li>
                                                 <li class="reveal custom_zoom_in">
-                                                    <a href="https://x.com/" class="triners_icons" target="_blank">
-                                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
-                                                            <mask style="mask-type:alpha" maskUnits="userSpaceOnUse"
-                                                                x="0" y="0" width="20" height="20">
-                                                                <rect width="20" height="20" fill="white" />
-                                                            </mask>
-                                                            <g>
-                                                                <path
-                                                                    d="M18.5104 4.71337C17.8743 4.99479 17.1996 5.17962 16.5088 5.26176C17.2366 4.8261 17.7812 4.14075 18.0411 3.33337C17.3573 3.73967 16.6088 4.02564 15.8282 4.17884C15.1693 3.47588 14.2483 3.07752 13.2848 3.07862C11.3605 3.07862 9.79975 4.63884 9.79975 6.56402C9.79975 6.83715 9.83109 7.10202 9.88967 7.35757C6.99206 7.2117 4.42506 5.82504 2.70565 3.71617C2.39608 4.24806 2.23338 4.85265 2.2342 5.46806C2.2342 6.67716 2.84967 7.74437 3.78458 8.36917C3.23115 8.35167 2.6899 8.2022 2.20599 7.93311C2.20545 7.94775 2.20545 7.96239 2.20545 7.97623C2.20545 9.66533 3.40683 11.0743 5.00166 11.3942C4.70234 11.4752 4.3936 11.5162 4.08352 11.5159C3.85831 11.5159 3.63976 11.4952 3.42733 11.4544C3.8711 12.8387 5.15739 13.8466 6.683 13.8742C5.44845 14.8432 3.92391 15.3688 2.35453 15.3666C2.07677 15.3668 1.79925 15.3504 1.52344 15.3176C3.1167 16.3418 4.97127 16.8854 6.86535 16.8834C13.2763 16.8834 16.7817 11.5729 16.7817 6.96759C16.7817 6.81692 16.778 6.66572 16.7713 6.51664C17.4536 6.02371 18.0425 5.41306 18.5104 4.71337Z"
-                                                                    fill="white" />
-                                                            </g>
-                                                        </svg>
-                                                    </a>
-                                                </li>
-                                                <li class="reveal custom_zoom_in">
-                                                    <a href="https://www.instagram.com/" class="triners_icons"
+                                                    <a href="https://www.instagram.com/coach.johnxx/profilecard/?igsh=MXJrN2E5cDc2YnV6MQ==" class="triners_icons"
                                                         target="_blank">
-                                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
+                                                        <svg width="20" height="20" viewBox="0 0 20 20"
+                                                            fill="none" xmlns="http://www.w3.org/2000/svg">
                                                             <mask style="mask-type:alpha" maskUnits="userSpaceOnUse"
                                                                 x="0" y="0" width="20" height="20">
                                                                 <rect width="20" height="20" fill="white" />
@@ -246,10 +213,10 @@
                                                     </a>
                                                 </li>
                                                 <li class="reveal custom_zoom_in">
-                                                    <a href="https://www.youtube.com" class="triners_icons"
+                                                    <a href="https://www.youtube.com/@coachjohn-fitnesstraineran9776" class="triners_icons"
                                                         target="_blank">
-                                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg">
+                                                        <svg width="20" height="20" viewBox="0 0 20 20"
+                                                            fill="none" xmlns="http://www.w3.org/2000/svg">
                                                             <mask style="mask-type:alpha" maskUnits="userSpaceOnUse"
                                                                 x="0" y="0" width="20" height="20">
                                                                 <rect width="20" height="20" fill="white" />
@@ -278,8 +245,10 @@
         <div class="scrolltop_area orangeglow">
             <button id="scroll-top-btn">
                 <span class="scroll-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <mask style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <mask style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24"
+                            height="24">
                             <path d="M0 0H24V24H0V0Z" fill="white" />
                         </mask>
                         <g>
@@ -303,17 +272,17 @@
     </div>
 
     <!-- JS Here -->
-    <script src="{{asset('js/home/jquery-3.7.1.js')}}"></script>
-    <script src="{{asset('js/home/myplugin.js')}}"></script>
-    <script src="{{asset('js/home/slick.min.js')}}"></script>
-    <script src="{{asset('js/home/slick-animation.min.js')}}"></script>
-    <script src="{{asset('js/home/aos.js')}}"></script>
-    <script src="{{asset('js/home/plugins.js')}}"></script>
-    <script src="{{asset('js/home/TweenMax.min.js')}}"></script>
-    <script src="{{asset('js/home/bootstrap.bundle.min.js')}}"></script>
-    <script src="{{asset('js/home/allsliders.js')}}"></script>
-    <script src="{{asset('js/home/custome-cursor.js')}}"></script>
-    <script src="{{asset('js/home/style.js')}}"></script>
+    <script src="{{ asset('js/home/jquery-3.7.1.js') }}"></script>
+    {{-- <script src="{{ asset('js/home/myplugin.js') }}"></script> --}}
+    <script src="{{ asset('js/home/slick.min.js') }}"></script>
+    <script src="{{ asset('js/home/slick-animation.min.js') }}"></script>
+    <script src="{{ asset('js/home/aos.js') }}"></script>
+    <script src="{{ asset('js/home/plugins.js') }}"></script>
+    <script src="{{ asset('js/home/TweenMax.min.js') }}"></script>
+    <script src="{{ asset('js/home/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('js/home/allsliders.js') }}"></script>
+    <script src="{{ asset('js/home/custome-cursor.js') }}"></script>
+    <script src="{{ asset('js/home/style.js') }}"></script>
 
     <!-- AOS Animation -->
     <script>
