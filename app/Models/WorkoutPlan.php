@@ -15,4 +15,13 @@ class WorkoutPlan extends Model
             app(WorkoutPlanServices::class)->savePlanAsJson($modelData);
         });
     }
+
+
+    /**
+     * The users that belong to the workout.
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
+    }
 }

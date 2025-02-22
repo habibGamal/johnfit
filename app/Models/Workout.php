@@ -104,4 +104,6 @@ class Workout extends Model
     {
         $this->attributes['tools'] = implode(',', $value);
     }
+
+
 }

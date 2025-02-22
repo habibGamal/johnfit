@@ -45,4 +45,17 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * The workouts that belong to the user.
+     */
+    public function workouts()
+    {
+        return $this->belongsToMany(WorkoutPlan::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
 }

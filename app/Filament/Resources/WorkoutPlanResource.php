@@ -113,6 +113,7 @@ class WorkoutPlanResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -124,7 +125,7 @@ class WorkoutPlanResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            // RelationManagers\UsersRelationManager::class,
         ];
     }
 
@@ -134,6 +135,7 @@ class WorkoutPlanResource extends Resource
             'index' => Pages\ListWorkoutPlans::route('/'),
             'create' => Pages\CreateWorkoutPlan::route('/create'),
             'edit' => Pages\EditWorkoutPlan::route('/{record}/edit'),
+            'view' => Pages\ViewWorkoutPlan::route('/{record}'),
         ];
     }
 }
