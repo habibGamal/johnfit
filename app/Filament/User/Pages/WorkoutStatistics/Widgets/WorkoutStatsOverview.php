@@ -13,7 +13,7 @@ class WorkoutStatsOverview extends BaseWidget
     use InteractsWithPageFilters;
 
     protected int | string | array $columnSpan = 'full';
-    
+
     public $startDate;
     public $endDate;
 
@@ -49,18 +49,18 @@ class WorkoutStatsOverview extends BaseWidget
             : 0;
 
         return [
-            Stat::make('إجمالي التمارين | Total Workouts', $totalWorkouts)
-                ->description('العدد الكلي للتمارين المسندة')
+            Stat::make(__('workout.statistics.total_workouts'), $totalWorkouts)
+                ->description(__('workout.statistics.total_workouts_desc'))
                 ->descriptionIcon('heroicon-m-clipboard-document-list')
                 ->color('gray'),
 
-            Stat::make('التمارين المكتملة | Completed Workouts', $completedWorkouts)
-                ->description('عدد التمارين المكتملة')
+            Stat::make(__('workout.statistics.completed_workouts'), $completedWorkouts)
+                ->description(__('workout.statistics.completed_workouts_desc'))
                 ->descriptionIcon('heroicon-m-check-badge')
                 ->color('success'),
 
-            Stat::make('نسبة الإنجاز | Completion Rate', $completionRate . '%')
-                ->description('نسبة إكمال التمارين')
+            Stat::make(__('workout.statistics.completion_rate'), $completionRate . '%')
+                ->description(__('workout.statistics.completion_rate_desc'))
                 ->descriptionIcon('heroicon-m-chart-bar')
                 ->color($completionRate >= 80 ? 'success' : ($completionRate >= 50 ? 'warning' : 'danger'))
         ];

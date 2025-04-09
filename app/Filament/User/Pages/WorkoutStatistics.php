@@ -18,10 +18,20 @@ class WorkoutStatistics extends Page
 
     protected static string $view = 'filament.user.pages.workout-statistics';
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
-    protected static ?string $navigationLabel = 'أدائي التدريبي | My Performance';
-    protected static ?string $title = 'أدائي التدريبي | My Performance';
+    protected static ?string $navigationLabel = null;
+    protected static ?string $title = null;
     protected static ?string $slug = 'workout-statistics';
     protected static ?int $navigationSort = 2;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('workout.statistics.page_title');
+    }
+
+    public function getTitle(): string
+    {
+        return __('workout.statistics.page_title');
+    }
 
     public $startDate;
     public $endDate;
@@ -38,7 +48,7 @@ class WorkoutStatistics extends Page
             FilterAction::make()
                 ->form([
                     DatePicker::make('startDate')
-                        ->label('من تاريخ | From Date')
+                        ->label(__('workout.statistics.date_range.from'))
                         ->default(now()->subMonth())
                         ->required()
                         ->afterStateUpdated(function ($state) {
@@ -47,7 +57,7 @@ class WorkoutStatistics extends Page
                         }),
 
                     DatePicker::make('endDate')
-                        ->label('إلى تاريخ | To Date')
+                        ->label(__('workout.statistics.date_range.to'))
                         ->default(now())
                         ->required()
                         ->afterStateUpdated(function ($state) {

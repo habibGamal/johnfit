@@ -53,7 +53,7 @@ class UserPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->viteTheme('resources/css/app.css')
+            // ->viteTheme('resources/css/app.css')
             ->authMiddleware([
                 Authenticate::class,
             ]);

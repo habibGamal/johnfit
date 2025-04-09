@@ -12,13 +12,18 @@ class WorkoutCompletionChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected static ?string $heading = 'نشاط التمارين | Workout Activity';
+    protected static ?string $heading = null;
     protected int | string | array $columnSpan = ['lg' => 2];
 
     public $startDate;
     public $endDate;
 
     protected $listeners = ["filtersUpdated" => "updateFilters"];
+
+    public function getHeading(): string
+    {
+        return __('workout.statistics.workout_activity');
+    }
 
     public function updateFilters($filters)
     {
@@ -58,14 +63,14 @@ class WorkoutCompletionChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'إجمالي التمارين | Total Workouts',
+                    'label' => __('workout.statistics.total_workouts'),
                     'data' => $dailyStats->pluck('total')->toArray(),
                     'borderColor' => '#6B7280',
                     'backgroundColor' => '#6B728040',
                     'fill' => true,
                 ],
                 [
-                    'label' => 'التمارين المكتملة | Completed Workouts',
+                    'label' => __('workout.statistics.completed_workouts'),
                     'data' => $dailyStats->pluck('completed')->toArray(),
                     'borderColor' => '#10B981',
                     'backgroundColor' => '#10B98140',
