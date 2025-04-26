@@ -42,6 +42,7 @@ class MealPlanResource extends Resource
             ->schema([
                 Forms\Components\ViewField::make('preview')
                     ->disabled()
+                    ->visible(fn(?MealPlan $mealPlan) => $mealPlan?->id)
                     ->view('pdf_templates.iframe', [
                         'id' => $form->getRecord()?->id,
                         'url' => '/meal-plan'
@@ -49,6 +50,7 @@ class MealPlanResource extends Resource
                 Forms\Components\Actions::make([
                     Forms\Components\Actions\Action::make('generate_pdf')
                         ->label('Generate PDF')
+                        ->visible(fn(?MealPlan $mealPlan) => $mealPlan?->id)
                         ->url(fn(?MealPlan $mealPlan) => $mealPlan ? route('meal-plan.download', $mealPlan) : '#')
                         ->openUrlInNewTab()
                 ]),
@@ -252,7 +254,7 @@ class MealPlanResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\UsersRelationManager::class,
         ];
     }
 

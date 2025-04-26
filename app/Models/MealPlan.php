@@ -25,4 +25,12 @@ class MealPlan extends Model
             app(MealPlanServices::class)->savePlanAsJson($modelData);
         });
     }
+
+    /**
+     * The users that belong to the meal plan.
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_meal_plan');
+    }
 }

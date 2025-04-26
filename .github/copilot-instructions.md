@@ -1,7 +1,18 @@
 - this project for an online coach that generate workout plans and healthy meal plans where he can assign these plans to the client , so the client can follow the plans (like to do list) and track his performence
 - the plans saved as json files and their paths in the database
-- this project use arabic/english language so for any thing need translation translate it
 - before any edit in filamentphp code look for its documentaion frist https://filamentphp.com/docs
 - when testing a filamentphp resource then follow the filament testing guide from the docs https://filamentphp.com/docs
 - when asking you for a testing follow the project convention of other test files
 - when you implement Observer use laravel ObservedBy attribute don't register it in event service provider
+
+- the stack of this project is laravel & react js with inertia
+    - only '/' route is laravel blade view
+    - all other routes are react routes
+    - the admin panel is built using filamentphp
+- using typescript and #index.d.ts for all model types
+- using shadcn for building ui components
+- be consistent in the visual identity : theme , coloring , fonts , spacing , layouts , titles 
+- Create a clean, modern, and responsive (mobile , tablet , desktop) UI component using React , shadcn/ui and Tailwind CSS.
+- for any empty list state display empty state UI
+- when using shadcn to add components use the following commands
+    - npx shadcn@latest add XXX

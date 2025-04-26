@@ -17,7 +17,7 @@ class WorkoutPlanPolicy
 
     public function view(User $user, WorkoutPlan $workoutPlan): bool
     {
-        return  $user->role === 'admin' || $user->workouts()->where('workout_plan_id', $workoutPlan->id)->exists();
+        return  $user->role === 'admin' || $user->workoutPlans()->where('workout_plan_id', $workoutPlan->id)->exists();
     }
 
     public function create(User $user): bool

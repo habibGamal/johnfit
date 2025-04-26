@@ -1,101 +1,85 @@
 <?php
 
-namespace Tests\Feature;
-
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Volt\Volt;
-use Tests\TestCase;
 
-class ProfileTest extends TestCase
-{
-    use RefreshDatabase;
+test('profile page is displayed', function () {
+    $user = User::factory()->create();
 
-    public function test_profile_page_is_displayed(): void
-    {
-        $user = User::factory()->create();
+    $response = $this
+        ->actingAs($user)
+        ->get('/profile');
 
-        $response = $this->actingAs($user)->get('/profile');
+    $response->assertOk();
+});
 
-        $response
-            ->assertOk()
-            ->assertSeeVolt('profile.update-profile-information-form')
-            ->assertSeeVolt('profile.update-password-form')
-            ->assertSeeVolt('profile.delete-user-form');
-    }
+test('profile information can be updated', function () {
+    $user = User::factory()->create();
 
-    public function test_profile_information_can_be_updated(): void
-    {
-        $user = User::factory()->create();
+    $response = $this
+        ->actingAs($user)
+        ->patch('/profile', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+        ]);
 
-        $this->actingAs($user);
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect('/profile');
 
-        $component = Volt::test('profile.update-profile-information-form')
-            ->set('name', 'Test User')
-            ->set('email', 'test@example.com')
-            ->call('updateProfileInformation');
+    $user->refresh();
 
-        $component
-            ->assertHasNoErrors()
-            ->assertNoRedirect();
+    $this->assertSame('Test User', $user->name);
+    $this->assertSame('test@example.com', $user->email);
+    $this->assertNull($user->email_verified_at);
+});
 
-        $user->refresh();
+test('email verification status is unchanged when the email address is unchanged', function () {
+    $user = User::factory()->create();
 
-        $this->assertSame('Test User', $user->name);
-        $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
-    }
+    $response = $this
+        ->actingAs($user)
+        ->patch('/profile', [
+            'name' => 'Test User',
+            'email' => $user->email,
+        ]);
 
-    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
-    {
-        $user = User::factory()->create();
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect('/profile');
 
-        $this->actingAs($user);
+    $this->assertNotNull($user->refresh()->email_verified_at);
+});
 
-        $component = Volt::test('profile.update-profile-information-form')
-            ->set('name', 'Test User')
-            ->set('email', $user->email)
-            ->call('updateProfileInformation');
+test('user can delete their account', function () {
+    $user = User::factory()->create();
 
-        $component
-            ->assertHasNoErrors()
-            ->assertNoRedirect();
+    $response = $this
+        ->actingAs($user)
+        ->delete('/profile', [
+            'password' => 'password',
+        ]);
 
-        $this->assertNotNull($user->refresh()->email_verified_at);
-    }
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect('/');
 
-    public function test_user_can_delete_their_account(): void
-    {
-        $user = User::factory()->create();
+    $this->assertGuest();
+    $this->assertNull($user->fresh());
+});
 
-        $this->actingAs($user);
+test('correct password must be provided to delete account', function () {
+    $user = User::factory()->create();
 
-        $component = Volt::test('profile.delete-user-form')
-            ->set('password', 'password')
-            ->call('deleteUser');
+    $response = $this
+        ->actingAs($user)
+        ->from('/profile')
+        ->delete('/profile', [
+            'password' => 'wrong-password',
+        ]);
 
-        $component
-            ->assertHasNoErrors()
-            ->assertRedirect('/');
+    $response
+        ->assertSessionHasErrors('password')
+        ->assertRedirect('/profile');
 
-        $this->assertGuest();
-        $this->assertNull($user->fresh());
-    }
-
-    public function test_correct_password_must_be_provided_to_delete_account(): void
-    {
-        $user = User::factory()->create();
-
-        $this->actingAs($user);
-
-        $component = Volt::test('profile.delete-user-form')
-            ->set('password', 'wrong-password')
-            ->call('deleteUser');
-
-        $component
-            ->assertHasErrors('password')
-            ->assertNoRedirect();
-
-        $this->assertNotNull($user->fresh());
-    }
-}
+    $this->assertNotNull($user->fresh());
+});

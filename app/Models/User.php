@@ -47,11 +47,19 @@ class User extends Authenticatable
     }
 
     /**
-     * The workouts that belong to the user.
+     * The workout plans that belong to the user.
      */
-    public function workouts()
+    public function workoutPlans()
     {
         return $this->belongsToMany(WorkoutPlan::class);
+    }
+
+    /**
+     * The meal plans that belong to the user.
+     */
+    public function mealPlans()
+    {
+        return $this->belongsToMany(MealPlan::class, 'user_meal_plan')->withTimestamps();
     }
 
     public function isAdmin(): bool
