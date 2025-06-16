@@ -209,6 +209,17 @@ export default function Dashboard({ auth, workoutStats, mealStats }: DashboardPr
               <p>Follow your workout plans, mark exercises as complete, and track your progress over time.</p>
             </ActionCard>
 
+            {/* Meal Plans Card */}
+            <ActionCard
+              title="Meal Plans"
+              description="View and track your assigned meal plans"
+              icon={<Apple className="h-4 w-4 text-green-600" />}
+              actionLabel="View Plans"
+              actionRoute={route('meal-plans.index')}
+            >
+              <p>Follow your meal plans, track your nutrition intake, and maintain healthy eating habits.</p>
+            </ActionCard>
+
             {/* Additional action cards can be added here as needed */}
           </div>
         </div>

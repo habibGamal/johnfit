@@ -258,7 +258,7 @@ class MealStatsService
             $meal = Meal::where('id', $completion->meal_id)->first();
 
             if ($meal) {
-                $multiplier = 1; // Default multiplier if quantity not available
+                $multiplier = $completion->quantity ?? 1; // Use the actual quantity from completion
 
                 if (!isset($dailyTotals[$day])) {
                     $dailyTotals[$day] = [

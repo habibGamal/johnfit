@@ -33,6 +33,18 @@ export default function Authenticated({
                                 >
                                     Dashboard
                                 </NavLink>
+                                <NavLink
+                                    href={route('workout-plans.index')}
+                                    active={route().current('workout-plans.*')}
+                                >
+                                    Workout Plans
+                                </NavLink>
+                                <NavLink
+                                    href={route('meal-plans.index')}
+                                    active={route().current('meal-plans.*')}
+                                >
+                                    Meal Plans
+                                </NavLink>
                             </div>
                         </div>
 
@@ -136,6 +148,18 @@ export default function Authenticated({
                             active={route().current('dashboard')}
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('workout-plans.index')}
+                            active={route().current('workout-plans.*')}
+                        >
+                            Workout Plans
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('meal-plans.index')}
+                            active={route().current('meal-plans.*')}
+                        >
+                            Meal Plans
                         </ResponsiveNavLink>
                     </div>
 

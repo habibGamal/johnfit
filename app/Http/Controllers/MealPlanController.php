@@ -47,6 +47,7 @@ class MealPlanController extends Controller
             'day' => 'required|string',
             'meal_id' => 'required|exists:meals,id',
             'meal_time' => 'nullable|string',
+            'quantity' => 'nullable|numeric|min:0.1',
         ]);
 
         $user = Auth::user();
@@ -58,7 +59,8 @@ class MealPlanController extends Controller
             $mealPlanId,
             $request->day,
             $request->meal_id,
-            $request->meal_time
+            $request->meal_time,
+            $request->quantity
         );
 
         return redirect()->back();

@@ -29,9 +29,15 @@
                     </a>
                 </li>
                 <li class="nav-items">
-                    <a href="/login"
-                        class="nav-links custom_cursor_orangeglow ">Login
-                    </a>
+                    @auth
+                        <a href="{{ route('dashboard') }}"
+                            class="nav-links custom_cursor_orangeglow ">Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}"
+                            class="nav-links custom_cursor_orangeglow ">Login
+                        </a>
+                    @endauth
                 </li>
             </ul>
         </nav>

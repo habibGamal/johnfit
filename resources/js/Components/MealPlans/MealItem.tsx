@@ -21,7 +21,12 @@ export default function MealItem({
     mealTime,
 }: MealItemProps) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
-
+    console.log("Meal Item Props:", {
+        meal,
+        mealPlanId,
+        day,
+        mealTime,
+    });
     const toggleCompletion = () => {
         router.post(
             route("meal-plans.toggle-completion"),
@@ -30,6 +35,7 @@ export default function MealItem({
                 day: day,
                 meal_id: meal.id,
                 meal_time: mealTime || null,
+                quantity: meal.quantity,
             },
             {
                 onStart: () => setIsLoading(true),

@@ -252,9 +252,10 @@ class MealTrackingService
      * @param string $day
      * @param int $mealId
      * @param string|null $mealTime
+     * @param float|null $quantity
      * @return bool The new completion status
      */
-    public function toggleMealCompletion(User $user, int $mealPlanId, string $day, int $mealId, ?string $mealTime = null): bool
+    public function toggleMealCompletion(User $user, int $mealPlanId, string $day, int $mealId, ?string $mealTime = null, ?float $quantity = null): bool
     {
         $completion = MealCompletion::firstOrNew([
             'user_id' => $user->id,
@@ -265,6 +266,14 @@ class MealTrackingService
         ]);
 
         $completion->completed = !$completion->completed;
+
+        // Update quantity if provided, otherwise keep existing or default to 1.0
+        if ($quantity !== null) {
+            $completion->quantity = $quantity;
+        } elseif (!$completion->exists) {
+            $completion->quantity = 1.0;
+        }
+
         $completion->save();
 
         return $completion->completed;
