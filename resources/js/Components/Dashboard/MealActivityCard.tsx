@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
+import { Button } from '@/Components/ui/button';
 import { CalendarDays, Utensils, ClipboardList } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import { RecentActivity } from '@/types';

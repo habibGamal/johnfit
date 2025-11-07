@@ -31,7 +31,8 @@ export interface WeeklyCompletionRate {
 
 export interface RecentActivity {
     day: string;
-    workout: string;
+    workout?: string;
+    meal?: string;
     plan_name: string;
     completed_at: string;
 }

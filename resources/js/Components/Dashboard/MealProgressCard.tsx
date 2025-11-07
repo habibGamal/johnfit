@@ -1,7 +1,7 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { MealStats } from '@/types';
 import { AppleIcon, CalendarDays, Utensils } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/Components/ui/badge';
 import DailyActivityBar from './DailyActivityBar';
 
 interface MealProgressCardProps {

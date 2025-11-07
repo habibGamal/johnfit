@@ -171,10 +171,11 @@
                                         <div class="col-sm-6">
                                             <p
                                                 class="satoshi_fontfamily line_height_24 fw_500 color_lightgray reveal custom_zoom_in">
-                                                Copyright 2024 © Design by <a
-                                                    href="https://1.envato.market/website-portfolio"
+                                                Copyright <span id="current-year"></span> © Developed by <a
+                                                    href="https://programming-studio.vercel.app/"
                                                     class="color_lightgray triners_icons"
-                                                    target="_blank">The_Krishna</a></p>
+                                                    target="_blank">Habib Gamal</a>
+                                            </p>
                                         </div>
                                         <div class="col-sm-6">
                                             <ul class="footer_social_icon">
@@ -318,6 +319,11 @@
                 });
             });
         });
+    </script>
+
+    <script>
+        // Set current year dynamically
+        document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
 </body>
 
