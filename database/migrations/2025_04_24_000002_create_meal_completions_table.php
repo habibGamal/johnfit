@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('day');
             $table->unsignedBigInteger('meal_id');
             $table->string('meal_time')->nullable();
+            $table->decimal('quantity', 8, 2)->default(1.0);
             $table->boolean('completed')->default(false);
             $table->timestamps();
 

@@ -16,11 +16,13 @@ class MealCompletion extends Model
         'day',
         'meal_id',
         'meal_time',
+        'quantity',
         'completed'
     ];
 
     protected $casts = [
-        'completed' => 'boolean'
+        'completed' => 'boolean',
+        'quantity' => 'decimal:2'
     ];
 
     public function user(): BelongsTo

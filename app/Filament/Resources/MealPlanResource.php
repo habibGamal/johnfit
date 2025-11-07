@@ -206,27 +206,36 @@ class MealPlanResource extends Resource
 
     public static function calcValues($meals, $days)
     {
-        $calories = 0;
-        $proteins = 0;
-        $carbs = 0;
-        $fats = 0;
+        $totalCalories = 0;
+        $totalProteins = 0;
+        $totalCarbs = 0;
+        $totalFats = 0;
+        $dayCount = count($days);
+
         foreach ($days as $day) {
             foreach ($day['time'] as $time) {
                 foreach ($time['meals'] as $meal) {
                     $mealModel = $meals->where('id', '=', $meal['meal_id'])->first();
                     if (!$mealModel) continue;
-                    $calories += $meal['quantity'] * $mealModel->meal_macros['calories'];
-                    $proteins += $meal['quantity'] * $mealModel->meal_macros['proteins'];
-                    $carbs += $meal['quantity'] * $mealModel->meal_macros['carbs'];
-                    $fats += $meal['quantity'] * $mealModel->meal_macros['fats'];
+                    $totalCalories += $meal['quantity'] * $mealModel->meal_macros['calories'];
+                    $totalProteins += $meal['quantity'] * $mealModel->meal_macros['proteins'];
+                    $totalCarbs += $meal['quantity'] * $mealModel->meal_macros['carbs'];
+                    $totalFats += $meal['quantity'] * $mealModel->meal_macros['fats'];
                 }
             }
         }
+
+        // Calculate average values per day
+        $avgCalories = $dayCount > 0 ? $totalCalories / $dayCount : 0;
+        $avgProteins = $dayCount > 0 ? $totalProteins / $dayCount : 0;
+        $avgCarbs = $dayCount > 0 ? $totalCarbs / $dayCount : 0;
+        $avgFats = $dayCount > 0 ? $totalFats / $dayCount : 0;
+
         return [
-            'calories' => $calories,
-            'proteins' => $proteins,
-            'carbs' => $carbs,
-            'fats' => $fats,
+            'calories' => round($avgCalories, 1),
+            'proteins' => round($avgProteins, 1),
+            'carbs' => round($avgCarbs, 1),
+            'fats' => round($avgFats, 1),
         ];
     }
 

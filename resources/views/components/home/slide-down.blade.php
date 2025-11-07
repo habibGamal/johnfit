@@ -1,4 +1,15 @@
-<div class="col-lg-2 col-6">
+<div class="col-lg-2 col-6 d-flex justify-content-center align-items-center">
+    <div class="header_quick_access me-3 d-block d-lg-none">
+        @auth
+            <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-warning custom_cursor_orangeglow">
+                Dashboard
+            </a>
+        @else
+            <a href="{{ route('login') }}" class="btn btn-sm btn-outline-warning custom_cursor_orangeglow">
+                Login
+            </a>
+        @endauth
+    </div>
     <div class="header_toggle_menu_area">
         <div class="header_tooglemenu">
             <div class="orangeglow">
@@ -134,7 +145,8 @@
                                                         <span class="color_lightgray">Email
                                                             Now</span>
                                                         <a href="mailto:coach.john.info@gmail.com "
-                                                            class="line_height_normal satoshi_fontfamily color_white triners_icons">coach.john.info@gmail.com </a>
+                                                            class="line_height_normal satoshi_fontfamily color_white triners_icons">coach.john.info@gmail.com
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -163,7 +175,8 @@
                                                 </a>
                                             </div>
                                             <div class="col-lg-6 col-md-3 col-sm-6">
-                                                <a href="https://www.instagram.com/coach.johnxx/profilecard/?igsh=MXJrN2E5cDc2YnV6MQ==" target="_blank"
+                                                <a href="https://www.instagram.com/coach.johnxx/profilecard/?igsh=MXJrN2E5cDc2YnV6MQ=="
+                                                    target="_blank"
                                                     class="triners_icons header_gettouch_icons color_white">
                                                     <svg width="20" height="20" viewBox="0 0 20 20"
                                                         fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -183,7 +196,8 @@
                                                 </a>
                                             </div>
                                             <div class="col-lg-6 col-md-3 col-sm-6">
-                                                <a href="https://www.youtube.com/@coachjohn-fitnesstraineran9776" target="_blank"
+                                                <a href="https://www.youtube.com/@coachjohn-fitnesstraineran9776"
+                                                    target="_blank"
                                                     class="triners_icons header_gettouch_icons color_white">
                                                     <svg width="20" height="20" viewBox="0 0 20 20"
                                                         fill="none" xmlns="http://www.w3.org/2000/svg">

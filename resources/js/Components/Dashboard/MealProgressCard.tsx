@@ -77,10 +77,20 @@ export default function MealProgressCard({ weeklyCompletionRate, activeDaysData 
                     {activeDaysData.reduce((max, day) => day.count > max.count ? day : max, activeDaysData[0]).day} is your most consistent day
                   </Badge>
 
-                  <Badge variant="outline" className="bg-muted/20">
-                    <CalendarDays className="mr-1 h-3 w-3" />
-                    {activeDaysData.reduce((sum, day) => sum + day.count, 0) / 7} meals tracked per day
-                  </Badge>
+                  {(() => {
+                    const totalMeals = activeDaysData.reduce((sum, day) => sum + day.count, 0);
+                    const averageMeals = Math.round(totalMeals / 7 * 10) / 10; // Round to 1 decimal
+                    const displayText = averageMeals >= 1
+                      ? `${averageMeals} meals tracked daily on average`
+                      : `${totalMeals} meals tracked this week`;
+
+                    return (
+                      <Badge variant="outline" className="bg-muted/20">
+                        <CalendarDays className="mr-1 h-3 w-3" />
+                        {displayText}
+                      </Badge>
+                    );
+                  })()}
                 </>
               )}
             </div>
