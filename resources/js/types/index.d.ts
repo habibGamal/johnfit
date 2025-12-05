@@ -7,6 +7,24 @@ export interface User {
 }
 
 // Types for workout plans and related interfaces
+
+// User and authentication types
+export interface User {
+    id: number;
+    name: string;
+    email: string;
+    email_verified_at?: string;
+}
+
+export interface Auth {
+    user: User;
+}
+
+export interface PageProps<T extends Record<string, any> = {}> extends T {
+    auth: Auth;
+    [key: string]: any;
+}
+
 export interface Workout {
     id: number;
     name: string;
@@ -40,6 +58,13 @@ export interface RecentActivity {
     day: string;
     workout?: string;
     meal?: string;
+    plan_name: string;
+    completed_at: string;
+}
+
+export interface MealRecentActivity {
+    day: string;
+    meal: string;
     plan_name: string;
     completed_at: string;
 }
@@ -102,7 +127,7 @@ export interface MealStats {
     weeklyCompletionRate: WeeklyCompletionRate;
     currentStreak: number;
     mostActiveDays: Record<string, number>;
-    recentActivity: RecentActivity[];
+    recentActivity: MealRecentActivity[];
     progressOverTime: {
         date: string;
         count: number;
