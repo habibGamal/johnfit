@@ -27,6 +27,8 @@ class MealStatsService
             'progressOverTime' => $this->getProgressOverTime($user),
             'aggregateStats' => $this->getAggregateStats($user),
             'nutritionAverages' => $this->getNutritionAverages($user),
+            'comparisonStats' => $this->getComparisonStats($user),
+            'macroDistribution' => $this->getMacroDistribution($user),
         ];
     }
 
@@ -308,5 +310,79 @@ class MealStatsService
         }
 
         return $averages;
+    }
+
+    /**
+     * Get comparison stats (this week vs last week)
+     *
+     * @param User $user
+     * @return array
+     */
+    public function getComparisonStats(User $user): array
+    {
+        // This Week
+        $startOfThisWeek = now()->startOfWeek();
+        $endOfThisWeek = now()->endOfWeek();
+
+        $thisWeekCount = MealCompletion::where('user_id', $user->id)
+            ->where('completed', true)
+            ->where('created_at', '>=', $startOfThisWeek)
+            ->where('created_at', '<=', $endOfThisWeek)
+            ->count();
+
+        // Last Week
+        $startOfLastWeek = now()->subWeek()->startOfWeek();
+        $endOfLastWeek = now()->subWeek()->endOfWeek();
+
+        $lastWeekCount = MealCompletion::where('user_id', $user->id)
+            ->where('completed', true)
+            ->where('created_at', '>=', $startOfLastWeek)
+            ->where('created_at', '<=', $endOfLastWeek)
+            ->count();
+
+        // Avoid division by zero
+        if ($lastWeekCount == 0) {
+            $percentageChange = $thisWeekCount > 0 ? 100 : 0;
+        } else {
+            $percentageChange = round((($thisWeekCount - $lastWeekCount) / $lastWeekCount) * 100);
+        }
+
+        return [
+            'this_week' => $thisWeekCount,
+            'last_week' => $lastWeekCount,
+            'percentage_change' => $percentageChange,
+            'trend' => $percentageChange > 0 ? 'up' : ($percentageChange < 0 ? 'down' : 'neutral')
+        ];
+    }
+
+    /**
+     * Get macro distribution for donut chart
+     *
+     * @param User $user
+     * @return array
+     */
+    public function getMacroDistribution(User $user): array
+    {
+        $averages = $this->getNutritionAverages($user);
+
+        $protein = $averages['protein'] * 4; // 4 cal/g
+        $carbs = $averages['carbs'] * 4;     // 4 cal/g
+        $fat = $averages['fat'] * 9;         // 9 cal/g
+
+        $totalCal = $protein + $carbs + $fat;
+
+        if ($totalCal <= 0) {
+            return [
+                ['name' => 'Protein', 'value' => 33, 'color' => '#10b981'],
+                ['name' => 'Carbs', 'value' => 33, 'color' => '#3b82f6'],
+                ['name' => 'Fat', 'value' => 33, 'color' => '#f59e0b'],
+            ];
+        }
+
+        return [
+            ['name' => 'Protein', 'value' => round(($protein / $totalCal) * 100), 'color' => '#10b981'],
+            ['name' => 'Carbs', 'value' => round(($carbs / $totalCal) * 100), 'color' => '#3b82f6'],
+            ['name' => 'Fat', 'value' => round(($fat / $totalCal) * 100), 'color' => '#f59e0b'],
+        ];
     }
 }

@@ -29,7 +29,7 @@ class GoogleAuthController extends Controller
 
             // Find or create user
             $user = User::where('email', $googleUser->getEmail())->first();
-
+            logger()->info('User found', ['user' => $user]);
             if ($user) {
                 // Update google_id if not set
                 if (!$user->google_id) {
@@ -52,6 +52,7 @@ class GoogleAuthController extends Controller
             return redirect()->intended(route('dashboard', absolute: false));
 
         } catch (\Exception $e) {
+            logger()->error('Google login failed', ['error' => $e]);
             return redirect()->route('login')->with('error', 'Unable to login with Google. Please try again.');
         }
     }

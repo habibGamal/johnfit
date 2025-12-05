@@ -104,6 +104,30 @@ export interface AchievementStats {
     recent_completions: number;
 }
 
+export interface ComparisonStats {
+    this_week: number;
+    last_week: number;
+    percentage_change: number;
+    trend: 'up' | 'down' | 'neutral';
+}
+
+export interface Achievement {
+    id: string;
+    title: string;
+    description: string;
+    icon: string;
+    condition?: boolean;
+    progress: number;
+    tier: 'bronze' | 'silver' | 'gold';
+    unlocked: boolean;
+}
+
+export interface MacroDistributionItem {
+    name: string;
+    value: number;
+    color: string;
+}
+
 export interface WorkoutStats {
     weeklyCompletionRate: WeeklyCompletionRate;
     currentStreak: number;
@@ -114,6 +138,8 @@ export interface WorkoutStats {
         count: number;
     }[];
     aggregateStats: AchievementStats;
+    comparisonStats: ComparisonStats;
+    achievements: Achievement[];
 }
 
 export interface NutritionAverages {
@@ -134,6 +160,8 @@ export interface MealStats {
     }[];
     aggregateStats: AchievementStats;
     nutritionAverages: NutritionAverages;
+    comparisonStats: ComparisonStats;
+    macroDistribution: MacroDistributionItem[];
 }
 
 // Page props interface

@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { LucideIcon } from "lucide-react";
 
 interface StatBadgeProps {
   icon: ReactNode;
@@ -19,11 +18,13 @@ export default function StatBadge({
   iconClassName = "text-primary",
 }: StatBadgeProps) {
   return (
-    <div className={`flex items-center gap-2 rounded-lg ${className} px-3 py-1`}>
-      <div className={iconClassName}>{icon}</div>
-      <div className="p-2">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={`text-lg font-bold ${valueClassName}`}>{value}</p>
+    <div className={`flex items-center gap-3 rounded-xl border ${className} px-4 py-2.5 transition-all hover:scale-105 duration-300`}>
+      <div className={`p-1.5 rounded-full bg-white/50 dark:bg-black/20 ${iconClassName}`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{label}</p>
+        <p className={`text-lg font-bold leading-none mt-0.5 ${valueClassName}`}>{value}</p>
       </div>
     </div>
   );

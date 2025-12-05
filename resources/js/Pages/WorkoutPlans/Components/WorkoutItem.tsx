@@ -6,8 +6,10 @@ import {
 } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
-import { ExternalLink, Video } from 'lucide-react';
+import { ExternalLink, Video, Dumbbell, Repeat, CheckCircle2, Circle } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/Components/ui/badge';
 
 interface WorkoutItemProps {
     workout: Workout;
@@ -20,88 +22,123 @@ export default function WorkoutItem({ workout, workoutPlanId, day }: WorkoutItem
 
     const toggleCompletion = async () => {
         router.post(route('workout-plans.toggle-completion'), {
-                workout_plan_id: workoutPlanId,
-                day: day,
-                workout_id: workout.id,
-            },
+            workout_plan_id: workoutPlanId,
+            day: day,
+            workout_id: workout.id,
+        },
             {
                 onStart: () => setIsLoading(true),
                 onFinish: () => setIsLoading(false),
+                preserveScroll: true,
             }
         )
     };
 
     return (
-        <Card className="overflow-hidden border">
-            <CardContent className="p-4">
-                {/* Top section with image and completion status - always horizontal */}
-                <div className="flex items-start justify-between gap-4 mb-3">
-                    <div className="flex items-start gap-3">
-                        {/* Workout thumbnail */}
-                        <div className="h-14 w-14 sm:h-16 sm:w-16 flex-shrink-0 overflow-hidden rounded-md bg-muted">
-                            {workout.thumb ? (
-                                <img
-                                    src={workout.thumb}
-                                    alt={workout.name}
-                                    className="h-full w-full object-cover"
-                                />
-                            ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-muted-foreground/10 text-muted-foreground/50">
-                                    <svg className="h-6 w-6 sm:h-8 sm:w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-                                    </svg>
+        <div className={cn(
+            "group relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md",
+            workout.completed && "bg-muted/30 border-primary/20"
+        )}>
+            {/* Completion Overlay Effect */}
+            <div className={cn(
+                "absolute inset-0 bg-primary/5 pointer-events-none transition-opacity duration-300",
+                workout.completed ? "opacity-100" : "opacity-0"
+            )} />
+
+            <div className="p-4 sm:p-5 relative z-10">
+                <div className="flex items-start gap-4">
+                    {/* Thumbnail */}
+                    <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted shadow-sm ring-1 ring-border/50">
+                        {workout.thumb ? (
+                            <img
+                                src={workout.thumb}
+                                alt={workout.name}
+                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                        ) : (
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground/50">
+                                <Dumbbell className="h-8 w-8" />
+                            </div>
+                        )}
+                        {/* Mobile Video Play Button Overlay */}
+                        {workout.video_url && (
+                            <a
+                                href={workout.video_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity hover:bg-black/40 group-hover:opacity-100 sm:hidden"
+                            >
+                                <Video className="h-8 w-8 text-white drop-shadow-md" />
+                            </a>
+                        )}
+                    </div>
+
+                    <div className="flex-1 min-w-0 py-0.5">
+                        <div className="flex items-start justify-between gap-2">
+                            <div>
+                                <h4 className={cn(
+                                    "font-semibold text-base leading-tight md:text-lg transition-colors",
+                                    workout.completed ? "text-muted-foreground line-through decoration-primary/50 decoration-2" : "text-foreground"
+                                )}>
+                                    {workout.name}
+                                </h4>
+                                {workout.muscles && (
+                                    <p className="mt-1 text-xs text-muted-foreground line-clamp-1">
+                                        Target: {workout.muscles}
+                                    </p>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={toggleCompletion}
+                                disabled={isLoading}
+                                className={cn(
+                                    "flex-shrink-0 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                                    isLoading && "opacity-50 cursor-not-allowed"
+                                )}
+                            >
+                                {workout.completed ? (
+                                    <CheckCircle2 className="h-7 w-7 text-primary fill-primary/10" />
+                                ) : (
+                                    <Circle className="h-7 w-7 text-muted-foreground hover:text-primary transition-colors" />
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Metrics Grid */}
+                        <div className="mt-3 grid grid-cols-2 gap-2 text-sm sm:flex sm:gap-6">
+                            <div className="flex items-center gap-1.5 rounded-md bg-muted/50 px-2 py-1">
+                                <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="font-medium text-foreground">{workout.reps}</span>
+                                <span className="text-xs text-muted-foreground">reps</span>
+                            </div>
+                            {workout.tools && (
+                                <div className="col-span-1 flex items-center gap-1.5 rounded-md bg-muted/50 px-2 py-1 line-clamp-1">
+                                    <span className="text-xs text-muted-foreground">with</span>
+                                    <span className="font-medium text-foreground truncate">{workout.tools}</span>
                                 </div>
                             )}
                         </div>
-
-                        {/* Workout title */}
-                        <div className="pt-1">
-                            <h4 className="font-medium text-foreground line-clamp-2">{workout.name}</h4>
-                        </div>
-                    </div>
-
-                    {/* Completion checkbox */}
-                    <div className="flex items-center space-x-2 ml-2 flex-shrink-0">
-                        <Checkbox
-                            id={`workout-${workout.id}`}
-                            checked={workout.completed}
-                            disabled={isLoading}
-                            onCheckedChange={toggleCompletion}
-                        />
-                        <label
-                            htmlFor={`workout-${workout.id}`}
-                            className="text-sm font-medium leading-none hidden sm:inline peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                            {workout.completed ? 'Completed' : 'Mark as done'}
-                        </label>
                     </div>
                 </div>
 
-                {/* Workout details section - stacks on mobile */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2">
-                    {/* Workout details */}
-                    <div className="flex-1 text-sm text-muted-foreground grid grid-cols-2 sm:flex sm:gap-4">
-                        <p><span className="font-medium">Reps:</span> {workout.reps}</p>
-                        <p><span className="font-medium">Muscles:</span> {workout.muscles}</p>
-                        {workout.tools && <p className="col-span-2 sm:col-span-1"><span className="font-medium">Tools:</span> {workout.tools}</p>}
-                    </div>
-
-                    {/* Video link */}
-                    {workout.video_url && (
+                {/* PC Video Link - Only visible on desktop/hover actions usually, but let's make it actionable */}
+                {workout.video_url && (
+                    <div className="mt-4 hidden sm:block">
                         <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            className="mt-2 sm:mt-0 flex-shrink-0 text-sm"
+                            className="h-8 w-full justify-start text-muted-foreground hover:text-primary"
                             asChild
                         >
                             <a href={workout.video_url} target="_blank" rel="noopener noreferrer">
-                                <Video className="mr-1.5 h-3.5 w-3.5" />
-                                Watch Video
+                                <Video className="mr-2 h-3.5 w-3.5" />
+                                Watch Demonstration Video
                             </a>
                         </Button>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }

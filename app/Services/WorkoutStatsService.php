@@ -26,6 +26,8 @@ class WorkoutStatsService
             'recentActivity' => $this->getRecentActivity($user),
             'progressOverTime' => $this->getProgressOverTime($user),
             'aggregateStats' => $this->getAggregateStats($user),
+            'comparisonStats' => $this->getComparisonStats($user),
+            'achievements' => $this->getAchievements($user),
         ];
     }
 
@@ -208,5 +210,131 @@ class WorkoutStatsService
             'active_plans' => $activePlans,
             'recent_completions' => $recentCompletions,
         ];
+    }
+
+    /**
+     * Get comparison stats (this week vs last week)
+     *
+     * @param User $user
+     * @return array
+     */
+    public function getComparisonStats(User $user): array
+    {
+        // This Week
+        $startOfThisWeek = now()->startOfWeek();
+        $endOfThisWeek = now()->endOfWeek();
+
+        $thisWeekCount = WorkoutCompletion::where('user_id', $user->id)
+            ->where('completed', true)
+            ->where('updated_at', '>=', $startOfThisWeek)
+            ->where('updated_at', '<=', $endOfThisWeek)
+            ->count();
+
+        // Last Week
+        $startOfLastWeek = now()->subWeek()->startOfWeek();
+        $endOfLastWeek = now()->subWeek()->endOfWeek();
+
+        $lastWeekCount = WorkoutCompletion::where('user_id', $user->id)
+            ->where('completed', true)
+            ->where('updated_at', '>=', $startOfLastWeek)
+            ->where('updated_at', '<=', $endOfLastWeek)
+            ->count();
+
+        // Avoid division by zero
+        if ($lastWeekCount == 0) {
+            $percentageChange = $thisWeekCount > 0 ? 100 : 0;
+        } else {
+            $percentageChange = round((($thisWeekCount - $lastWeekCount) / $lastWeekCount) * 100);
+        }
+
+        return [
+            'this_week' => $thisWeekCount,
+            'last_week' => $lastWeekCount,
+            'percentage_change' => $percentageChange,
+            'trend' => $percentageChange > 0 ? 'up' : ($percentageChange < 0 ? 'down' : 'neutral')
+        ];
+    }
+
+    /**
+     * Get user achievements based on stats
+     *
+     * @param User $user
+     * @return array
+     */
+    public function getAchievements(User $user): array
+    {
+        $achievements = [];
+        $totalCompletions = WorkoutCompletion::where('user_id', $user->id)
+            ->where('completed', true)
+            ->count();
+
+        $streak = $this->getCurrentStreak($user);
+
+        // Define potential achievements
+        $definitions = [
+            [
+                'id' => 'first_step',
+                'title' => 'First Step',
+                'description' => 'Completed your first workout',
+                'icon' => 'Target', // Lucide icon name
+                'condition' => $totalCompletions >= 1,
+                'progress' => min($totalCompletions, 1) / 1 * 100,
+                'tier' => 'bronze'
+            ],
+            [
+                'id' => 'getting_serious',
+                'title' => 'Getting Serious',
+                'description' => 'Completed 10 workouts',
+                'icon' => 'Dumbbell',
+                'condition' => $totalCompletions >= 10,
+                'progress' => min($totalCompletions, 10) / 10 * 100,
+                'tier' => 'silver'
+            ],
+            [
+                'id' => 'workout_warrior',
+                'title' => 'Workout Warrior',
+                'description' => 'Completed 50 workouts',
+                'icon' => 'Trophy',
+                'condition' => $totalCompletions >= 50,
+                'progress' => min($totalCompletions, 50) / 50 * 100,
+                'tier' => 'gold'
+            ],
+            [
+                'id' => 'week_streak',
+                'title' => 'On Fire',
+                'description' => '7 day workout streak',
+                'icon' => 'Flame',
+                'condition' => $streak >= 7,
+                'progress' => min($streak, 7) / 7 * 100,
+                'tier' => 'gold'
+            ],
+            [
+                'id' => 'consistent',
+                'title' => 'Consistency',
+                'description' => '3 day workout streak',
+                'icon' => 'Zap',
+                'condition' => $streak >= 3,
+                'progress' => min($streak, 3) / 3 * 100,
+                'tier' => 'bronze'
+            ]
+        ];
+
+        foreach ($definitions as $def) {
+            if ($def['condition']) {
+                $achievements[] = array_merge($def, ['unlocked' => true]);
+            } else {
+                $achievements[] = array_merge($def, ['unlocked' => false]);
+            }
+        }
+
+        // Sort: Unlocked first, then by progress
+        usort($achievements, function ($a, $b) {
+            if ($a['unlocked'] === $b['unlocked']) {
+                return $b['progress'] <=> $a['progress'];
+            }
+            return $b['unlocked'] <=> $a['unlocked'];
+        });
+
+        return $achievements;
     }
 }

@@ -3,9 +3,10 @@ import { Head, Link } from '@inertiajs/react';
 import { MealPlan } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
-import { ArrowLeft, Utensils, Calendar, BarChart4 } from 'lucide-react';
+import { ArrowLeft, Utensils, Calendar, Target, Flame, ChevronRight } from 'lucide-react';
 import MealDay from '@/Components/MealPlans/MealDay';
 import { Badge } from '@/Components/ui/badge';
+import { Progress } from '@/Components/ui/progress';
 
 interface ShowProps {
   mealPlan: MealPlan;
@@ -54,95 +55,75 @@ export default function Show({ mealPlan }: ShowProps) {
     <AuthenticatedLayout
       header={
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold leading-tight text-gray-800">
-            {mealPlan.name}
-          </h2>
-          <Button variant="outline" size="sm" asChild>
-            <Link href={route('meal-plans.index')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Meal Plans
-            </Link>
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" asChild className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+              <Link href={route('meal-plans.index')}>
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+            </Button>
+            <div>
+              <h2 className="text-xl font-bold leading-tight text-gray-900 dark:text-gray-100">
+                {mealPlan.name}
+              </h2>
+              <p className="text-xs text-muted-foreground">Your nutrition roadmap</p>
+            </div>
+          </div>
         </div>
       }
     >
       <Head title={mealPlan.name} />
 
-      <div className="py-12">
+      <div className="py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Summary Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Utensils className="h-5 w-5 text-primary" />
-                    Summary
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
+
+            {/* Sidebar Stats */}
+            <div className="md:col-span-4 space-y-6">
+              {/* Progress Card */}
+              <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Target className="h-5 w-5 text-primary" />
+                    Overall Progress
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span>Total Progress</span>
-                        <span className="font-medium">{completionPercentage}%</span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                        <div
-                          className="h-full bg-primary"
-                          style={{ width: `${completionPercentage}%` }}
-                        />
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {completedMeals} of {totalMeals} meals consumed
-                      </p>
+                    <div className="flex items-end justify-between">
+                      <span className="text-4xl font-bold text-primary">{completionPercentage}%</span>
+                      <span className="text-sm text-muted-foreground mb-1">{completedMeals}/{totalMeals} meals</span>
                     </div>
-
-                    <div className="pt-2">
-                      <p className="text-sm font-medium mb-2">Meal Plan Days</p>
-                      <div className="flex flex-wrap gap-2">
-                        {mealPlan.plan.map(day => (
-                          <Badge
-                            key={day.day}
-                            variant="outline"
-                            className="flex items-center gap-1"
-                          >
-                            <Calendar className="h-3 w-3" /> {day.day}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
+                    <Progress value={completionPercentage} className="h-3" />
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Nutrition Stats Card (Placeholder) */}
-              <Card>
+              {/* Nutrition Goals Card */}
+              <Card className="border-none shadow-lg">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart4 className="h-5 w-5 text-primary" />
-                    Nutrition Goals
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Flame className="h-5 w-5 text-orange-500" />
+                    Daily Targets
                   </CardTitle>
-                  <CardDescription>Daily average targets</CardDescription>
+                  <CardDescription>Average nutrition intake</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Calories</span>
-                      <span className="text-sm font-medium">{dailyAverage.calories.toLocaleString()} kcal</span>
+                <CardContent className="grid gap-4">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                    <span className="text-sm font-medium">Calories</span>
+                    <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{dailyAverage.calories.toLocaleString()}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 text-center">
+                      <span className="block text-xs text-muted-foreground">Protein</span>
+                      <span className="block text-lg font-bold text-blue-600 dark:text-blue-400">{dailyAverage.protein}g</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Protein</span>
-                      <span className="text-sm font-medium">{dailyAverage.protein}g</span>
+                    <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/20 text-center">
+                      <span className="block text-xs text-muted-foreground">Carbs</span>
+                      <span className="block text-lg font-bold text-green-600 dark:text-green-400">{dailyAverage.carbs}g</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Carbs</span>
-                      <span className="text-sm font-medium">{dailyAverage.carbs}g</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Fat</span>
-                      <span className="text-sm font-medium">{dailyAverage.fat}g</span>
+                    <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 text-center">
+                      <span className="block text-xs text-muted-foreground">Fat</span>
+                      <span className="block text-lg font-bold text-yellow-600 dark:text-yellow-400">{dailyAverage.fat}g</span>
                     </div>
                   </div>
                 </CardContent>
@@ -150,31 +131,59 @@ export default function Show({ mealPlan }: ShowProps) {
             </div>
 
             {/* Main Content */}
-            <div className="md:col-span-2">
-              {/* Today's Plan (if available) */}
+            <div className="md:col-span-8 space-y-8">
+              {/* Today's Plan */}
               {todayPlan && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-semibold mb-4">Today's Meals</h2>
-                  <MealDay
-                    day={todayPlan}
-                    mealPlanId={mealPlan.id}
-                    defaultOpen={true}
-                  />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      Today's Focus
+                    </h2>
+                    <Badge variant="outline" className="px-3 py-1 bg-primary/10 text-primary border-primary/20">
+                      {today}
+                    </Badge>
+                  </div>
+
+                  <div className="relative z-10">
+                    <MealDay
+                      day={todayPlan}
+                      mealPlanId={mealPlan.id}
+                      defaultOpen={true}
+                    />
+                  </div>
                 </div>
               )}
 
               {/* Full Week Plan */}
-              <h2 className="text-lg font-semibold mb-4">Full Meal Plan</h2>
               <div className="space-y-4">
-                {mealPlan.plan.map((day) => (
-                  <MealDay
-                    key={day.day}
-                    day={day}
-                    mealPlanId={mealPlan.id}
-                  />
-                ))}
+                <h2 className="text-lg font-semibold text-muted-foreground">Full Schedule</h2>
+                <div className="space-y-4">
+                  {mealPlan.plan.filter(d => d.day !== today).map((day) => (
+                    <MealDay
+                      key={day.day}
+                      day={day}
+                      mealPlanId={mealPlan.id}
+                    />
+                  ))}
+                  {/* Re-render today if needed in the list or keep it separate. 
+                      Common pattern is to show today at top and others below, usually duplicating isn't needed unless the list is strict.
+                      If todayPlan exists, we showed it above. 
+                      If we want to show ALL days in order, we might just map all of them. 
+                      Let's stick to showing remaining days here or just all days if we want a complete list.
+                      For a dashboard feel, "Today" projected at top is good. 
+                  */}
+                  {todayPlan && (
+                    <div className="opacity-50 pointer-events-none grayscale hover:grayscale-0 transition-all">
+                      {/* Optional: Show today again in the list as disabled/done or just skip it. 
+                               The filter above skips it. Perfect.
+                           */}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>

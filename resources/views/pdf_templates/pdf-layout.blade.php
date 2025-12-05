@@ -28,15 +28,14 @@
 
 
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css'])
 </head>
 
 <body>
     <div class="bg-[#0e0e0e] pb-2" id="app">
         <div class="text-white w-[90%] mx-auto">
             <div class="flex justify-between py-6 items-center">
-                <img src="{{ asset('images/logo_pdf.png') }}" onclick="print()" class="rounded-full w-16"
-                    alt="Logo">
+                <img src="{{ asset('images/logo_pdf.png') }}" onclick="print()" class="rounded-full w-16" alt="Logo">
                 <a class="text-white text-xl font-medium"
                     href="https://www.facebook.com/photo/?fbid=452259133590019&set=a.452259086923357">
                     Facebook
@@ -63,11 +62,11 @@
                 html2canvas: {
                     useCORS: true,
                     scale: 2,
-                    height: document.querySelector('#app').clientHeight+150
+                    height: document.querySelector('#app').clientHeight + 150
                 },
                 jsPDF: {
                     unit: 'px',
-                    format: [600, document.querySelector('#app').clientHeight+150],
+                    format: [600, document.querySelector('#app').clientHeight + 150],
                     orientation: 'p'
                 }
             });
