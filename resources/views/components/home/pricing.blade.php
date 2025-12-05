@@ -42,7 +42,7 @@
                                                                         <span class="color_white satoshi_fontfamily" style="font-size: 14px; opacity: 0.7;">EGP</span>
                                                                     </div>
                                                                 </div>
-                                                                <p class="satoshi_fontfamily" style="font-size: 11px; color: rgba(255, 255, 255, 0.5); margin: 0; text-align: right;">133 EGP/month</p>
+
                                                             </div>
                                                             <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
                                                                 <div class="d-flex align-items-baseline justify-content-between mb-1">
@@ -55,7 +55,7 @@
                                                                         <span class="color_white satoshi_fontfamily" style="font-size: 14px; opacity: 0.7;">EGP</span>
                                                                     </div>
                                                                 </div>
-                                                                <p class="satoshi_fontfamily" style="font-size: 11px; color: rgba(255, 255, 255, 0.5); margin: 0; text-align: right;">333 EGP/month</p>
+
                                                             </div>
                                                             <div>
                                                                 <div class="d-flex align-items-baseline justify-content-between mb-1">
@@ -68,7 +68,7 @@
                                                                         <span class="color_white satoshi_fontfamily" style="font-size: 14px; opacity: 0.7;">EGP</span>
                                                                     </div>
                                                                 </div>
-                                                                <p class="satoshi_fontfamily" style="font-size: 11px; color: rgba(255, 255, 255, 0.5); margin: 0; text-align: right;">300 EGP/month</p>
+
                                                             </div>
                                                         </div>
                                                         <div class="purches_btn reveal custom_fade_buttom">
@@ -116,7 +116,7 @@
                                                                         <span class="color_white satoshi_fontfamily" style="font-size: 14px; opacity: 0.7;">EGP</span>
                                                                     </div>
                                                                 </div>
-                                                                <p class="satoshi_fontfamily" style="font-size: 11px; color: rgba(255, 255, 255, 0.5); margin: 0; text-align: right;">185 EGP/month</p>
+
                                                             </div>
                                                             <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 107, 0, 0.2);">
                                                                 <div class="d-flex align-items-baseline justify-content-between mb-1">
@@ -129,7 +129,7 @@
                                                                         <span class="color_white satoshi_fontfamily" style="font-size: 14px; opacity: 0.7;">EGP</span>
                                                                     </div>
                                                                 </div>
-                                                                <p class="satoshi_fontfamily" style="font-size: 11px; color: rgba(255, 255, 255, 0.5); margin: 0; text-align: right;">467 EGP/month</p>
+
                                                             </div>
                                                             <div>
                                                                 <div class="d-flex align-items-baseline justify-content-between mb-1">
@@ -142,7 +142,7 @@
                                                                         <span class="color_white satoshi_fontfamily" style="font-size: 14px; opacity: 0.7;">EGP</span>
                                                                     </div>
                                                                 </div>
-                                                                <p class="satoshi_fontfamily" style="font-size: 11px; color: rgba(255, 255, 255, 0.5); margin: 0; text-align: right;">400 EGP/month</p>
+
                                                             </div>
                                                         </div>
                                                         <div class="purches_btn reveal custom_fade_buttom">
@@ -189,7 +189,7 @@
                                                                         <span class="color_white satoshi_fontfamily" style="font-size: 14px; opacity: 0.7;">EGP</span>
                                                                     </div>
                                                                 </div>
-                                                                <p class="satoshi_fontfamily" style="font-size: 11px; color: rgba(255, 255, 255, 0.5); margin: 0; text-align: right;">267 EGP/month</p>
+
                                                             </div>
                                                             <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
                                                                 <div class="d-flex align-items-baseline justify-content-between mb-1">
@@ -202,7 +202,7 @@
                                                                         <span class="color_white satoshi_fontfamily" style="font-size: 14px; opacity: 0.7;">EGP</span>
                                                                     </div>
                                                                 </div>
-                                                                <p class="satoshi_fontfamily" style="font-size: 11px; color: rgba(255, 255, 255, 0.5); margin: 0; text-align: right;">700 EGP/month</p>
+
                                                             </div>
                                                             <div>
                                                                 <div class="d-flex align-items-baseline justify-content-between mb-1">
@@ -215,7 +215,7 @@
                                                                         <span class="color_white satoshi_fontfamily" style="font-size: 14px; opacity: 0.7;">EGP</span>
                                                                     </div>
                                                                 </div>
-                                                                <p class="satoshi_fontfamily" style="font-size: 11px; color: rgba(255, 255, 255, 0.5); margin: 0; text-align: right;">650 EGP/month</p>
+
                                                             </div>
                                                         </div>
                                                         <div class="purches_btn reveal custom_fade_buttom">
