@@ -1,4 +1,11 @@
-// filepath: e:\johnfit\resources\js\types\index.d.ts
+// Types for authentication and user
+export interface User {
+    id: number;
+    name: string;
+    email: string;
+    email_verified_at?: string;
+}
+
 // Types for workout plans and related interfaces
 
 // User and authentication types
@@ -49,7 +56,8 @@ export interface WeeklyCompletionRate {
 
 export interface RecentActivity {
     day: string;
-    workout: string;
+    workout?: string;
+    meal?: string;
     plan_name: string;
     completed_at: string;
 }
@@ -126,4 +134,11 @@ export interface MealStats {
     }[];
     aggregateStats: AchievementStats;
     nutritionAverages: NutritionAverages;
+}
+
+// Page props interface
+export interface PageProps<T extends Record<string, unknown> = Record<string, unknown>> extends T {
+    auth: {
+        user: User;
+    };
 }

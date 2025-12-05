@@ -40,7 +40,6 @@ export default function MealDay({ day, mealPlanId, defaultOpen = false }: MealDa
             <div className="flex items-center gap-2">
               <Badge
                 variant={isFullyCompleted ? "success" : "outline"}
-                className={`${isFullyCompleted ? "bg-green-100 text-green-800" : ""}`}
               >
                 {completedMeals}/{totalMeals} meals
               </Badge>
