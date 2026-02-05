@@ -8,7 +8,8 @@ import {
   Calendar,
   Calendar as CalendarIcon,
   Utensils,
-  Apple
+  Apple,
+  TrendingUp
 } from 'lucide-react';
 import { WorkoutStats, MealStats } from '@/types';
 
@@ -252,7 +253,16 @@ export default function Dashboard({ auth, workoutStats, mealStats }: DashboardPr
               <p>Follow your meal plans, track your nutrition intake, and maintain healthy eating habits.</p>
             </ActionCard>
 
-            {/* Additional action cards can be added here as needed */}
+            {/* Analytics Card */}
+            <ActionCard
+              title="Progression Analytics"
+              description="Track your strength gains and body composition"
+              icon={<TrendingUp className="h-5 w-5 text-purple-600" />}
+              actionLabel="View Analytics"
+              actionRoute={route('analytics.index')}
+            >
+              <p>Analyze your 1RM trends, volume progression, and correlate performance with body composition.</p>
+            </ActionCard>
           </div>
         </div>
       </div>

@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { WorkoutPlan } from '@/types';
 import { Button } from '@/Components/ui/button';
+import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
 import {
     Accordion,
@@ -10,14 +12,21 @@ import {
     AccordionTrigger,
 } from '@/Components/ui/accordion';
 import WorkoutItem from './Components/WorkoutItem';
-import { ArrowLeft, CalendarDays, Trophy, Activity, Timer } from 'lucide-react';
+import FinishWorkoutDialog from './Components/FinishWorkoutDialog';
+import { ArrowLeft, CalendarDays, Trophy, Activity, Timer, CheckCircle2 } from 'lucide-react';
 import { Progress } from '@/Components/ui/progress';
+import { cn } from '@/lib/utils';
 
 interface ShowProps {
     workoutPlan: WorkoutPlan;
 }
 
 export default function Show({ workoutPlan }: ShowProps) {
+    const [activeDay, setActiveDay] = useState<string | null>(null);
+    const [showFinishDialog, setShowFinishDialog] = useState(false);
+    const [finishingDay, setFinishingDay] = useState<string>('');
+    const [incompleteSets, setIncompleteSets] = useState(0);
+
     const completedWorkouts = workoutPlan.plan.reduce((total, day) => {
         return total + day.workouts.filter(workout => workout.completed).length;
     }, 0);
@@ -29,6 +38,28 @@ export default function Show({ workoutPlan }: ShowProps) {
     const completionPercentage = totalWorkouts > 0
         ? Math.round((completedWorkouts / totalWorkouts) * 100)
         : 0;
+
+    const getDayProgress = (day: typeof workoutPlan.plan[0]) => {
+        const completed = day.workouts.filter(w => w.completed).length;
+        const total = day.workouts.length;
+        return { completed, total, percentage: total > 0 ? Math.round((completed / total) * 100) : 0 };
+    };
+
+    const handleFinishDay = async (day: string) => {
+        // Fetch session summary to check for incomplete sets
+        try {
+            const response = await axios.get(route('workout-plans.session-summary', { workoutPlan: workoutPlan.id, day }));
+
+            setFinishingDay(day);
+            setIncompleteSets(response.data.incomplete_sets || 0);
+            setShowFinishDialog(true);
+        } catch (error) {
+            console.error('Failed to get session summary:', error);
+            setFinishingDay(day);
+            setIncompleteSets(0);
+            setShowFinishDialog(true);
+        }
+    };
 
     return (
         <AuthenticatedLayout
@@ -132,31 +163,66 @@ export default function Show({ workoutPlan }: ShowProps) {
                                     <CardDescription>Your prescribed routine for the week</CardDescription>
                                 </CardHeader>
                                 <CardContent className="p-0">
-                                    <Accordion type="single" collapsible className="w-full">
-                                        {workoutPlan.plan.map((day, index) => (
-                                            <AccordionItem key={day.day} value={`day-${index}`} className="border-b last:border-0 px-6">
-                                                <AccordionTrigger className="text-base py-4 hover:no-underline hover:text-primary transition-colors">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="font-semibold text-lg">{day.day}</span>
-                                                        <span className="text-sm text-muted-foreground font-normal">
-                                                            ({day.workouts.length} {day.workouts.length === 1 ? 'workout' : 'workouts'})
-                                                        </span>
-                                                    </div>
-                                                </AccordionTrigger>
-                                                <AccordionContent>
-                                                    <div className="space-y-4 pt-2 pb-6">
-                                                        {day.workouts.map((workout) => (
-                                                            <WorkoutItem
-                                                                key={workout.id}
-                                                                workout={workout}
-                                                                workoutPlanId={workoutPlan.id}
-                                                                day={day.day}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                        ))}
+                                    <Accordion
+                                        type="single"
+                                        collapsible
+                                        className="w-full"
+                                        value={activeDay ?? undefined}
+                                        onValueChange={(value) => setActiveDay(value || null)}
+                                    >
+                                        {workoutPlan.plan.map((day, index) => {
+                                            const dayProgress = getDayProgress(day);
+                                            const isActive = activeDay === `day-${index}`;
+
+                                            return (
+                                                <AccordionItem key={day.day} value={`day-${index}`} className="border-b last:border-0 px-6">
+                                                    <AccordionTrigger className="text-base py-4 hover:no-underline hover:text-primary transition-colors">
+                                                        <div className="flex items-center justify-between w-full pr-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="font-semibold text-lg">{day.day}</span>
+                                                                <span className="text-sm text-muted-foreground font-normal">
+                                                                    ({day.workouts.length} {day.workouts.length === 1 ? 'workout' : 'workouts'})
+                                                                </span>
+                                                            </div>
+                                                            <div className={cn(
+                                                                "px-2 py-1 rounded-full text-xs font-medium",
+                                                                dayProgress.percentage === 100
+                                                                    ? "bg-green-500/20 text-green-600 dark:text-green-400"
+                                                                    : dayProgress.percentage > 0
+                                                                        ? "bg-primary/10 text-primary"
+                                                                        : "bg-muted text-muted-foreground"
+                                                            )}>
+                                                                {dayProgress.completed}/{dayProgress.total}
+                                                            </div>
+                                                        </div>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent>
+                                                        <div className="space-y-4 pt-2 pb-6">
+                                                            {day.workouts.map((workout) => (
+                                                                <WorkoutItem
+                                                                    key={workout.id}
+                                                                    workout={workout}
+                                                                    workoutPlanId={workoutPlan.id}
+                                                                    day={day.day}
+                                                                />
+                                                            ))}
+
+                                                            {/* Finish Day Button */}
+                                                            <div className="pt-4 border-t border-border/50">
+                                                                <Button
+                                                                    onClick={() => handleFinishDay(day.day)}
+                                                                    className="w-full py-6 text-base font-semibold"
+                                                                    variant={dayProgress.percentage === 100 ? "default" : "secondary"}
+                                                                >
+                                                                    <CheckCircle2 className="mr-2 h-5 w-5" />
+                                                                    {dayProgress.percentage === 100 ? 'Complete Workout' : 'Finish Workout'}
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            );
+                                        })}
                                     </Accordion>
                                 </CardContent>
                             </Card>
@@ -164,6 +230,15 @@ export default function Show({ workoutPlan }: ShowProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Finish Workout Dialog */}
+            <FinishWorkoutDialog
+                open={showFinishDialog}
+                onOpenChange={setShowFinishDialog}
+                workoutPlanId={workoutPlan.id}
+                day={finishingDay}
+                incompleteSets={incompleteSets}
+            />
         </AuthenticatedLayout>
     );
 }

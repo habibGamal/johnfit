@@ -45,6 +45,18 @@ export default function Authenticated({
                                 >
                                     Meal Plans
                                 </NavLink>
+                                <NavLink
+                                    href={route('analytics.index')}
+                                    active={route().current('analytics.*')}
+                                >
+                                    Analytics
+                                </NavLink>
+                                <NavLink
+                                    href={route('inbody.index')}
+                                    active={route().current('inbody.*')}
+                                >
+                                    InBody
+                                </NavLink>
                             </div>
                         </div>
 
@@ -160,6 +172,18 @@ export default function Authenticated({
                             active={route().current('meal-plans.*')}
                         >
                             Meal Plans
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('analytics.index')}
+                            active={route().current('analytics.*')}
+                        >
+                            Analytics
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('inbody.index')}
+                            active={route().current('inbody.*')}
+                        >
+                            InBody
                         </ResponsiveNavLink>
                     </div>
 

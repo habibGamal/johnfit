@@ -63,6 +63,14 @@ class User extends Authenticatable
         return $this->belongsToMany(MealPlan::class, 'user_meal_plan')->withTimestamps();
     }
 
+    /**
+     * The InBody logs that belong to the user.
+     */
+    public function inBodyLogs()
+    {
+        return $this->hasMany(InBodyLog::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

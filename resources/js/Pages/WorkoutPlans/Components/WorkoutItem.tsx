@@ -1,15 +1,10 @@
 import { useState } from 'react';
 import { Workout } from '@/types';
-import {
-    Card,
-    CardContent,
-} from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
-import { Checkbox } from '@/Components/ui/checkbox';
-import { ExternalLink, Video, Dumbbell, Repeat, CheckCircle2, Circle } from 'lucide-react';
+import { Video, Dumbbell, Repeat, ChevronDown, ChevronUp } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/Components/ui/badge';
+import WorkoutSetTracker from './WorkoutSetTracker';
 
 interface WorkoutItemProps {
     workout: Workout;
@@ -18,26 +13,23 @@ interface WorkoutItemProps {
 }
 
 export default function WorkoutItem({ workout, workoutPlanId, day }: WorkoutItemProps) {
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isExpanded, setIsExpanded] = useState<boolean>(false);
+    const [localCompletedCount, setLocalCompletedCount] = useState<number>(0);
 
-    const toggleCompletion = async () => {
-        router.post(route('workout-plans.toggle-completion'), {
-            workout_plan_id: workoutPlanId,
-            day: day,
-            workout_id: workout.id,
-        },
-            {
-                onStart: () => setIsLoading(true),
-                onFinish: () => setIsLoading(false),
-                preserveScroll: true,
-            }
-        )
+    const handleSetChange = () => {
+        // Don't reload immediately - let the local state handle updates
+        // Only reload when user collapses or navigates away
+        setLocalCompletedCount(prev => prev + 1);
     };
+
+    const completedSets = workout.sets?.filter(s => s.completed).length || 0;
+    const totalSets = workout.sets?.length || (workout.reps_preset?.length || 3);
 
     return (
         <div className={cn(
-            "group relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md",
-            workout.completed && "bg-muted/30 border-primary/20"
+            "group relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-all",
+            workout.completed && "bg-muted/30 border-primary/20",
+            isExpanded && "shadow-lg"
         )}>
             {/* Completion Overlay Effect */}
             <div className={cn(
@@ -45,10 +37,14 @@ export default function WorkoutItem({ workout, workoutPlanId, day }: WorkoutItem
                 workout.completed ? "opacity-100" : "opacity-0"
             )} />
 
-            <div className="p-4 sm:p-5 relative z-10">
+            {/* Collapsible Header */}
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="w-full p-4 sm:p-5 relative z-10 text-left"
+            >
                 <div className="flex items-start gap-4">
                     {/* Thumbnail */}
-                    <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted shadow-sm ring-1 ring-border/50">
+                    <div className="relative h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted shadow-sm ring-1 ring-border/50">
                         {workout.thumb ? (
                             <img
                                 src={workout.thumb}
@@ -57,7 +53,7 @@ export default function WorkoutItem({ workout, workoutPlanId, day }: WorkoutItem
                             />
                         ) : (
                             <div className="flex h-full w-full items-center justify-center text-muted-foreground/50">
-                                <Dumbbell className="h-8 w-8" />
+                                <Dumbbell className="h-6 w-6 sm:h-8 sm:w-8" />
                             </div>
                         )}
                         {/* Mobile Video Play Button Overlay */}
@@ -66,9 +62,10 @@ export default function WorkoutItem({ workout, workoutPlanId, day }: WorkoutItem
                                 href={workout.video_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
                                 className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity hover:bg-black/40 group-hover:opacity-100 sm:hidden"
                             >
-                                <Video className="h-8 w-8 text-white drop-shadow-md" />
+                                <Video className="h-6 w-6 text-white drop-shadow-md" />
                             </a>
                         )}
                     </div>
@@ -78,7 +75,7 @@ export default function WorkoutItem({ workout, workoutPlanId, day }: WorkoutItem
                             <div>
                                 <h4 className={cn(
                                     "font-semibold text-base leading-tight md:text-lg transition-colors",
-                                    workout.completed ? "text-muted-foreground line-through decoration-primary/50 decoration-2" : "text-foreground"
+                                    workout.completed ? "text-muted-foreground" : "text-foreground"
                                 )}>
                                     {workout.name}
                                 </h4>
@@ -89,56 +86,83 @@ export default function WorkoutItem({ workout, workoutPlanId, day }: WorkoutItem
                                 )}
                             </div>
 
-                            <button
-                                onClick={toggleCompletion}
-                                disabled={isLoading}
-                                className={cn(
-                                    "flex-shrink-0 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                                    isLoading && "opacity-50 cursor-not-allowed"
-                                )}
-                            >
-                                {workout.completed ? (
-                                    <CheckCircle2 className="h-7 w-7 text-primary fill-primary/10" />
-                                ) : (
-                                    <Circle className="h-7 w-7 text-muted-foreground hover:text-primary transition-colors" />
-                                )}
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {/* Sets Progress Indicator */}
+                                <div className={cn(
+                                    "px-2 py-1 rounded-md text-xs font-medium",
+                                    completedSets === totalSets && completedSets > 0
+                                        ? "bg-green-500/20 text-green-600 dark:text-green-400"
+                                        : completedSets > 0
+                                            ? "bg-primary/10 text-primary"
+                                            : "bg-muted text-muted-foreground"
+                                )}>
+                                    {completedSets}/{totalSets}
+                                </div>
+
+                                {/* Expand/Collapse Icon */}
+                                <div className={cn(
+                                    "rounded-full p-1 transition-colors",
+                                    isExpanded ? "bg-primary/10 text-primary" : "text-muted-foreground"
+                                )}>
+                                    {isExpanded ? (
+                                        <ChevronUp className="h-5 w-5" />
+                                    ) : (
+                                        <ChevronDown className="h-5 w-5" />
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Metrics Grid */}
-                        <div className="mt-3 grid grid-cols-2 gap-2 text-sm sm:flex sm:gap-6">
-                            <div className="flex items-center gap-1.5 rounded-md bg-muted/50 px-2 py-1">
-                                <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
-                                <span className="font-medium text-foreground">{workout.reps}</span>
-                                <span className="text-xs text-muted-foreground">reps</span>
-                            </div>
-                            {workout.tools && (
-                                <div className="col-span-1 flex items-center gap-1.5 rounded-md bg-muted/50 px-2 py-1 line-clamp-1">
-                                    <span className="text-xs text-muted-foreground">with</span>
-                                    <span className="font-medium text-foreground truncate">{workout.tools}</span>
+                        {/* Metrics Grid - Collapsed View */}
+                        {!isExpanded && (
+                            <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                                <div className="flex items-center gap-1.5 rounded-md bg-muted/50 px-2 py-1">
+                                    <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <span className="font-medium text-foreground">{workout.reps}</span>
+                                    <span className="text-xs text-muted-foreground">target</span>
                                 </div>
-                            )}
-                        </div>
+                                {workout.tools && (
+                                    <div className="flex items-center gap-1.5 rounded-md bg-muted/50 px-2 py-1">
+                                        <span className="text-xs text-muted-foreground">with</span>
+                                        <span className="font-medium text-foreground truncate max-w-[100px]">{workout.tools}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
+            </button>
 
-                {/* PC Video Link - Only visible on desktop/hover actions usually, but let's make it actionable */}
-                {workout.video_url && (
-                    <div className="mt-4 hidden sm:block">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-full justify-start text-muted-foreground hover:text-primary"
-                            asChild
-                        >
-                            <a href={workout.video_url} target="_blank" rel="noopener noreferrer">
-                                <Video className="mr-2 h-3.5 w-3.5" />
-                                Watch Demonstration Video
-                            </a>
-                        </Button>
+            {/* Expanded Set Tracker */}
+            {isExpanded && (
+                <div className="px-4 pb-4 sm:px-5 sm:pb-5 relative z-10 border-t border-border/50">
+                    <div className="pt-4">
+                        <WorkoutSetTracker
+                            workout={workout}
+                            workoutPlanId={workoutPlanId}
+                            day={day}
+                            onSetChange={handleSetChange}
+                        />
                     </div>
-                )}
-            </div>
+
+                    {/* PC Video Link */}
+                    {workout.video_url && (
+                        <div className="mt-4 hidden sm:block">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-full justify-start text-muted-foreground hover:text-primary"
+                                asChild
+                            >
+                                <a href={workout.video_url} target="_blank" rel="noopener noreferrer">
+                                    <Video className="mr-2 h-3.5 w-3.5" />
+                                    Watch Demonstration Video
+                                </a>
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
