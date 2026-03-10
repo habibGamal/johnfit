@@ -29,5 +29,11 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('user'),
             'role' => 'user',
         ]);
+
+        $this->call([
+            AssessmentSeeder::class,
+            SubscriptionPlanSeeder::class,
+            QuoteSeeder::class,
+        ]);
     }
 }

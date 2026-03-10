@@ -30,14 +30,13 @@ class MealPlanController extends Controller
         $formattedMealPlans = $this->trackingService->formatMealPlansForUser($mealPlans, $user);
 
         return Inertia::render('MealPlans/Index', [
-            'mealPlans' => $formattedMealPlans
+            'mealPlans' => $formattedMealPlans,
         ]);
     }
 
     /**
      * Toggle meal consumption status.
      *
-     * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function toggleCompletion(Request $request)
@@ -48,6 +47,8 @@ class MealPlanController extends Controller
             'meal_id' => 'required|exists:meals,id',
             'meal_time' => 'nullable|string',
             'quantity' => 'nullable|numeric|min:0.1',
+            'group_meal_ids' => 'nullable|array',
+            'group_meal_ids.*' => 'integer|exists:meals,id',
         ]);
 
         $user = Auth::user();
@@ -60,7 +61,8 @@ class MealPlanController extends Controller
             $request->day,
             $request->meal_id,
             $request->meal_time,
-            $request->quantity
+            $request->quantity,
+            $request->group_meal_ids ?? [],
         );
 
         return redirect()->back();
@@ -69,7 +71,6 @@ class MealPlanController extends Controller
     /**
      * Display the specified meal plan.
      *
-     * @param MealPlan $mealPlan
      * @return \Inertia\Response
      */
     public function show(MealPlan $mealPlan)
@@ -77,14 +78,14 @@ class MealPlanController extends Controller
         $user = Auth::user();
 
         // Check if the user is assigned to this meal plan
-        if (!$this->trackingService->canUserAccessMealPlan($user, $mealPlan)) {
+        if (! $this->trackingService->canUserAccessMealPlan($user, $mealPlan)) {
             abort(403, 'You do not have access to this meal plan.');
         }
 
         $mealPlanData = $this->trackingService->formatMealPlanForUser($mealPlan, $user);
 
         return Inertia::render('MealPlans/Show', [
-            'mealPlan' => $mealPlanData
+            'mealPlan' => $mealPlanData,
         ]);
     }
 }

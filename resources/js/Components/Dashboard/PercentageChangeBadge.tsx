@@ -22,7 +22,7 @@ export default function PercentageChangeBadge({
     let Icon = Minus;
 
     if (isNeutral) {
-        colorClass = "text-gray-500 bg-gray-100 dark:text-gray-400 dark:bg-gray-800";
+        colorClass = "text-muted-foreground bg-muted border border-border";
         Icon = Minus;
     } else if ((isPositive && !reverseColor) || (!isPositive && reverseColor)) {
         colorClass = "text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10";

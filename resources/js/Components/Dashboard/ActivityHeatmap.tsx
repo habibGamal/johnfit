@@ -11,16 +11,16 @@ interface ActivityHeatmapProps {
 export default function ActivityHeatmap({ data, title = "Activity Intensity" }: ActivityHeatmapProps) {
 
     const getIntensityColor = (count: number) => {
-        if (count === 0) return "bg-gray-100 dark:bg-gray-800";
+        if (count === 0) return "bg-gray-100 bg-card";
         if (count === 1) return "bg-emerald-200 dark:bg-emerald-900";
         if (count === 2) return "bg-emerald-400 dark:bg-emerald-700";
         if (count >= 3) return "bg-emerald-600 dark:bg-emerald-500";
-        return "bg-gray-100 dark:bg-gray-800";
+        return "bg-gray-100 bg-card";
     };
 
     return (
         <div className="w-full">
-            <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">{title}</h4>
+            <h4 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">{title}</h4>
 
             <div className="flex flex-wrap gap-1.5">
                 {data.map((day) => (
@@ -35,7 +35,7 @@ export default function ActivityHeatmap({ data, title = "Activity Intensity" }: 
             <div className="flex items-center gap-2 mt-2 text-xs text-gray-400 justify-end">
                 <span>Less</span>
                 <div className="flex gap-1">
-                    <div className="w-3 h-3 rounded-sm bg-gray-100 dark:bg-gray-800"></div>
+                    <div className="w-3 h-3 rounded-sm bg-gray-100 bg-card"></div>
                     <div className="w-3 h-3 rounded-sm bg-emerald-200 dark:bg-emerald-900"></div>
                     <div className="w-3 h-3 rounded-sm bg-emerald-400 dark:bg-emerald-700"></div>
                     <div className="w-3 h-3 rounded-sm bg-emerald-600 dark:bg-emerald-500"></div>

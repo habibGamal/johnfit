@@ -1,10 +1,16 @@
 import { Head, Link, useForm } from "@inertiajs/react";
-import { FormEventHandler } from "react";
+import { FormEventHandler, useEffect } from "react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import Checkbox from "@/Components/Checkbox";
 import { cn } from "@/lib/utils";
+
+declare global {
+    interface Window {
+        pushToken: string|null;
+    }
+}
 
 export default function Login({
     status,
@@ -13,11 +19,21 @@ export default function Login({
     status?: string;
     canResetPassword: boolean;
 }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm<{
+        email: string;
+        password: string;
+        remember: boolean;
+        expo_token: string|null;
+    }>({
         email: "",
         password: "",
         remember: false,
+        expo_token: null,
     });
+
+    useEffect(()=>{
+        setData("expo_token", window.pushToken);
+    },[])
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();

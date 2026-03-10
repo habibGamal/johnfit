@@ -96,13 +96,19 @@ class WorkoutTrackingService
                 return $item->day.'_'.$item->workout_id;
             });
 
-        // Get today's set completions for each workout
-        $todaySets = WorkoutSetCompletion::where('user_id', $user->id)
+        // Get latest session sets for each workout (not just today)
+        // This ensures progress is always visible regardless of when the user last trained
+        $latestSets = WorkoutSetCompletion::where('user_id', $user->id)
             ->where('workout_plan_id', $workoutPlan->id)
-            ->where('session_date', $today)
             ->get()
             ->groupBy(function ($item) {
                 return $item->day.'_'.$item->workout_id;
+            })
+            ->map(function ($sets) {
+                // For each workout, get only the sets from the latest session
+                $latestSessionDate = $sets->max('session_date');
+
+                return $sets->where('session_date', $latestSessionDate);
             });
 
         // Get previous session sets for suggestions
@@ -139,8 +145,8 @@ class WorkoutTrackingService
                         $repsPreset = $repsPresetModel ? $repsPresetModel->reps : null;
                     }
 
-                    // Get today's sets for this workout
-                    $workoutSets = $todaySets->get($day.'_'.$workout_id, collect())->map(function ($set) {
+                    // Get latest sets for this workout
+                    $workoutSets = $latestSets->get($day.'_'.$workout_id, collect())->map(function ($set) {
                         return [
                             'id' => $set->id,
                             'set_number' => $set->set_number,

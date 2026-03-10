@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f84a90d59e5183b7adfe57a47ba496ec",
+    "content-hash": "3bb43928be1b402e7d8fdb840a9355cc",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -71,6 +71,67 @@
                 "source": "https://github.com/AnourValar/eloquent-serialize/tree/1.2.27"
             },
             "time": "2024-11-30T08:27:24+00:00"
+        },
+        {
+            "name": "asciisd/kashier",
+            "version": "v1.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/asciisd/kashier.git",
+                "reference": "1239e4046b4fbb058bac468b512b3fd352be692b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/asciisd/kashier/zipball/1239e4046b4fbb058bac468b512b3fd352be692b",
+                "reference": "1239e4046b4fbb058bac468b512b3fd352be692b",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "illuminate/support": "*",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.20",
+                "orchestra/testbench": "^8.31",
+                "pestphp/pest": "^2.36",
+                "pestphp/pest-plugin-laravel": "^2.0",
+                "phpstan/phpstan": "^2.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Kashier": "Asciisd\\Kashier\\Facades\\Kashier"
+                    },
+                    "providers": [
+                        "Asciisd\\Kashier\\Providers\\KashierServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Asciisd\\Kashier\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Amr Emad",
+                    "email": "aemaddin@gmail.com",
+                    "homepage": "https://www.asciisd.com/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A Laravel package for Kashier payment gateway integration",
+            "support": {
+                "issues": "https://github.com/asciisd/kashier/issues",
+                "source": "https://github.com/asciisd/kashier/tree/v1.0.5"
+            },
+            "time": "2025-04-24T10:48:31+00:00"
         },
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -2161,6 +2222,70 @@
                 "source": "https://github.com/kirschbaum-development/eloquent-power-joins/tree/4.0.1"
             },
             "time": "2024-11-26T13:22:08+00:00"
+        },
+        {
+            "name": "laravel-notification-channels/expo",
+            "version": "v2.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel-notification-channels/expo.git",
+                "reference": "e0b297cedfb86df9f14ec3de4151d8db680702eb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel-notification-channels/expo/zipball/e0b297cedfb86df9f14ec3de4151d8db680702eb",
+                "reference": "e0b297cedfb86df9f14ec3de4151d8db680702eb",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "^7.1",
+                "illuminate/contracts": "^11.0|^12.0",
+                "illuminate/notifications": "^11.0|^12.0",
+                "illuminate/support": "^11.0|^12.0",
+                "php": "~8.3"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.0",
+                "orchestra/testbench": "^9.11",
+                "phpunit/phpunit": "^11.0"
+            },
+            "suggest": {
+                "ext-zlib": "Required for compressing payloads exceeding 1 KiB in size."
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "NotificationChannels\\Expo\\ExpoServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "NotificationChannels\\Expo\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Muhammed Sari",
+                    "email": "muhammed@dive.be",
+                    "homepage": "https://dive.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Expo Notifications Channel for Laravel",
+            "homepage": "https://github.com/laravel-notification-channels/expo",
+            "support": {
+                "issues": "https://github.com/laravel-notification-channels/expo/issues",
+                "source": "https://github.com/laravel-notification-channels/expo/tree/v2.1.1"
+            },
+            "time": "2025-12-26T11:28:30+00:00"
         },
         {
             "name": "laravel/framework",
@@ -11605,12 +11730,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
-    "platform-dev": {},
+    "platform-dev": [],
     "plugin-api-version": "2.6.0"
 }

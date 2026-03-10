@@ -6,6 +6,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property float $weight Total body weight in kg
+ * @property float $smm Skeletal Muscle Mass in kg
+ * @property float $pbf Percent Body Fat
+ * @property float $bmi Body Mass Index
+ * @property float $bmr Basal Metabolic Rate in kcal
+ * @property float|null $body_water Total body water in liters
+ * @property float|null $lean_body_mass Lean body mass in kg
+ * @property float|null $visceral_fat Visceral fat level
+ * @property float|null $waist_hip_ratio Waist-to-hip ratio
+ * @property int|null $tenant_id
+ * @property \Illuminate\Support\Carbon $measured_at
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
+ */
 class InBodyLog extends Model
 {
     /** @use HasFactory<\Database\Factories\InBodyLogFactory> */

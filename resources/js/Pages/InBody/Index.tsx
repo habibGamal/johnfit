@@ -20,6 +20,9 @@ import HistoryTimeline from '@/Components/InBody/HistoryTimeline';
 import QuickEntryModal from '@/Components/InBody/QuickEntryModal';
 import EmptyState from '@/Components/InBody/EmptyState';
 
+/**
+ * Props for the InBody Index page.
+ */
 interface InBodyPageProps {
   auth: {
     user: {
@@ -27,9 +30,16 @@ interface InBodyPageProps {
       email: string;
     };
   };
+  /** Comprehensive InBody analysis data provided by InBodyAnalysisService.php */
   analysis: InBodyAnalysis;
 }
 
+/**
+ * InBody Analysis Dashboard.
+ * 
+ * Displays the latest body composition metrics, historical trends,
+ * and automated progress analysis (e.g., muscle gain, fat loss).
+ */
 export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
   const { latest, delta, bodyCompositionAnalysis, statistics, history } = analysis;
   const hasData = latest !== null;
@@ -38,7 +48,7 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
     <AuthenticatedLayout
       header={
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+          <h2 className="text-xl font-semibold leading-tight text-foreground">
             InBody Analysis
           </h2>
           <QuickEntryModal />
@@ -47,7 +57,7 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
     >
       <Head title="InBody Analysis" />
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/30 to-purple-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-8">
+      <div className="min-h-screen bg-background py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {!hasData ? (
             <EmptyState />
@@ -65,10 +75,10 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <h3 className="text-2xl font-bold text-foreground">
                     Your Current Stats
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <p className="text-muted-foreground">
                     Last measured: {latest.measured_at_formatted}
                   </p>
                 </motion.div>
@@ -80,8 +90,7 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
                     unit="kg"
                     icon={Scale}
                     change={delta?.weight}
-                    iconColor="text-blue-600"
-                    bgGradient="from-blue-500/10 to-blue-500/5"
+                    iconColor="text-blue-500"
                     delay={0}
                   />
                   <MetricCard
@@ -90,8 +99,7 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
                     unit="kg"
                     icon={Activity}
                     change={delta?.smm}
-                    iconColor="text-emerald-600"
-                    bgGradient="from-emerald-500/10 to-emerald-500/5"
+                    iconColor="text-emerald-500"
                     delay={0.1}
                   />
                   <MetricCard
@@ -101,8 +109,7 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
                     icon={Percent}
                     change={delta?.pbf}
                     invertTrend={true}
-                    iconColor="text-orange-600"
-                    bgGradient="from-orange-500/10 to-orange-500/5"
+                    iconColor="text-orange-500"
                     delay={0.2}
                   />
                   <MetricCard
@@ -111,8 +118,7 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
                     unit=""
                     icon={Target}
                     change={delta?.bmi}
-                    iconColor="text-purple-600"
-                    bgGradient="from-purple-500/10 to-purple-500/5"
+                    iconColor="text-purple-500"
                     delay={0.3}
                   />
                   <MetricCard
@@ -121,8 +127,7 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
                     unit="kcal"
                     icon={Flame}
                     change={delta?.bmr}
-                    iconColor="text-amber-600"
-                    bgGradient="from-amber-500/10 to-amber-500/5"
+                    iconColor="text-amber-500"
                     delay={0.4}
                   />
                 </div>
@@ -137,8 +142,7 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
                         unit="L"
                         icon={Droplets}
                         change={delta?.body_water || undefined}
-                        iconColor="text-cyan-600"
-                        bgGradient="from-cyan-500/10 to-cyan-500/5"
+                        iconColor="text-cyan-500"
                         delay={0.5}
                       />
                     )}
@@ -149,8 +153,7 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
                         unit="kg"
                         icon={Activity}
                         change={delta?.lean_body_mass || undefined}
-                        iconColor="text-teal-600"
-                        bgGradient="from-teal-500/10 to-teal-500/5"
+                        iconColor="text-teal-500"
                         delay={0.6}
                       />
                     )}
@@ -162,8 +165,7 @@ export default function InBodyIndex({ auth, analysis }: InBodyPageProps) {
                         icon={Target}
                         change={delta?.visceral_fat || undefined}
                         invertTrend={true}
-                        iconColor="text-red-600"
-                        bgGradient="from-red-500/10 to-red-500/5"
+                        iconColor="text-red-500"
                         delay={0.7}
                       />
                     )}

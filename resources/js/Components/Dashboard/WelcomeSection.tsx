@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { motion } from "framer-motion";
 
 interface WelcomeSectionProps {
   firstName: string;
@@ -8,24 +9,62 @@ interface WelcomeSectionProps {
 
 export default function WelcomeSection({ firstName, greeting, statBadges }: WelcomeSectionProps) {
   return (
-    <div className="mb-10 relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-      <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl"></div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="mb-10 relative overflow-hidden rounded-2xl bg-card/80 backdrop-blur-xl p-6 shadow-lg border border-primary/10 shadow-[0_0_30px_-15px_rgba(252,211,77,0.2)]"
+    >
+      {/* Animated gradient blobs */}
+      <motion.div
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.05, 0.08, 0.05],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-primary rounded-full blur-3xl"
+      />
+      <motion.div
+        animate={{
+          scale: [1, 1.3, 1],
+          opacity: [0.1, 0.15, 0.1],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1,
+        }}
+        className="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-primary rounded-full blur-2xl"
+      />
 
       <div className="relative flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <h2 className="text-3xl font-bold text-foreground tracking-tight">
             {greeting}, <span className="text-primary">{firstName}</span>
           </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400 max-w-xl">
+          <p className="mt-2 text-muted-foreground max-w-xl italic">
             "The only bad workout is the one that didn't happen."
           </p>
-        </div>
+        </motion.div>
 
-        <div className="flex flex-wrap gap-3 sm:gap-4">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex flex-wrap gap-3 sm:gap-4"
+        >
           {statBadges}
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

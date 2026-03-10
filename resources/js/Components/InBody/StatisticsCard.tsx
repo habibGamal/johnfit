@@ -23,11 +23,11 @@ export default function StatisticsCard({ statistics }: StatisticsCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.4 }}
     >
-      <Card className="border-0 shadow-lg backdrop-blur-xl bg-gradient-to-br from-white/80 to-white/60 dark:from-gray-800/80 dark:to-gray-800/60">
+      <Card className="border-border bg-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
+          <CardTitle className="flex items-center gap-2 text-lg font-bold text-foreground">
             <div className="p-2 bg-purple-500/10 rounded-lg">
-              <BarChart3 className="h-5 w-5 text-purple-600" />
+              <BarChart3 className="h-5 w-5 text-purple-500" />
             </div>
             Historical Statistics
           </CardTitle>
@@ -39,7 +39,6 @@ export default function StatisticsCard({ statistics }: StatisticsCardProps) {
               const stat = statistics[key];
               const range = stat.max - stat.min || 1;
               const currentPosition = ((stat.current - stat.min) / range) * 100;
-              const avgPosition = ((stat.avg - stat.min) / range) * 100;
 
               return (
                 <motion.div
@@ -50,16 +49,16 @@ export default function StatisticsCard({ statistics }: StatisticsCardProps) {
                   transition={{ delay: 0.5 + index * 0.1 }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span className="text-sm font-medium text-muted-foreground">
                       {config.label}
                     </span>
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">
+                    <span className="text-sm font-bold text-foreground">
                       {stat.current.toFixed(key === 'bmr' ? 0 : 1)} {config.unit}
                     </span>
                   </div>
 
                   {/* Range bar */}
-                  <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className={cn('absolute h-full rounded-full opacity-30', config.color)}
                       style={{ width: '100%' }}
@@ -74,9 +73,9 @@ export default function StatisticsCard({ statistics }: StatisticsCardProps) {
                   </div>
 
                   {/* Min/Max/Avg labels */}
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Min: {stat.min.toFixed(key === 'bmr' ? 0 : 1)}</span>
-                    <span className="text-gray-600 dark:text-gray-300">
+                    <span className="text-foreground">
                       Avg: {stat.avg.toFixed(key === 'bmr' ? 0 : 1)}
                     </span>
                     <span>Max: {stat.max.toFixed(key === 'bmr' ? 0 : 1)}</span>

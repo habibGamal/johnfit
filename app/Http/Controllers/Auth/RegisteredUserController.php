@@ -9,9 +9,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use NotificationChannels\Expo\ExpoPushToken;
 
 class RegisteredUserController extends Controller
 {
@@ -46,6 +48,16 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        if ($request->filled('expo_token')) {
+            $validator = Validator::make($request->only('expo_token'), [
+                'expo_token' => ExpoPushToken::rule(),
+            ]);
+
+            if ($validator->passes()) {
+                $user->update(['expo_token' => $request->expo_token]);
+            }
+        }
+
+        return redirect()->route('assessment.index');
     }
 }

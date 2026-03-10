@@ -13,26 +13,38 @@ interface ShowProps {
 }
 
 export default function Show({ mealPlan }: ShowProps) {
-  // Calculate completion statistics
-  const allMeals = mealPlan.plan.flatMap(day => [
+  // All groups (each OR slot counts as one slot)
+  const allGroups = mealPlan.plan.flatMap(day => [
     ...day.meals,
     ...day.timeSlots.flatMap(timeSlot => timeSlot.meals)
   ]);
 
-  const totalMeals = allMeals.length;
-  const completedMeals = allMeals.filter(meal => meal.completed).length;
+  const totalMeals = allGroups.length;
+  const completedMeals = allGroups.filter(group => group.completed).length;
   const completionPercentage = totalMeals > 0
     ? Math.round((completedMeals / totalMeals) * 100)
     : 0;
 
-  // Calculate nutrition totals
-  const totalNutrition = allMeals.reduce((acc, meal) => {
-    const multiplier = Number(meal.quantity); // Assuming quantity is in grams and nutrition values are per 100g
+  // Calculate nutrition totals — for OR groups, average nutrition across their options
+  const totalNutrition = allGroups.reduce((acc, group) => {
+    const optionCount = group.options.length;
+    if (optionCount === 0) { return acc; }
+
+    const groupNutrition = group.options.reduce((oAcc, option) => {
+      const multiplier = Number(option.quantity);
+      return {
+        calories: oAcc.calories + (option.calories * multiplier),
+        protein: oAcc.protein + (option.protein * multiplier),
+        carbs: oAcc.carbs + (option.carbs * multiplier),
+        fat: oAcc.fat + (option.fat * multiplier),
+      };
+    }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+
     return {
-      calories: acc.calories + (meal.calories * multiplier),
-      protein: acc.protein + (meal.protein * multiplier),
-      carbs: acc.carbs + (meal.carbs * multiplier),
-      fat: acc.fat + (meal.fat * multiplier),
+      calories: acc.calories + groupNutrition.calories / optionCount,
+      protein: acc.protein + groupNutrition.protein / optionCount,
+      carbs: acc.carbs + groupNutrition.carbs / optionCount,
+      fat: acc.fat + groupNutrition.fat / optionCount,
     };
   }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
 
@@ -56,16 +68,16 @@ export default function Show({ mealPlan }: ShowProps) {
       header={
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" asChild className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+            <Button variant="ghost" size="icon" asChild className="rounded-full hover:bg-yellow-500/20 hover:text-yellow-500 transition-colors">
               <Link href={route('meal-plans.index')}>
                 <ArrowLeft className="h-5 w-5" />
               </Link>
             </Button>
             <div>
-              <h2 className="text-xl font-bold leading-tight text-gray-900 dark:text-gray-100">
+              <h2 className="text-xl font-black uppercase tracking-wider text-foreground">
                 {mealPlan.name}
               </h2>
-              <p className="text-xs text-muted-foreground">Your nutrition roadmap</p>
+              <p className="text-xs font-medium text-yellow-500 uppercase tracking-widest">Nutrition Plan</p>
             </div>
           </div>
         </div>
@@ -73,57 +85,87 @@ export default function Show({ mealPlan }: ShowProps) {
     >
       <Head title={mealPlan.name} />
 
-      <div className="py-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
+      <div className="py-8 relative">
+        {/* Background Glow */}
+        <div className="fixed top-20 right-0 w-[300px] h-[300px] bg-yellow-500/5 blur-[100px] pointer-events-none rounded-full" />
+
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-12 items-start">
 
             {/* Sidebar Stats */}
-            <div className="md:col-span-4 space-y-6">
+            <div className="md:col-span-4 space-y-6 sticky top-8">
               {/* Progress Card */}
-              <Card className="border-none shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
+              <Card className="border border-white/10 bg-zinc-900/60 backdrop-blur-xl shadow-xl overflow-hidden relative">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent opacity-50" />
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Target className="h-5 w-5 text-primary" />
-                    Overall Progress
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm uppercase font-bold tracking-wider text-muted-foreground">
+                      Plan Progress
+                    </CardTitle>
+                    <Target className="h-5 w-5 text-yellow-500" />
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-end justify-between">
-                      <span className="text-4xl font-bold text-primary">{completionPercentage}%</span>
-                      <span className="text-sm text-muted-foreground mb-1">{completedMeals}/{totalMeals} meals</span>
+                <CardContent className="pt-4">
+                  <div className="relative flex items-center justify-center py-6">
+                    {/* Radial Progress */}
+                    <div className="relative h-40 w-40">
+                      <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-zinc-800" />
+                        <circle
+                          cx="50" cy="50" r="40"
+                          fill="transparent"
+                          stroke="currentColor"
+                          strokeWidth="8"
+                          strokeDasharray={`${251.2 * (completionPercentage / 100)} 251.2`}
+                          strokeLinecap="round"
+                          className="text-yellow-500 transition-all duration-1000 ease-out"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-4xl font-black text-white">{completionPercentage}%</span>
+                      </div>
                     </div>
-                    <Progress value={completionPercentage} className="h-3" />
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div className="bg-zinc-950/50 rounded-lg p-3 text-center border border-white/5">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Completed</div>
+                      <div className="text-xl font-bold text-white">{completedMeals}</div>
+                    </div>
+                    <div className="bg-zinc-950/50 rounded-lg p-3 text-center border border-white/5">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Total</div>
+                      <div className="text-xl font-bold text-white">{totalMeals}</div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Nutrition Goals Card */}
-              <Card className="border-none shadow-lg">
+              <Card className="border border-white/5 bg-zinc-900/40 backdrop-blur-md">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Flame className="h-5 w-5 text-orange-500" />
+                  <CardTitle className="text-sm uppercase font-bold tracking-wider text-muted-foreground flex items-center gap-2">
+                    <Flame className="h-4 w-4" />
                     Daily Targets
                   </CardTitle>
                   <CardDescription>Average nutrition intake</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
-                    <span className="text-sm font-medium">Calories</span>
-                    <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{dailyAverage.calories.toLocaleString()}</span>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-950/50 border border-white/5">
+                    <span className="text-sm font-medium text-white">Calories</span>
+                    <span className="text-lg font-bold text-yellow-500">{dailyAverage.calories.toLocaleString()}</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 text-center">
+                    <div className="p-3 rounded-lg bg-zinc-950/50 border border-white/5 text-center">
                       <span className="block text-xs text-muted-foreground">Protein</span>
-                      <span className="block text-lg font-bold text-blue-600 dark:text-blue-400">{dailyAverage.protein}g</span>
+                      <span className="block text-lg font-bold text-blue-400">{dailyAverage.protein}g</span>
                     </div>
-                    <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/20 text-center">
+                    <div className="p-3 rounded-lg bg-zinc-950/50 border border-white/5 text-center">
                       <span className="block text-xs text-muted-foreground">Carbs</span>
-                      <span className="block text-lg font-bold text-green-600 dark:text-green-400">{dailyAverage.carbs}g</span>
+                      <span className="block text-lg font-bold text-green-400">{dailyAverage.carbs}g</span>
                     </div>
-                    <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 text-center">
+                    <div className="p-3 rounded-lg bg-zinc-950/50 border border-white/5 text-center">
                       <span className="block text-xs text-muted-foreground">Fat</span>
-                      <span className="block text-lg font-bold text-yellow-600 dark:text-yellow-400">{dailyAverage.fat}g</span>
+                      <span className="block text-lg font-bold text-yellow-400">{dailyAverage.fat}g</span>
                     </div>
                   </div>
                 </CardContent>
@@ -136,11 +178,11 @@ export default function Show({ mealPlan }: ShowProps) {
               {todayPlan && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-primary" />
+                    <h2 className="text-2xl font-black uppercase tracking-wide text-white flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-yellow-500" />
                       Today's Focus
                     </h2>
-                    <Badge variant="outline" className="px-3 py-1 bg-primary/10 text-primary border-primary/20">
+                    <Badge variant="outline" className="px-3 py-1 bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
                       {today}
                     </Badge>
                   </div>
@@ -157,7 +199,7 @@ export default function Show({ mealPlan }: ShowProps) {
 
               {/* Full Week Plan */}
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-muted-foreground">Full Schedule</h2>
+                <h2 className="text-lg font-bold uppercase tracking-wider text-muted-foreground">Full Schedule</h2>
                 <div className="space-y-4">
                   {mealPlan.plan.filter(d => d.day !== today).map((day) => (
                     <MealDay
@@ -166,20 +208,6 @@ export default function Show({ mealPlan }: ShowProps) {
                       mealPlanId={mealPlan.id}
                     />
                   ))}
-                  {/* Re-render today if needed in the list or keep it separate. 
-                      Common pattern is to show today at top and others below, usually duplicating isn't needed unless the list is strict.
-                      If todayPlan exists, we showed it above. 
-                      If we want to show ALL days in order, we might just map all of them. 
-                      Let's stick to showing remaining days here or just all days if we want a complete list.
-                      For a dashboard feel, "Today" projected at top is good. 
-                  */}
-                  {todayPlan && (
-                    <div className="opacity-50 pointer-events-none grayscale hover:grayscale-0 transition-all">
-                      {/* Optional: Show today again in the list as disabled/done or just skip it. 
-                               The filter above skips it. Perfect.
-                           */}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

@@ -7,19 +7,43 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
+/**
+ * Service for analyzing InBody measurement data.
+ *
+ * This service calculates deltas between measurements, identifies trends,
+ * and classifies body composition changes (e.g., Recomposition, Lean Bulk).
+ */
 class InBodyAnalysisService
 {
     /**
-     * Body composition change thresholds (in percentage points or kg).
+     * Threshold for significant change in Skeletal Muscle Mass (kg).
      */
-    private const SIGNIFICANT_SMM_CHANGE = 0.5;  // kg
+    private const SIGNIFICANT_SMM_CHANGE = 0.5;
 
-    private const SIGNIFICANT_PBF_CHANGE = 1.0;  // percentage points
+    /**
+     * Threshold for significant change in Percent Body Fat (percentage points).
+     */
+    private const SIGNIFICANT_PBF_CHANGE = 1.0;
 
-    private const SIGNIFICANT_WEIGHT_CHANGE = 1.0; // kg
+    /**
+     * Threshold for significant change in Weight (kg).
+     */
+    private const SIGNIFICANT_WEIGHT_CHANGE = 1.0;
 
     /**
      * Get comprehensive InBody analysis for a user.
+     *
+     * @param  User  $user  The user to analyze
+     * @param  int|null  $tenantId  Optional tenant context
+     * @return array{
+     *     latest: array|null,
+     *     previous: array|null,
+     *     delta: array|null,
+     *     bodyCompositionAnalysis: array|null,
+     *     trends: array,
+     *     statistics: array|null,
+     *     history: array
+     * }
      */
     public function getAnalysis(User $user, ?int $tenantId = null): array
     {

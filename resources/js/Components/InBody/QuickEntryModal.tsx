@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   Check,
   Loader2,
+  Wand2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -239,25 +240,49 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
     return requiredFields.every(f => data[f as keyof typeof data]);
   };
 
+  const createFakeEntry = () => {
+    setData({
+      weight: (70 + Math.random() * 20).toFixed(1),
+      smm: (30 + Math.random() * 10).toFixed(1),
+      pbf: (15 + Math.random() * 10).toFixed(1),
+      bmi: (22 + Math.random() * 5).toFixed(1),
+      bmr: Math.floor(1500 + Math.random() * 500).toString(),
+      body_water: (40 + Math.random() * 5).toFixed(1),
+      lean_body_mass: (50 + Math.random() * 10).toFixed(1),
+      visceral_fat: Math.floor(1 + Math.random() * 10).toString(),
+      waist_hip_ratio: (0.8 + Math.random() * 0.1).toFixed(2),
+      measured_at: new Date().toISOString().split('T')[0],
+      notes: 'Generated fake log for testing',
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25">
+          <Button className="gap-2 shadow-lg hover:shadow-primary/25">
             <Plus className="h-4 w-4" />
             Log InBody
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border-0 shadow-2xl">
-        {/* Glassmorphism overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-lg pointer-events-none" />
-
+      <DialogContent className="sm:max-w-lg border-border bg-card shadow-2xl">
         <DialogHeader className="relative">
-          <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
-            Log InBody Measurement
-          </DialogTitle>
-          <DialogDescription className="text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-bold text-foreground">
+              Log InBody Measurement
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-primary"
+              onClick={createFakeEntry}
+              title="Fill with fake data"
+            >
+              <Wand2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <DialogDescription className="text-muted-foreground">
             Track your body composition progress
           </DialogDescription>
         </DialogHeader>
@@ -270,10 +295,10 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
                 className={cn(
                   'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all duration-300',
                   index < currentStep
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : index === currentStep
-                    ? 'bg-indigo-600 text-white ring-4 ring-indigo-600/20'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                      ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
+                      : 'bg-muted text-muted-foreground'
                 )}
                 initial={false}
                 animate={{
@@ -290,7 +315,7 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
               {index < steps.length - 1 && (
                 <div className={cn(
                   'w-12 h-0.5 mx-1',
-                  index < currentStep ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'
+                  index < currentStep ? 'bg-primary' : 'bg-muted'
                 )} />
               )}
             </div>
@@ -309,10 +334,10 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
               className="space-y-4 py-4"
             >
               <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold text-foreground">
                   {currentStepData.title}
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {currentStepData.description}
                 </p>
               </div>
@@ -328,9 +353,9 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
                   if (config.type === 'textarea') {
                     return (
                       <div key={fieldName} className="space-y-2">
-                        <Label htmlFor={fieldName} className="text-gray-700 dark:text-gray-300">
+                        <Label htmlFor={fieldName} className="text-foreground">
                           {config.label}
-                          {!config.required && <span className="text-gray-400 ml-1">(optional)</span>}
+                          {!config.required && <span className="text-muted-foreground ml-1">(optional)</span>}
                         </Label>
                         <textarea
                           id={fieldName}
@@ -339,28 +364,28 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
                           placeholder={config.placeholder}
                           rows={3}
                           className={cn(
-                            'w-full px-4 py-3 rounded-xl border bg-white/50 dark:bg-gray-800/50',
-                            'focus:ring-2 focus:ring-indigo-500 focus:border-transparent',
-                            'placeholder:text-gray-400 text-gray-900 dark:text-white',
-                            'backdrop-blur-sm transition-all duration-200',
-                            error ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
+                            'w-full px-4 py-3 rounded-xl border bg-background',
+                            'focus:ring-2 focus:ring-primary focus:border-transparent',
+                            'placeholder:text-muted-foreground text-foreground',
+                            'transition-all duration-200',
+                            error ? 'border-destructive' : 'border-input'
                           )}
                         />
-                        {error && <p className="text-sm text-red-500">{error}</p>}
+                        {error && <p className="text-sm text-destructive">{error}</p>}
                       </div>
                     );
                   }
 
                   return (
                     <div key={fieldName} className="space-y-2">
-                      <Label htmlFor={fieldName} className="text-gray-700 dark:text-gray-300">
+                      <Label htmlFor={fieldName} className="text-foreground">
                         {config.label}
-                        {config.required && <span className="text-red-500 ml-1">*</span>}
-                        {!config.required && <span className="text-gray-400 ml-1">(optional)</span>}
+                        {config.required && <span className="text-destructive ml-1">*</span>}
+                        {!config.required && <span className="text-muted-foreground ml-1">(optional)</span>}
                       </Label>
                       <div className="relative">
                         {config.type === 'number' && (
-                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                             <Icon className="h-5 w-5" />
                           </div>
                         )}
@@ -374,22 +399,22 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
                           max={config.max}
                           step={config.step}
                           className={cn(
-                            'w-full rounded-xl border bg-white/50 dark:bg-gray-800/50',
-                            'focus:ring-2 focus:ring-indigo-500 focus:border-transparent',
-                            'placeholder:text-gray-400 text-gray-900 dark:text-white',
-                            'backdrop-blur-sm transition-all duration-200',
+                            'w-full rounded-xl border bg-background',
+                            'focus:ring-2 focus:ring-primary focus:border-transparent',
+                            'placeholder:text-muted-foreground text-foreground',
+                            'transition-all duration-200',
                             config.type === 'number' ? 'pl-11' : '',
                             config.unit ? 'pr-14' : '',
-                            error ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
+                            error ? 'border-destructive' : 'border-input'
                           )}
                         />
                         {config.unit && (
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                             {config.unit}
                           </span>
                         )}
                       </div>
-                      {error && <p className="text-sm text-red-500">{error}</p>}
+                      {error && <p className="text-sm text-destructive">{error}</p>}
                     </div>
                   );
                 })}
@@ -398,7 +423,7 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
           </AnimatePresence>
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between pt-6 border-t border-border">
             <Button
               type="button"
               variant="ghost"
@@ -417,7 +442,7 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
               <Button
                 type="submit"
                 disabled={processing || !canProceed()}
-                className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="gap-2"
               >
                 {processing ? (
                   <>
@@ -436,7 +461,7 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
                 type="button"
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className="gap-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="gap-1"
               >
                 Next
                 <ChevronRight className="h-4 w-4" />

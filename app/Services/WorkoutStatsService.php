@@ -2,9 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\WorkoutCompletion;
-use App\Models\WorkoutPlan;
 use App\Models\User;
+use App\Models\WorkoutCompletion;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -13,9 +12,6 @@ class WorkoutStatsService
 {
     /**
      * Get all workout statistics for a user.
-     *
-     * @param User $user
-     * @return array
      */
     public function getWorkoutStats(User $user): array
     {
@@ -34,16 +30,14 @@ class WorkoutStatsService
     /**
      * Get the weekly completion rate for a user
      *
-     * @param User $user
-     * @param int $daysBack
-     * @return array
+     * @param  int  $daysBack
      */
-    public function getWeeklyCompletionRate(User $user, int $daysBack = 7): array
+    public function getWeeklyCompletionRate(User $user): array
     {
-        $startDate = now()->subDays($daysBack)->startOfDay();
-        $endDate = now()->endOfDay();
+        $startDate = now()->startOfWeek();
+        $endDate = now()->endOfWeek();
 
-        // Get all workout completions for the user in the date range
+        // Get all workout completions for the user in the current week
         $completions = WorkoutCompletion::where('user_id', $user->id)
             ->where('created_at', '>=', $startDate)
             ->where('created_at', '<=', $endDate)
@@ -63,9 +57,6 @@ class WorkoutStatsService
 
     /**
      * Get the current streak of consecutive workout days
-     *
-     * @param User $user
-     * @return int
      */
     public function getCurrentStreak(User $user): int
     {
@@ -78,7 +69,7 @@ class WorkoutStatsService
                 ->whereDate('updated_at', $date->format('Y-m-d'))
                 ->exists();
 
-            if (!$hasWorkoutOnDate) {
+            if (! $hasWorkoutOnDate) {
                 break;
             }
 
@@ -91,14 +82,15 @@ class WorkoutStatsService
 
     /**
      * Get most active workout days of the week
-     *
-     * @param User $user
-     * @return array
      */
     public function getMostActiveDays(User $user): array
     {
+        $startDate = now()->startOfWeek();
+        $endDate = now()->endOfWeek();
+
         $completions = WorkoutCompletion::where('user_id', $user->id)
             ->where('completed', true)
+            ->whereBetween('updated_at', [$startDate, $endDate])
             ->get()
             ->groupBy(function ($completion) {
                 return Carbon::parse($completion->updated_at)->format('l'); // Day name
@@ -110,17 +102,11 @@ class WorkoutStatsService
             $dayStats[$day] = $items->count();
         }
 
-        arsort($dayStats); // Sort by count in descending order
-
         return $dayStats;
     }
 
     /**
      * Get recent activity summary
-     *
-     * @param User $user
-     * @param int $limit
-     * @return Collection
      */
     public function getRecentActivity(User $user, int $limit = 5): Collection
     {
@@ -147,9 +133,6 @@ class WorkoutStatsService
 
     /**
      * Get progress over time (last 4 weeks)
-     *
-     * @param User $user
-     * @return array
      */
     public function getProgressOverTime(User $user): array
     {
@@ -174,7 +157,7 @@ class WorkoutStatsService
 
             $progressData[] = [
                 'date' => $formattedDate,
-                'count' => $completions->get($dateString) ? count($completions->get($dateString)) : 0
+                'count' => $completions->get($dateString) ? count($completions->get($dateString)) : 0,
             ];
 
             $currentDate->addDay();
@@ -185,9 +168,6 @@ class WorkoutStatsService
 
     /**
      * Get aggregate stats for a user
-     *
-     * @param User $user
-     * @return array
      */
     public function getAggregateStats(User $user): array
     {
@@ -214,9 +194,6 @@ class WorkoutStatsService
 
     /**
      * Get comparison stats (this week vs last week)
-     *
-     * @param User $user
-     * @return array
      */
     public function getComparisonStats(User $user): array
     {
@@ -251,15 +228,12 @@ class WorkoutStatsService
             'this_week' => $thisWeekCount,
             'last_week' => $lastWeekCount,
             'percentage_change' => $percentageChange,
-            'trend' => $percentageChange > 0 ? 'up' : ($percentageChange < 0 ? 'down' : 'neutral')
+            'trend' => $percentageChange > 0 ? 'up' : ($percentageChange < 0 ? 'down' : 'neutral'),
         ];
     }
 
     /**
      * Get user achievements based on stats
-     *
-     * @param User $user
-     * @return array
      */
     public function getAchievements(User $user): array
     {
@@ -279,7 +253,7 @@ class WorkoutStatsService
                 'icon' => 'Target', // Lucide icon name
                 'condition' => $totalCompletions >= 1,
                 'progress' => min($totalCompletions, 1) / 1 * 100,
-                'tier' => 'bronze'
+                'tier' => 'bronze',
             ],
             [
                 'id' => 'getting_serious',
@@ -288,7 +262,7 @@ class WorkoutStatsService
                 'icon' => 'Dumbbell',
                 'condition' => $totalCompletions >= 10,
                 'progress' => min($totalCompletions, 10) / 10 * 100,
-                'tier' => 'silver'
+                'tier' => 'silver',
             ],
             [
                 'id' => 'workout_warrior',
@@ -297,7 +271,7 @@ class WorkoutStatsService
                 'icon' => 'Trophy',
                 'condition' => $totalCompletions >= 50,
                 'progress' => min($totalCompletions, 50) / 50 * 100,
-                'tier' => 'gold'
+                'tier' => 'gold',
             ],
             [
                 'id' => 'week_streak',
@@ -306,7 +280,7 @@ class WorkoutStatsService
                 'icon' => 'Flame',
                 'condition' => $streak >= 7,
                 'progress' => min($streak, 7) / 7 * 100,
-                'tier' => 'gold'
+                'tier' => 'gold',
             ],
             [
                 'id' => 'consistent',
@@ -315,8 +289,8 @@ class WorkoutStatsService
                 'icon' => 'Zap',
                 'condition' => $streak >= 3,
                 'progress' => min($streak, 3) / 3 * 100,
-                'tier' => 'bronze'
-            ]
+                'tier' => 'bronze',
+            ],
         ];
 
         foreach ($definitions as $def) {
@@ -332,6 +306,7 @@ class WorkoutStatsService
             if ($a['unlocked'] === $b['unlocked']) {
                 return $b['progress'] <=> $a['progress'];
             }
+
             return $b['unlocked'] <=> $a['unlocked'];
         });
 

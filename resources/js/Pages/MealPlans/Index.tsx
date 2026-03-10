@@ -14,24 +14,23 @@ export default function Index({ mealPlans }: MealPlansProps) {
     <AuthenticatedLayout
       header={
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold leading-tight text-gray-800 dark:text-gray-200">
+          <h2 className="text-xl font-black uppercase tracking-wider text-foreground">
             My Meal Plans
           </h2>
-          <span className="text-sm font-medium text-muted-foreground">
-            {mealPlans.length} {mealPlans.length === 1 ? 'Plan' : 'Plans'} Active
+          <span className="text-xs font-medium text-yellow-500 uppercase tracking-widest bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/20">
+            {mealPlans.length} Active
           </span>
         </div>
       }
     >
       <Head title="My Meal Plans" />
 
-      <div className="py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-2xl border bg-background/50 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:shadow-md dark:bg-background/20">
-            {/* Ambient Background Gradient */}
-            <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-secondary/5 blur-3xl" />
+      <div className="py-8 relative">
+        {/* Background Glow */}
+        <div className="fixed top-20 right-0 w-[300px] h-[300px] bg-yellow-500/5 blur-[100px] pointer-events-none rounded-full" />
 
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-zinc-900/40 backdrop-blur-md p-6 shadow-xl transition-all duration-300">
             <div className="relative">
               {mealPlans.length > 0 ? (
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -43,7 +42,7 @@ export default function Index({ mealPlans }: MealPlansProps) {
                 </div>
               ) : (
                 <EmptyState
-                  icon={<Utensils className="h-12 w-12 text-primary/80" />}
+                  icon={<Utensils className="h-12 w-12 text-yellow-500/80" />}
                   title="No meal plans yet"
                   description="Your nutritionist hasn't assigned any meal plans to you effectively yet. Check back soon!"
                 />

@@ -103,14 +103,20 @@ export interface Meal {
     completed: boolean;
 }
 
+export interface MealGroup {
+    options: Meal[];
+    completed: boolean;
+    group_meal_ids: number[];
+}
+
 export interface MealTimeSlot {
     time: string;
-    meals: Meal[];
+    meals: MealGroup[];
 }
 
 export interface MealDay {
     day: string;
-    meals: Meal[];
+    meals: MealGroup[];
     timeSlots: MealTimeSlot[];
 }
 
@@ -191,6 +197,27 @@ export interface PageProps<T extends Record<string, unknown> = Record<string, un
     auth: {
         user: User;
     };
+}
+
+// Subscription types
+export interface SubscriptionPlan {
+    id: number;
+    name: string;
+    price: string;
+    tag: string | null;
+    features: { feature: string }[] | null;
+    is_active: boolean;
+    duration_days: number;
+}
+
+export interface Subscription {
+    id: number;
+    user_id: number;
+    plan_id: number;
+    plan?: SubscriptionPlan;
+    start_date: string | null;
+    end_date: string | null;
+    status: 'pending' | 'active' | 'expired' | 'cancelled';
 }
 
 // InBody Log types
@@ -401,3 +428,20 @@ export interface ProgressionDashboardProps {
     workoutAnalytics: WorkoutAnalytics[];
     inbodyTrend: InBodyTrendPoint[];
 }
+
+// Assessment types
+export type AssessmentType = 'text' | 'select' | 'multiple_select';
+
+export interface AssessmentOption {
+    label: string;
+}
+
+export interface Assessment {
+    id: number;
+    question: string;
+    image: string | null;
+    type: AssessmentType;
+    options: AssessmentOption[] | null;
+    order: number;
+}
+

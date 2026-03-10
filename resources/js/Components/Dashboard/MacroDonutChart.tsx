@@ -91,7 +91,7 @@ export default function MacroDonutChart({
                             className="w-3 h-3 rounded-full mr-2"
                             style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">
+                        <span className="text-sm text-muted-foreground font-medium">
                             {item.name} <span className="text-gray-400 font-normal">({item.value}%)</span>
                         </span>
                     </div>

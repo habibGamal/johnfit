@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Workout, WorkoutSet, PreviousSet } from '@/types';
-import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { cn } from '@/lib/utils';
-import { Check, Plus, Trash2, Minus, Link2, MoreHorizontal, Video } from 'lucide-react';
+import { Check, Link2 } from 'lucide-react';
 import axios from 'axios';
 import {
     Tooltip,
@@ -17,6 +16,7 @@ interface WorkoutSetTrackerProps {
     workoutPlanId: number;
     day: string;
     onSetChange?: () => void;
+    isLocked?: boolean;
 }
 
 interface LocalSet extends WorkoutSet {
@@ -29,20 +29,17 @@ export default function WorkoutSetTracker({
     workoutPlanId,
     day,
     onSetChange,
+    isLocked = false,
 }: WorkoutSetTrackerProps) {
     const [sets, setSets] = useState<LocalSet[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
 
-    // Initialize sets from workout data or create default sets from reps_preset
     useEffect(() => {
-        // Only initialize once when component mounts
         if (isInitialized) return;
 
         if (workout.sets && workout.sets.length > 0) {
             setSets(workout.sets.map(s => ({ ...s, isNew: false, isSaving: false })));
         } else if (workout.reps_preset && workout.reps_preset.length > 0) {
-            // Create sets from reps preset as guide
             const initialSets: LocalSet[] = workout.reps_preset.map((preset, index) => ({
                 set_number: index + 1,
                 weight: workout.previous_sets[index]?.weight ?? null,
@@ -53,7 +50,6 @@ export default function WorkoutSetTracker({
             }));
             setSets(initialSets);
         } else {
-            // Default to 3 sets with 10 reps
             setSets([
                 { set_number: 1, weight: null, reps: 10, completed: false, isNew: true, isSaving: false },
                 { set_number: 2, weight: null, reps: 10, completed: false, isNew: true, isSaving: false },
@@ -77,7 +73,6 @@ export default function WorkoutSetTracker({
     };
 
     const saveSet = async (set: LocalSet, completed: boolean = set.completed) => {
-        // Optimistically update UI first
         setSets(prev => prev.map(s =>
             s.set_number === set.set_number
                 ? { ...s, completed, isSaving: true }
@@ -95,7 +90,6 @@ export default function WorkoutSetTracker({
                 completed: completed,
             });
 
-            // Update with server response
             setSets(prev => prev.map(s =>
                 s.set_number === set.set_number
                     ? { ...response.data.set, isNew: false, isSaving: false }
@@ -103,7 +97,6 @@ export default function WorkoutSetTracker({
             ));
         } catch (error) {
             console.error('Failed to save set:', error);
-            // Revert optimistic update on error
             setSets(prev => prev.map(s =>
                 s.set_number === set.set_number
                     ? { ...s, completed: !completed, isSaving: false }
@@ -114,11 +107,8 @@ export default function WorkoutSetTracker({
 
     const toggleSetCompletion = async (set: LocalSet) => {
         const newCompleted = !set.completed;
-
-        // If set is new or has valid reps, save it
         if (set.reps > 0) {
             await saveSet({ ...set, completed: newCompleted }, newCompleted);
-            // Notify parent after successful save
             onSetChange?.();
         }
     };
@@ -144,32 +134,6 @@ export default function WorkoutSetTracker({
         }]);
     };
 
-    const deleteSet = async (setNumber: number) => {
-        const set = sets.find(s => s.set_number === setNumber);
-
-        if (set && !set.isNew && set.id) {
-            try {
-                await axios.delete(route('workout-plans.delete-set'), {
-                    data: {
-                        workout_plan_id: workoutPlanId,
-                        day: day,
-                        workout_id: workout.id,
-                        set_number: setNumber,
-                    },
-                });
-                onSetChange?.();
-            } catch (error) {
-                console.error('Failed to delete set:', error);
-            }
-        }
-
-        // Renumber remaining sets
-        setSets(prev => {
-            const filtered = prev.filter(s => s.set_number !== setNumber);
-            return filtered.map((s, index) => ({ ...s, set_number: index + 1 }));
-        });
-    };
-
     const completedSets = sets.filter(s => s.completed).length;
     const totalSets = sets.length;
 
@@ -178,7 +142,12 @@ export default function WorkoutSetTracker({
             {/* Header with workout name and actions */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-primary text-lg">{workout.name}</h3>
+                    <h3 className="font-bold text-white uppercase tracking-wide text-sm">Set Tracker</h3>
+                    {isLocked && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-green-500/20 text-green-500 border border-green-500/30">
+                            Session Completed
+                        </span>
+                    )}
                 </div>
                 <div className="flex items-center gap-2">
                     {workout.video_url && (
@@ -189,9 +158,9 @@ export default function WorkoutSetTracker({
                                         href={workout.video_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="p-2 hover:bg-muted rounded-full transition-colors"
+                                        className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
                                     >
-                                        <Link2 className="h-5 w-5 text-primary" />
+                                        <Link2 className="h-4 w-4 text-yello-500" />
                                     </a>
                                 </TooltipTrigger>
                                 <TooltipContent>Watch Demo Video</TooltipContent>
@@ -202,21 +171,21 @@ export default function WorkoutSetTracker({
             </div>
 
             {/* Sets Table */}
-            <div className="rounded-lg overflow-hidden">
+            <div className="rounded-xl overflow-hidden border border-white/5 bg-zinc-950/30">
                 {/* Table Header */}
                 <div className={cn(
-                    "grid gap-2 px-2 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider",
-                    workout.requires_weight ? "grid-cols-[50px_1fr_1fr_1fr_50px]" : "grid-cols-[50px_1fr_1fr_50px]"
+                    "grid gap-2 px-3 py-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-zinc-900/50",
+                    workout.requires_weight ? "grid-cols-[40px_1fr_1fr_1fr_50px]" : "grid-cols-[40px_1fr_1fr_50px]"
                 )}>
                     <div className="text-center">Set</div>
-                    <div className="text-center">Previous</div>
-                    {workout.requires_weight && <div className="text-center">LB</div>}
+                    <div className="text-center">Prev</div>
+                    {workout.requires_weight && <div className="text-center">lbs</div>}
                     <div className="text-center">Reps</div>
-                    <div className="text-center"><Check className="h-4 w-4 mx-auto" /></div>
+                    <div className="text-center">Done</div>
                 </div>
 
                 {/* Sets Rows */}
-                <div className="space-y-2">
+                <div className="space-y-0 divide-y divide-white/5">
                     {sets.map((set) => {
                         const previous = getPreviousData(set.set_number);
 
@@ -224,20 +193,20 @@ export default function WorkoutSetTracker({
                             <div
                                 key={set.set_number}
                                 className={cn(
-                                    "grid gap-2 px-2 py-1.5 rounded-lg transition-colors",
+                                    "grid gap-2 px-3 py-2 transition-all duration-300",
                                     set.completed
-                                        ? "bg-primary/10 border border-primary/20"
-                                        : "bg-muted/50",
-                                    workout.requires_weight ? "grid-cols-[50px_1fr_1fr_1fr_50px]" : "grid-cols-[50px_1fr_1fr_50px]"
+                                        ? "bg-green-900/10"
+                                        : "hover:bg-white/5",
+                                    workout.requires_weight ? "grid-cols-[40px_1fr_1fr_1fr_50px]" : "grid-cols-[40px_1fr_1fr_50px]"
                                 )}
                             >
                                 {/* Set Number */}
-                                <div className="flex items-center justify-center font-semibold text-foreground">
+                                <div className="flex items-center justify-center font-bold text-xs text-muted-foreground">
                                     {set.set_number}
                                 </div>
 
                                 {/* Previous */}
-                                <div className="flex items-center justify-center text-sm text-muted-foreground">
+                                <div className="flex items-center justify-center text-xs font-medium text-muted-foreground/70">
                                     {formatPrevious(previous)}
                                 </div>
 
@@ -258,9 +227,12 @@ export default function WorkoutSetTracker({
                                                     saveSet(set);
                                                 }
                                             }}
-                                            placeholder={previous?.weight?.toString() || '0'}
-                                            className="h-10 w-full text-center bg-background/80 font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                            disabled={set.isSaving}
+                                            placeholder={previous?.weight?.toString() || '-'}
+                                            className={cn(
+                                                "h-9 w-full text-center bg-zinc-900/50 border-white/10 focus:border-yellow-500/50 focus:ring-yellow-500/20 text-white font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                                                isLocked && "opacity-60 cursor-not-allowed"
+                                            )}
+                                            disabled={set.isSaving || isLocked}
                                         />
                                     </div>
                                 )}
@@ -282,8 +254,11 @@ export default function WorkoutSetTracker({
                                             }
                                         }}
                                         placeholder={previous?.reps?.toString() || '10'}
-                                        className="h-10 w-full text-center bg-background/80 font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                        disabled={set.isSaving}
+                                        className={cn(
+                                            "h-9 w-full text-center bg-zinc-900/50 border-white/10 focus:border-yellow-500/50 focus:ring-yellow-500/20 text-white font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                                            isLocked && "opacity-60 cursor-not-allowed"
+                                        )}
+                                        disabled={set.isSaving || isLocked}
                                     />
                                 </div>
 
@@ -291,17 +266,17 @@ export default function WorkoutSetTracker({
                                 <div className="flex items-center justify-center">
                                     <button
                                         onClick={() => toggleSetCompletion(set)}
-                                        disabled={set.isSaving || set.reps <= 0}
+                                        disabled={set.isSaving || set.reps <= 0 || isLocked}
                                         className={cn(
-                                            "w-10 h-10 rounded-lg flex items-center justify-center transition-all",
+                                            "w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300",
                                             set.completed
-                                                ? "bg-green-500 text-white shadow-md"
-                                                : "bg-muted hover:bg-muted/80 text-muted-foreground",
-                                            (set.isSaving || set.reps <= 0) && "opacity-50 cursor-not-allowed"
+                                                ? "bg-green-500 text-white shadow-[0_0_15px_-3px_rgba(34,197,94,0.4)] hover:bg-green-600"
+                                                : "bg-zinc-800 text-muted-foreground hover:bg-zinc-700 hover:text-white",
+                                            (set.isSaving || set.reps <= 0 || isLocked) && "opacity-50 cursor-not-allowed"
                                         )}
                                     >
                                         <Check className={cn(
-                                            "h-5 w-5 transition-transform",
+                                            "h-5 w-5 transition-transform duration-300",
                                             set.completed && "scale-110"
                                         )} />
                                     </button>
@@ -312,20 +287,15 @@ export default function WorkoutSetTracker({
                 </div>
 
                 {/* Add Set Button */}
-                <button
-                    onClick={addSet}
-                    className="w-full py-3 text-primary font-semibold text-sm uppercase tracking-wide hover:bg-muted/50 transition-colors rounded-lg mt-2"
-                >
-                    + Add Set
-                </button>
+                {!isLocked && (
+                    <button
+                        onClick={addSet}
+                        className="w-full py-3 bg-zinc-900/50 hover:bg-zinc-900 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-white transition-all border-t border-white/5"
+                    >
+                        + Add New Set
+                    </button>
+                )}
             </div>
-
-            {/* Progress indicator */}
-            {totalSets > 0 && (
-                <div className="text-center text-sm text-muted-foreground">
-                    {completedSets} / {totalSets} sets completed
-                </div>
-            )}
         </div>
     );
 }

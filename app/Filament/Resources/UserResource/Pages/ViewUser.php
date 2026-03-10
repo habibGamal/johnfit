@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
-use Filament\Actions;
+use App\Filament\Resources\UserResource\RelationManagers\InBodyLogsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\WorkoutsRelationManager;
 use Filament\Resources\Pages\ViewRecord;
-use \App\Filament\Resources\UserResource\RelationManagers\WorkoutsRelationManager;
 
 class ViewUser extends ViewRecord
 {
@@ -15,6 +15,7 @@ class ViewUser extends ViewRecord
     {
         return [
             'workouts' => WorkoutsRelationManager::class,
+            'inBodyLogs' => InBodyLogsRelationManager::class,
         ];
     }
 }

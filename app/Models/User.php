@@ -4,8 +4,10 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use NotificationChannels\Expo\ExpoPushToken;
 
 class User extends Authenticatable
 {
@@ -22,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'google_id',
+        'expo_token',
     ];
 
     /**
@@ -44,7 +47,14 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'assessment_completed_at' => 'datetime',
+            'expo_token' => ExpoPushToken::class,
         ];
+    }
+
+    public function routeNotificationForExpo(): ?ExpoPushToken
+    {
+        return $this->expo_token;
     }
 
     /**
@@ -74,5 +84,34 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function hasCompletedAssessment(): bool
+    {
+        return $this->assessment_completed_at !== null;
+    }
+
+    public function assessmentAnswers(): HasMany
+    {
+        return $this->hasMany(UserAssessmentAnswer::class);
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function activeSubscription(): ?\App\Models\Subscription
+    {
+        return $this->subscriptions()
+            ->where('status', 'active')
+            ->where('end_date', '>', now())
+            ->latest()
+            ->first();
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        return $this->activeSubscription() !== null;
     }
 }

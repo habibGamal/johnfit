@@ -13,9 +13,6 @@ class MealStatsService
 {
     /**
      * Get all meal plan statistics for a user.
-     *
-     * @param User $user
-     * @return array
      */
     public function getMealStats(User $user): array
     {
@@ -34,9 +31,6 @@ class MealStatsService
 
     /**
      * Get the weekly meal completion rate for a user.
-     *
-     * @param User $user
-     * @return array
      */
     private function getWeeklyCompletionRate(User $user): array
     {
@@ -71,9 +65,6 @@ class MealStatsService
 
     /**
      * Get the current streak of consecutive days with meal completions.
-     *
-     * @param User $user
-     * @return int
      */
     private function getCurrentStreak(User $user): int
     {
@@ -89,7 +80,7 @@ class MealStatsService
             ->exists();
 
         // If no completion today, start checking from yesterday
-        if (!$hasCompletionToday) {
+        if (! $hasCompletionToday) {
             $currentDate->subDay();
         }
 
@@ -100,7 +91,7 @@ class MealStatsService
                 ->whereDate('created_at', $currentDate)
                 ->exists();
 
-            if (!$hasCompletion) {
+            if (! $hasCompletion) {
                 break;
             }
 
@@ -113,15 +104,16 @@ class MealStatsService
 
     /**
      * Get the most active days for meal consumption.
-     *
-     * @param User $user
-     * @return array
      */
     private function getMostActiveDays(User $user): array
     {
+        $startDate = Carbon::now()->startOfWeek();
+        $endDate = Carbon::now()->endOfWeek();
+
         $completions = MealCompletion::where('user_id', $user->id)
             ->where('completed', true)
             ->whereNotNull('created_at')
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
 
         $dayCount = [
@@ -146,9 +138,6 @@ class MealStatsService
 
     /**
      * Get recent meal activity for a user.
-     *
-     * @param User $user
-     * @return array
      */
     private function getRecentActivity(User $user): array
     {
@@ -179,9 +168,6 @@ class MealStatsService
 
     /**
      * Get meal completion progress over time.
-     *
-     * @param User $user
-     * @return array
      */
     private function getProgressOverTime(User $user): array
     {
@@ -206,9 +192,6 @@ class MealStatsService
 
     /**
      * Get aggregate meal stats for a user.
-     *
-     * @param User $user
-     * @return array
      */
     private function getAggregateStats(User $user): array
     {
@@ -235,9 +218,6 @@ class MealStatsService
 
     /**
      * Get average nutritional intake for a user.
-     *
-     * @param User $user
-     * @return array
      */
     private function getNutritionAverages(User $user): array
     {
@@ -253,7 +233,7 @@ class MealStatsService
             'calories' => 0,
             'protein' => 0,
             'carbs' => 0,
-            'fat' => 0
+            'fat' => 0,
         ];
         foreach ($completions as $completion) {
             $day = Carbon::parse($completion->created_at)->format('Y-m-d');
@@ -262,12 +242,12 @@ class MealStatsService
             if ($meal) {
                 $multiplier = $completion->quantity ?? 1; // Use the actual quantity from completion
 
-                if (!isset($dailyTotals[$day])) {
+                if (! isset($dailyTotals[$day])) {
                     $dailyTotals[$day] = [
                         'calories' => 0,
                         'protein' => 0,
                         'carbs' => 0,
-                        'fat' => 0
+                        'fat' => 0,
                     ];
                 }
 
@@ -298,14 +278,14 @@ class MealStatsService
                 'calories' => round($nutritionSum['calories'] / $daysWithData),
                 'protein' => round($nutritionSum['protein'] / $daysWithData, 1),
                 'carbs' => round($nutritionSum['carbs'] / $daysWithData, 1),
-                'fat' => round($nutritionSum['fat'] / $daysWithData, 1)
+                'fat' => round($nutritionSum['fat'] / $daysWithData, 1),
             ];
         } else {
             $averages = [
                 'calories' => 0,
                 'protein' => 0,
                 'carbs' => 0,
-                'fat' => 0
+                'fat' => 0,
             ];
         }
 
@@ -314,9 +294,6 @@ class MealStatsService
 
     /**
      * Get comparison stats (this week vs last week)
-     *
-     * @param User $user
-     * @return array
      */
     public function getComparisonStats(User $user): array
     {
@@ -351,15 +328,12 @@ class MealStatsService
             'this_week' => $thisWeekCount,
             'last_week' => $lastWeekCount,
             'percentage_change' => $percentageChange,
-            'trend' => $percentageChange > 0 ? 'up' : ($percentageChange < 0 ? 'down' : 'neutral')
+            'trend' => $percentageChange > 0 ? 'up' : ($percentageChange < 0 ? 'down' : 'neutral'),
         ];
     }
 
     /**
      * Get macro distribution for donut chart
-     *
-     * @param User $user
-     * @return array
      */
     public function getMacroDistribution(User $user): array
     {

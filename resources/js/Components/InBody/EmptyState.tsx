@@ -26,15 +26,15 @@ export default function EmptyState({ onAddClick }: EmptyStateProps) {
         }}
       >
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl blur-2xl opacity-30" />
-          <div className="relative p-8 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-3xl border border-indigo-500/20">
-            <Activity className="h-16 w-16 text-indigo-500" />
+          <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-2xl opacity-30" />
+          <div className="relative p-8 bg-primary/10 rounded-3xl border border-primary/20">
+            <Activity className="h-16 w-16 text-primary" />
           </div>
         </div>
 
         {/* Floating elements */}
         <motion.div
-          className="absolute -top-2 -right-2 p-2 bg-emerald-500/20 rounded-xl"
+          className="absolute -top-2 -right-2 p-2 bg-secondary rounded-xl"
           animate={{
             rotate: [0, 10, -10, 0],
             scale: [1, 1.1, 1],
@@ -45,15 +45,15 @@ export default function EmptyState({ onAddClick }: EmptyStateProps) {
             ease: 'easeInOut',
           }}
         >
-          <Dumbbell className="h-6 w-6 text-emerald-500" />
+          <Dumbbell className="h-6 w-6 text-foreground" />
         </motion.div>
       </motion.div>
 
-      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 text-center">
+      <h3 className="text-2xl font-bold text-foreground mb-3 text-center">
         Start Your Body Composition Journey
       </h3>
 
-      <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-8 leading-relaxed">
+      <p className="text-muted-foreground text-center max-w-md mb-8 leading-relaxed">
         Track your InBody measurements to monitor muscle gain, fat loss, and overall body composition changes.
         Get personalized insights and recommendations based on your progress.
       </p>
@@ -67,13 +67,13 @@ export default function EmptyState({ onAddClick }: EmptyStateProps) {
         ].map((feature, index) => (
           <motion.div
             key={index}
-            className="flex items-center gap-2 px-4 py-3 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700"
+            className="flex items-center gap-2 px-4 py-3 bg-card rounded-xl border border-border"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 + index * 0.1 }}
           >
             <span className="text-2xl">{feature.icon}</span>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span className="text-sm font-medium text-foreground">
               {feature.text}
             </span>
           </motion.div>
@@ -81,7 +81,7 @@ export default function EmptyState({ onAddClick }: EmptyStateProps) {
       </div>
 
       <motion.p
-        className="text-sm text-gray-400 dark:text-gray-500"
+        className="text-sm text-muted-foreground"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}

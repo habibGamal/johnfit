@@ -23,10 +23,10 @@ Route::get('/meal-plan/{mealPlan}/download', [App\Http\Controllers\MealControlle
 // });
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'assessment.completed'])
     ->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'assessment.completed'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -59,6 +59,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/analytics/workout/{workout}', [App\Http\Controllers\AnalyticsController::class, 'workoutAnalytics'])->name('analytics.workout');
     Route::get('/analytics/workout/{workout}/pbs', [App\Http\Controllers\AnalyticsController::class, 'personalBests'])->name('analytics.personal-bests');
     Route::get('/analytics/muscles', [App\Http\Controllers\AnalyticsController::class, 'muscleDistribution'])->name('analytics.muscles');
+
+    // Fitness Score Routes
+    Route::get('/fitness-score', [App\Http\Controllers\FitnessScoreController::class, 'current'])->name('fitness-score.current');
+    Route::get('/fitness-score/history', [App\Http\Controllers\FitnessScoreController::class, 'history'])->name('fitness-score.history');
+    Route::post('/fitness-score/recalculate', [App\Http\Controllers\FitnessScoreController::class, 'recalculate'])->name('fitness-score.recalculate');
+
+    // Notification Routes
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::patch('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/assessment', [App\Http\Controllers\AssessmentController::class, 'index'])->name('assessment.index');
+    Route::post('/assessment', [App\Http\Controllers\AssessmentController::class, 'store'])->name('assessment.store');
+
+    // Subscription Routes
+    Route::get('/packages', [App\Http\Controllers\SubscriptionController::class, 'packages'])->name('packages.index');
+    Route::post('/subscriptions/initiate', [App\Http\Controllers\SubscriptionController::class, 'initiate'])->name('subscriptions.initiate');
+    Route::get('/subscriptions/callback', [App\Http\Controllers\SubscriptionController::class, 'callback'])->name('subscriptions.callback');
 });
 
 require __DIR__.'/auth.php';

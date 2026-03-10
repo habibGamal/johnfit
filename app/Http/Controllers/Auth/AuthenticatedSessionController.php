@@ -32,6 +32,10 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        logger()->info('User logged in', ['expo_token' => $request->expo_token]);
+        if ($request->filled('expo_token')) {
+            $request->user()->update(['expo_token' => $request->expo_token]);
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
@@ -47,6 +51,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/login');
     }
 }

@@ -1,9 +1,10 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import BottomNavigation from '@/Components/BottomNavigation';
+import NotificationBell from '@/Components/NotificationBell';
 import { Link, usePage } from '@inertiajs/react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
 export default function Authenticated({
     header,
@@ -15,64 +16,41 @@ export default function Authenticated({
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
+        <div className="min-h-screen bg-background pb-16">
+            <nav className="border-b border-border bg-card">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <div className="flex shrink-0 items-center">
-                                <a href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                </a>
-                            </div>
-
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                                <NavLink
-                                    href={route('workout-plans.index')}
-                                    active={route().current('workout-plans.*')}
-                                >
-                                    Workout Plans
-                                </NavLink>
-                                <NavLink
-                                    href={route('meal-plans.index')}
-                                    active={route().current('meal-plans.*')}
-                                >
-                                    Meal Plans
-                                </NavLink>
-                                <NavLink
-                                    href={route('analytics.index')}
-                                    active={route().current('analytics.*')}
-                                >
-                                    Analytics
-                                </NavLink>
-                                <NavLink
-                                    href={route('inbody.index')}
-                                    active={route().current('inbody.*')}
-                                >
-                                    InBody
-                                </NavLink>
-                            </div>
+                    <div className="flex h-16 justify-between items-center">
+                        {/* Left: Logo */}
+                        <div className="flex items-center">
+                            <a href="/dashboard">
+                                <ApplicationLogo className="block h-9 w-auto fill-current text-primary" />
+                            </a>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
-                            <div className="relative ms-3">
+                        {/* Right: Notifications & User */}
+                        <div className="flex items-center gap-4">
+                            {/* Notification Bell */}
+                            <NotificationBell />
+
+                            {/* User Dropdown */}
+                            <div className="hidden sm:flex sm:items-center">
                                 <Dropdown>
                                     <Dropdown.Trigger>
                                         <span className="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                                                className="inline-flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-sm font-medium text-secondary-foreground transition duration-150 ease-in-out hover:bg-muted focus:outline-none"
                                             >
-                                                {user.name}
-
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                                        <span className="text-primary font-bold text-sm">
+                                                            {user.name.charAt(0).toUpperCase()}
+                                                        </span>
+                                                    </div>
+                                                    <span className="hidden md:block">{user.name}</span>
+                                                </div>
                                                 <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
+                                                    className="h-4 w-4"
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     viewBox="0 0 20 20"
                                                     fill="currentColor"
@@ -103,118 +81,67 @@ export default function Authenticated({
                                     </Dropdown.Content>
                                 </Dropdown>
                             </div>
-                        </div>
 
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() =>
-                                    setShowingNavigationDropdown(
-                                        (previousState) => !previousState,
-                                    )
-                                }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
-                            >
-                                <svg
-                                    className="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
+                            {/* Mobile menu button */}
+                            <div className="flex items-center sm:hidden">
+                                <button
+                                    onClick={() =>
+                                        setShowingNavigationDropdown(
+                                            (previousState) => !previousState,
+                                        )
+                                    }
+                                    className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition duration-150 ease-in-out hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground focus:outline-none"
                                 >
-                                    <path
-                                        className={
-                                            !showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={
-                                            showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
+                                    {showingNavigationDropdown ? (
+                                        <X className="h-6 w-6" />
+                                    ) : (
+                                        <Menu className="h-6 w-6" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                {/* Mobile dropdown */}
                 <div
                     className={
                         (showingNavigationDropdown ? 'block' : 'hidden') +
                         ' sm:hidden'
                     }
                 >
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('workout-plans.index')}
-                            active={route().current('workout-plans.*')}
-                        >
-                            Workout Plans
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('meal-plans.index')}
-                            active={route().current('meal-plans.*')}
-                        >
-                            Meal Plans
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('analytics.index')}
-                            active={route().current('analytics.*')}
-                        >
-                            Analytics
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route('inbody.index')}
-                            active={route().current('inbody.*')}
-                        >
-                            InBody
-                        </ResponsiveNavLink>
-                    </div>
-
-                    <div className="border-t border-gray-200 pb-1 pt-4">
+                    <div className="border-t border-border pb-1 pt-4">
                         <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">
+                            <div className="text-base font-medium text-foreground">
                                 {user.name}
                             </div>
-                            <div className="text-sm font-medium text-gray-500">
+                            <div className="text-sm font-medium text-muted-foreground">
                                 {user.email}
                             </div>
                         </div>
 
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
+                        <div className="mt-3 space-y-1 px-4">
+                            <Link
+                                href={route('profile.edit')}
+                                className="block rounded-lg px-3 py-2 text-base font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                            >
                                 Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
+                            </Link>
+                            <Link
                                 method="post"
                                 href={route('logout')}
                                 as="button"
+                                className="block w-full text-left rounded-lg px-3 py-2 text-base font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                             >
                                 Log Out
-                            </ResponsiveNavLink>
+                            </Link>
                         </div>
                     </div>
                 </div>
             </nav>
 
             {header && (
-                <header className="bg-white shadow">
+                <header className="bg-card border-b border-border">
                     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {header}
                     </div>
@@ -222,6 +149,9 @@ export default function Authenticated({
             )}
 
             <main>{children}</main>
+
+            {/* Bottom Navigation */}
+            <BottomNavigation />
         </div>
     );
 }

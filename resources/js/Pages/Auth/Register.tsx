@@ -1,17 +1,28 @@
 import { Head, Link, useForm } from "@inertiajs/react";
-import { FormEventHandler } from "react";
+import { FormEventHandler, useEffect } from "react";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { cn } from "@/lib/utils";
 
 export default function Register() {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm<{
+        name: string;
+        email: string;
+        password: string;
+        password_confirmation: string;
+        expo_token: string|null;
+    }>({
         name: "",
         email: "",
         password: "",
         password_confirmation: "",
+        expo_token: null,
     });
+
+    useEffect(() => {
+        setData("expo_token", window.pushToken);
+    }, [])
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();

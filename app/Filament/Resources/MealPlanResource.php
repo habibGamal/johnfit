@@ -11,8 +11,6 @@ use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\HtmlString;
 use Livewire\Component as Livewire;
 
@@ -21,7 +19,6 @@ class MealPlanResource extends Resource
     protected static ?string $model = MealPlan::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
 
     protected static $levels = [
         'calories' => 2000,
@@ -38,21 +35,22 @@ class MealPlanResource extends Resource
             $meals,
             $form->getRecord()?->daysFromJson ?? []
         );
+
         return $form
             ->schema([
                 Forms\Components\ViewField::make('preview')
                     ->disabled()
-                    ->visible(fn(?MealPlan $mealPlan) => $mealPlan?->id)
+                    ->visible(fn (?MealPlan $mealPlan) => $mealPlan?->id)
                     ->view('pdf_templates.iframe', [
                         'id' => $form->getRecord()?->id,
-                        'url' => '/meal-plan'
+                        'url' => '/meal-plan',
                     ]),
                 Forms\Components\Actions::make([
                     Forms\Components\Actions\Action::make('generate_pdf')
                         ->label('Generate PDF')
-                        ->visible(fn(?MealPlan $mealPlan) => $mealPlan?->id)
-                        ->url(fn(?MealPlan $mealPlan) => $mealPlan ? route('meal-plan.download', $mealPlan) : '#')
-                        ->openUrlInNewTab()
+                        ->visible(fn (?MealPlan $mealPlan) => $mealPlan?->id)
+                        ->url(fn (?MealPlan $mealPlan) => $mealPlan ? route('meal-plan.download', $mealPlan) : '#')
+                        ->openUrlInNewTab(),
                 ]),
                 Forms\Components\Section::make('Levels')->columns(4)
                     ->schema([
@@ -66,7 +64,7 @@ class MealPlanResource extends Resource
                                         'title' => 'Calories',
                                         'target_value' => $form->getRecord()?->targets['calories'] ?? 2000,
                                         'current_value' => $levelsValues['calories'],
-                                    ]
+                                    ],
                                 ]
                             )->reactive(),
                         Forms\Components\ViewField::make('proteins')
@@ -77,7 +75,7 @@ class MealPlanResource extends Resource
                                     'title' => 'Proteins',
                                     'target_value' => $form->getRecord()?->targets['proteins'] ?? 100,
                                     'current_value' => $levelsValues['proteins'],
-                                ]
+                                ],
                             ]),
                         Forms\Components\ViewField::make('carbs')
                             ->disabled()
@@ -87,7 +85,7 @@ class MealPlanResource extends Resource
                                     'title' => 'Carbs',
                                     'target_value' => $form->getRecord()?->targets['carbs'] ?? 200,
                                     'current_value' => $levelsValues['carbs'],
-                                ]
+                                ],
                             ]),
                         Forms\Components\ViewField::make('fats')
                             ->disabled()
@@ -97,7 +95,7 @@ class MealPlanResource extends Resource
                                     'title' => 'Fats',
                                     'target_value' => $form->getRecord()?->targets['fats'] ?? 50,
                                     'current_value' => $levelsValues['fats'],
-                                ]
+                                ],
                             ]),
 
                         Forms\Components\TextInput::make('targets.calories')
@@ -155,7 +153,7 @@ class MealPlanResource extends Resource
                             ])
                             ->required(),
                         Forms\Components\Repeater::make('time')
-                            ->itemLabel(fn(array $state) => $state['meal_time'] . ' Time')
+                            ->itemLabel(fn (array $state) => $state['meal_time'].' Time')
                             ->schema([
                                 Forms\Components\TextInput::make('meal_time')
                                     ->datalist([
@@ -167,28 +165,41 @@ class MealPlanResource extends Resource
                                         'After Workout',
                                     ])
                                     ->required(),
-                                Forms\Components\Repeater::make('meals')->schema([
-                                    Forms\Components\Placeholder::make('_placeholder')->label('Meal Details')
-                                        ->content(function (Get $get) use ($meals) {
-                                            $meal = $meals->where('id', '=', $get('meal_id'))->first();
-                                            if (!$meal) {
-                                                return new HtmlString('<p>Meal not choosen yet</p>');
-                                            }
-                                            return view('placeholders.meal_details', ['meal' => $meal, 'quantity' => $get('quantity')]);
-                                        }),
-                                    Forms\Components\Select::make('meal_id')
-                                        ->label('Meal')
-                                        ->options($meals->pluck('name', 'id')->toArray())
-                                        ->searchable()
-                                        ->live(onBlur: true)
-                                        ->required(),
-                                    Forms\Components\TextInput::make('quantity')
-                                        ->label('Quantity')
-                                        ->numeric()
-                                        ->default(100)
-                                        ->live(onBlur: true)
-                                        ->required(),
-                                ])->defaultItems(1),
+                                Forms\Components\Repeater::make('meals')
+                                    ->label('Meal Slots')
+                                    ->addActionLabel('Add Meal Slot')
+                                    ->schema([
+                                        Forms\Components\Repeater::make('options')
+                                            ->label('Options (choose ONE — add more for OR alternatives)')
+                                            ->addActionLabel('Add OR Option')
+                                            ->minItems(1)
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('_placeholder')
+                                                    ->label('Meal Details')
+                                                    ->content(function (Get $get) use ($meals) {
+                                                        $meal = $meals->where('id', '=', $get('meal_id'))->first();
+                                                        if (! $meal) {
+                                                            return new HtmlString('<p>Meal not chosen yet</p>');
+                                                        }
+
+                                                        return view('placeholders.meal_details', ['meal' => $meal, 'quantity' => $get('quantity')]);
+                                                    }),
+                                                Forms\Components\Select::make('meal_id')
+                                                    ->label('Meal')
+                                                    ->options($meals->pluck('name', 'id')->toArray())
+                                                    ->searchable()
+                                                    ->live(onBlur: true)
+                                                    ->required(),
+                                                Forms\Components\TextInput::make('quantity')
+                                                    ->label('Quantity')
+                                                    ->numeric()
+                                                    ->default(100)
+                                                    ->live(onBlur: true)
+                                                    ->required(),
+                                            ])
+                                            ->defaultItems(1),
+                                    ])
+                                    ->defaultItems(1),
                             ])
                             ->collapsible(),
                     ])->defaultItems(1)
@@ -200,7 +211,7 @@ class MealPlanResource extends Resource
                             $livewire->dispatch('update-current-value', 'carbs', $values['carbs']);
                             $livewire->dispatch('update-current-value', 'fats', $values['fats']);
                         }),
-                ])
+                ]),
             ])->columns(1);
     }
 
@@ -213,14 +224,38 @@ class MealPlanResource extends Resource
         $dayCount = count($days);
 
         foreach ($days as $day) {
-            foreach ($day['time'] as $time) {
-                foreach ($time['meals'] as $meal) {
-                    $mealModel = $meals->where('id', '=', $meal['meal_id'])->first();
-                    if (!$mealModel) continue;
-                    $totalCalories += $meal['quantity'] * $mealModel->meal_macros['calories'];
-                    $totalProteins += $meal['quantity'] * $mealModel->meal_macros['proteins'];
-                    $totalCarbs += $meal['quantity'] * $mealModel->meal_macros['carbs'];
-                    $totalFats += $meal['quantity'] * $mealModel->meal_macros['fats'];
+            foreach ($day['time'] ?? [] as $time) {
+                foreach ($time['meals'] ?? [] as $mealSlot) {
+                    // Each slot has an 'options' array; average macros across all valid options
+                    $options = $mealSlot['options'] ?? [];
+                    if (empty($options)) {
+                        continue;
+                    }
+
+                    $slotCalories = 0;
+                    $slotProteins = 0;
+                    $slotCarbs = 0;
+                    $slotFats = 0;
+                    $validOptions = 0;
+
+                    foreach ($options as $option) {
+                        $mealModel = $meals->where('id', '=', $option['meal_id'])->first();
+                        if (! $mealModel) {
+                            continue;
+                        }
+                        $slotCalories += $option['quantity'] * $mealModel->meal_macros['calories'];
+                        $slotProteins += $option['quantity'] * $mealModel->meal_macros['proteins'];
+                        $slotCarbs += $option['quantity'] * $mealModel->meal_macros['carbs'];
+                        $slotFats += $option['quantity'] * $mealModel->meal_macros['fats'];
+                        $validOptions++;
+                    }
+
+                    if ($validOptions > 0) {
+                        $totalCalories += $slotCalories / $validOptions;
+                        $totalProteins += $slotProteins / $validOptions;
+                        $totalCarbs += $slotCarbs / $validOptions;
+                        $totalFats += $slotFats / $validOptions;
+                    }
                 }
             }
         }

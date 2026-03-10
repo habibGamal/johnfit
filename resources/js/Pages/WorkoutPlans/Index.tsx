@@ -3,9 +3,10 @@ import { Head, Link } from '@inertiajs/react';
 import { WorkoutPlan } from '@/types';
 import EmptyState from './Components/EmptyState';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/Components/ui/card";
-import { CalendarDays, ChevronRight, Dumbbell, Calendar, Activity } from 'lucide-react';
+import { CalendarDays, ChevronRight, Dumbbell, Calendar, Activity, Zap } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
+import WorkoutPlanCard from './Components/WorkoutPlanCard';
 
 interface WorkoutPlansProps {
     workoutPlans: WorkoutPlan[];
@@ -16,87 +17,55 @@ export default function Index({ workoutPlans }: WorkoutPlansProps) {
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold leading-tight text-gray-800 dark:text-gray-200">
-                        My Workout Plans
-                    </h2>
-                    <span className="text-sm font-medium text-muted-foreground">
-                        {workoutPlans.length} {workoutPlans.length === 1 ? 'Plan' : 'Plans'} Active
-                    </span>
+                    <div>
+                        <h2 className="text-2xl font-black uppercase tracking-wider text-foreground">
+                            My Workout Plans
+                        </h2>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Your roadmap to strength and conditioning
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+                        <Activity className="w-4 h-4 text-yellow-500" />
+                        <span className="text-sm font-bold text-yellow-500">
+                            {workoutPlans.length} {workoutPlans.length === 1 ? 'Active Plan' : 'Active Plans'}
+                        </span>
+                    </div>
                 </div>
             }
         >
             <Head title="My Workout Plans" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="relative overflow-hidden rounded-2xl border bg-background/50 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:shadow-md dark:bg-background/20">
-                        {/* Ambient Background Gradient */}
-                        <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500/5 blur-3xl" />
-                        <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-violet-500/5 blur-3xl" />
+            <div className="py-12 relative">
+                {/* Background Ambient Glow */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-yellow-500/5 blur-[120px] pointer-events-none rounded-full mix-blend-screen" />
 
-                        <div className="relative">
-                            {workoutPlans.length > 0 ? (
-                                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                                    {workoutPlans.map((plan) => (
-                                        <Card key={plan.id} className="group overflow-hidden border-muted/60 transition-all hover:border-primary/50 hover:shadow-lg">
-                                            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-muted/20 opacity-0 transition-opacity group-hover:opacity-100" />
-                                            <CardHeader className="pb-3 relative">
-                                                <div className="flex justify-between items-start">
-                                                    <div className="space-y-1">
-                                                        <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
-                                                        <CardDescription className="flex items-center gap-1.5">
-                                                            <CalendarDays className="h-3.5 w-3.5" />
-                                                            {plan.plan.length} days / week
-                                                        </CardDescription>
-                                                    </div>
-                                                    <div className="rounded-full bg-primary/10 p-2 text-primary">
-                                                        <Activity className="h-5 w-5" />
-                                                    </div>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="pb-4 relative">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {plan.plan.slice(0, 4).map((day) => (
-                                                        <Badge key={day.day} variant="outline" className="flex items-center gap-1 bg-background/50">
-                                                            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                                                            {day.day}
-                                                        </Badge>
-                                                    ))}
-                                                    {plan.plan.length > 4 && (
-                                                        <Badge variant="outline" className="text-muted-foreground">
-                                                            +{plan.plan.length - 4} more
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            </CardContent>
-                                            <CardFooter className="relative pt-2">
-                                                <Button
-                                                    className="w-full gap-2 shadow-sm transition-all group-hover:shadow-md"
-                                                    asChild
-                                                >
-                                                    <Link href={route('workout-plans.show', plan.id)}>
-                                                        View Workout Plan
-                                                        <ChevronRight className="h-4 w-4" />
-                                                    </Link>
-                                                </Button>
-                                            </CardFooter>
-                                        </Card>
-                                    ))}
-                                </div>
-                            ) : (
-                                <EmptyState
-                                    icon={<Dumbbell className="h-12 w-12 text-primary/80" />}
-                                    title="No workout plans yet"
-                                    description="You don't have any workout plans assigned to you yet. Contact your coach to get started on your fitness journey."
-                                    action={{
-                                        label: "Request Plan",
-                                        icon: <Calendar className="h-4 w-4" />,
-                                        href: "#"
-                                    }}
-                                />
-                            )}
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+
+                    {workoutPlans.length > 0 ? (
+                        <div className="space-y-8">
+                            {/* Featured / Hero Section for the most recent plan if available */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {workoutPlans.map((plan) => (
+                                    <WorkoutPlanCard key={plan.id} plan={plan} />
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="mt-8">
+                            <EmptyState
+                                icon={<Dumbbell className="h-16 w-16 text-yellow-500/80 mb-4" />}
+                                title="NO ACTIVE PLANS"
+                                description="You don't have any workout routines assigned yet. Your coach is crafting the perfect plan for you."
+                                action={{
+                                    label: "Request New Plan",
+                                    icon: <Zap className="h-4 w-4" />,
+                                    href: "#"
+                                }}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>

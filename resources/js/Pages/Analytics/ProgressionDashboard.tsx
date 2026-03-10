@@ -43,16 +43,15 @@ import {
 } from '@/types';
 import EmptyState from '@/Components/EmptyState';
 
-// Color palette with neon accents
+// Color palette aligned with app theme (gold accents)
 const COLORS = {
-    gains: '#00FF41',      // Neon green for positive
-    regression: '#FF3131', // Neon red for negative
-    neutral: '#888888',    // Gray for stable
-    volume: '#00D9FF',     // Cyan for volume
-    oneRm: '#FF00FF',      // Magenta for 1RM
-    bodyWeight: '#FFD700', // Gold for body weight
-    primary: '#6366F1',    // Indigo primary
-    background: '#0F0F23', // Dark background
+    gains: '#22C55E',       // Green for positive trends
+    regression: '#EF4444',  // Red for negative trends
+    neutral: '#6B7280',     // Gray for stable
+    volume: '#10B981',      // Emerald for volume metrics
+    oneRm: '#F59E0B',       // Amber for strength/1RM
+    bodyWeight: '#EAB308',  // Gold for body weight
+    primary: '#EAB308',     // Gold primary (matches --primary)
 };
 
 // Animation variants
@@ -84,34 +83,50 @@ function MetricCard({ title, value, subtitle, trend, icon, accentColor = COLORS.
     const trendColor = trend === 'up' ? COLORS.gains : trend === 'down' ? COLORS.regression : COLORS.neutral;
 
     return (
-        <motion.div variants={fadeInUp}>
-            <Card className="relative overflow-hidden bg-gray-900/80 border-gray-800 backdrop-blur-xl">
+        <motion.div
+            variants={fadeInUp}
+            whileHover={{ scale: 1.02, y: -2 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+        >
+            <Card className="relative overflow-hidden bg-card/40 border-border/50 backdrop-blur-md shadow-xl hover:shadow-2xl transition-shadow duration-300">
                 <div
-                    className="absolute inset-0 opacity-10"
+                    className="absolute inset-0 opacity-5"
                     style={{
-                        background: `radial-gradient(circle at top right, ${accentColor}, transparent 70%)`,
+                        background: `radial-gradient(circle at top right, ${accentColor}, transparent 60%)`,
                     }}
                 />
                 <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                         <div
-                            className="p-2 rounded-lg"
-                            style={{ backgroundColor: `${accentColor}20` }}
+                            className="p-2.5 rounded-xl border"
+                            style={{
+                                backgroundColor: `${accentColor}15`,
+                                borderColor: `${accentColor}30`,
+                            }}
                         >
                             {icon}
                         </div>
                         {trend && (
-                            <div className="flex items-center gap-1" style={{ color: trendColor }}>
-                                <TrendIcon className="h-4 w-4" />
-                            </div>
+                            <motion.div
+                                className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
+                                style={{
+                                    color: trendColor,
+                                    backgroundColor: `${trendColor}15`,
+                                }}
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                            >
+                                <TrendIcon className="h-3.5 w-3.5" />
+                                <span>{trend === 'up' ? 'Up' : trend === 'down' ? 'Down' : 'Stable'}</span>
+                            </motion.div>
                         )}
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-sm text-gray-400 mb-1">{title}</p>
-                    <p className="text-2xl font-bold text-white">{value}</p>
+                    <p className="text-sm text-muted-foreground mb-1">{title}</p>
+                    <p className="text-2xl font-bold text-foreground">{value}</p>
                     {subtitle && (
-                        <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">{subtitle}</p>
                     )}
                 </CardContent>
             </Card>
@@ -126,15 +141,21 @@ interface MuscleHeatmapProps {
 function MuscleHeatmap({ data }: MuscleHeatmapProps) {
     if (!data || data.length === 0) {
         return (
-            <Card className="bg-gray-900/80 border-gray-800">
+            <Card className="bg-card/40 border-border/50 backdrop-blur-md">
                 <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5 text-cyan-400" />
+                    <CardTitle className="text-foreground flex items-center gap-2">
+                        <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
+                            <BarChart3 className="h-5 w-5 text-primary" />
+                        </div>
                         Muscle Group Volume
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-gray-500 text-center py-8">No volume data available</p>
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <Dumbbell className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                        <p className="text-muted-foreground">No volume data available</p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">Complete some workouts to see your muscle distribution</p>
+                    </div>
                 </CardContent>
             </Card>
         );
@@ -142,22 +163,32 @@ function MuscleHeatmap({ data }: MuscleHeatmapProps) {
 
     const maxVolume = Math.max(...data.map(d => d.volume));
 
+    // Get color based on intensity: emerald (low) -> gold (high)
+    const getBarColor = (intensity: number) => {
+        if (intensity > 0.75) return { bg: '#EAB308', glow: 'rgba(234, 179, 8, 0.4)' }; // Gold
+        if (intensity > 0.5) return { bg: '#F59E0B', glow: 'rgba(245, 158, 11, 0.3)' }; // Amber
+        if (intensity > 0.25) return { bg: '#10B981', glow: 'rgba(16, 185, 129, 0.3)' }; // Emerald
+        return { bg: '#6B7280', glow: 'rgba(107, 114, 128, 0.2)' }; // Gray
+    };
+
     return (
         <motion.div variants={fadeInUp}>
-            <Card className="bg-gray-900/80 border-gray-800">
+            <Card className="bg-card/40 border-border/50 backdrop-blur-md shadow-xl">
                 <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5 text-cyan-400" />
+                    <CardTitle className="text-foreground flex items-center gap-2">
+                        <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
+                            <BarChart3 className="h-5 w-5 text-primary" />
+                        </div>
                         Muscle Group Volume
                     </CardTitle>
-                    <CardDescription className="text-gray-400">
+                    <CardDescription className="text-muted-foreground">
                         Distribution of training volume across muscle groups (last 4 weeks)
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {data.slice(0, 8).map((muscle, index) => {
                         const intensity = muscle.volume / maxVolume;
-                        const hue = 180 - (intensity * 120); // Cyan to red gradient
+                        const colors = getBarColor(intensity);
 
                         return (
                             <motion.div
@@ -165,20 +196,25 @@ function MuscleHeatmap({ data }: MuscleHeatmapProps) {
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.05 }}
-                                className="space-y-1"
+                                className="space-y-1.5"
                             >
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-300 font-medium">{muscle.muscle}</span>
-                                    <span className="text-gray-500">
-                                        {muscle.volume.toLocaleString()} kg
-                                    </span>
+                                    <span className="text-foreground font-medium">{muscle.muscle}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-muted-foreground text-xs">
+                                            {Math.round(muscle.percentage)}%
+                                        </span>
+                                        <span className="text-muted-foreground/70">
+                                            {muscle.volume.toLocaleString()} kg
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                                <div className="h-2.5 bg-muted/50 rounded-full overflow-hidden">
                                     <motion.div
                                         className="h-full rounded-full"
                                         style={{
-                                            backgroundColor: `hsl(${hue}, 100%, 50%)`,
-                                            boxShadow: `0 0 10px hsla(${hue}, 100%, 50%, 0.5)`,
+                                            backgroundColor: colors.bg,
+                                            boxShadow: `0 0 8px ${colors.glow}`,
                                         }}
                                         initial={{ width: 0 }}
                                         animate={{ width: `${muscle.percentage}%` }}
@@ -188,6 +224,26 @@ function MuscleHeatmap({ data }: MuscleHeatmapProps) {
                             </motion.div>
                         );
                     })}
+
+                    {/* Color Legend */}
+                    <div className="flex items-center justify-center gap-4 pt-3 mt-3 border-t border-border/50">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#6B7280]" />
+                            <span>Low</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
+                            <span>Medium</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+                            <span>High</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#EAB308]" />
+                            <span>Peak</span>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
         </motion.div>
@@ -233,15 +289,19 @@ function ProgressPulseChart({ data, selectedWorkout }: ProgressPulseChartProps) 
 
     if (!chartData || chartData.length === 0) {
         return (
-            <Card className="bg-gray-900/80 border-gray-800">
+            <Card className="bg-card/40 border-border/50 backdrop-blur-md">
                 <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
-                        <Activity className="h-5 w-5" style={{ color: COLORS.volume }} />
+                    <CardTitle className="text-foreground flex items-center gap-2">
+                        <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
+                            <Activity className="h-5 w-5 text-primary" />
+                        </div>
                         Progress Pulse
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="h-80 flex items-center justify-center">
-                    <p className="text-gray-500">No progression data available yet</p>
+                <CardContent className="h-80 flex flex-col items-center justify-center">
+                    <Activity className="h-12 w-12 text-muted-foreground/30 mb-3" />
+                    <p className="text-muted-foreground">No progression data available yet</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">Complete workouts to track your progress</p>
                 </CardContent>
             </Card>
         );
@@ -250,17 +310,17 @@ function ProgressPulseChart({ data, selectedWorkout }: ProgressPulseChartProps) 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-gray-900/95 border border-gray-700 rounded-lg p-3 shadow-xl backdrop-blur-sm">
-                    <p className="text-gray-400 text-sm mb-2">{label}</p>
+                <div className="bg-card/95 border border-border rounded-lg p-3 shadow-xl backdrop-blur-md">
+                    <p className="text-muted-foreground text-sm mb-2 font-medium">{label}</p>
                     {payload.map((entry: any, index: number) => (
-                        <div key={index} className="flex items-center gap-2 text-sm">
+                        <div key={index} className="flex items-center gap-2 text-sm py-0.5">
                             <div
-                                className="w-2 h-2 rounded-full"
+                                className="w-2.5 h-2.5 rounded-full"
                                 style={{ backgroundColor: entry.color }}
                             />
-                            <span className="text-gray-300">{entry.name}:</span>
-                            <span className="font-semibold text-white">
-                                {entry.value?.toFixed(1) ?? 'N/A'}
+                            <span className="text-muted-foreground">{entry.name}:</span>
+                            <span className="font-semibold text-foreground">
+                                {typeof entry.value === 'number' ? entry.value.toFixed(1) : 'N/A'}
                                 {entry.name === 'Volume' ? ' kg' : entry.name === 'Body Weight' ? ' kg' : ''}
                             </span>
                         </div>
@@ -273,18 +333,20 @@ function ProgressPulseChart({ data, selectedWorkout }: ProgressPulseChartProps) 
 
     return (
         <motion.div variants={fadeInUp}>
-            <Card className="bg-gray-900/80 border-gray-800">
+            <Card className="bg-card/40 border-border/50 backdrop-blur-md shadow-xl">
                 <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
-                        <Activity className="h-5 w-5" style={{ color: COLORS.volume }} />
+                    <CardTitle className="text-foreground flex items-center gap-2">
+                        <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
+                            <Activity className="h-5 w-5 text-primary" />
+                        </div>
                         Progress Pulse
                         {selectedWorkout && (
-                            <Badge variant="outline" className="ml-2 border-cyan-500 text-cyan-400">
+                            <Badge variant="outline" className="ml-2 border-primary/50 text-primary">
                                 {selectedWorkout.workout_name}
                             </Badge>
                         )}
                     </CardTitle>
-                    <CardDescription className="text-gray-400">
+                    <CardDescription className="text-muted-foreground">
                         Multi-dimensional view of your training progression
                     </CardDescription>
                 </CardHeader>
@@ -297,11 +359,11 @@ function ProgressPulseChart({ data, selectedWorkout }: ProgressPulseChartProps) 
                                     <stop offset="95%" stopColor={COLORS.volume} stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                             <XAxis
                                 dataKey="date"
-                                stroke="#666"
-                                tick={{ fill: '#888', fontSize: 11 }}
+                                stroke="hsl(var(--muted-foreground))"
+                                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                                 tickFormatter={(value) => {
                                     const date = new Date(value);
                                     return `${date.getMonth() + 1}/${date.getDate()}`;
@@ -310,20 +372,20 @@ function ProgressPulseChart({ data, selectedWorkout }: ProgressPulseChartProps) 
                             <YAxis
                                 yAxisId="left"
                                 stroke={COLORS.volume}
-                                tick={{ fill: '#888', fontSize: 11 }}
+                                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                             />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
                                 stroke={COLORS.oneRm}
-                                tick={{ fill: '#888', fontSize: 11 }}
+                                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                             />
                             <Tooltip content={<CustomTooltip />} />
                             <Legend
                                 wrapperStyle={{ paddingTop: '20px' }}
                                 formatter={(value) => (
-                                    <span className="text-gray-300 text-sm">{value}</span>
+                                    <span className="text-muted-foreground text-sm">{value}</span>
                                 )}
                             />
                             <Area
@@ -378,11 +440,10 @@ function WorkoutSelector({ workouts, selectedId, onSelect }: WorkoutSelectorProp
                 variant={selectedId === null ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => onSelect(null)}
-                className={`transition-all ${
-                    selectedId === null
-                        ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0'
-                        : 'border-gray-700 text-gray-400 hover:text-white hover:border-cyan-500'
-                }`}
+                className={`transition-all ${selectedId === null
+                    ? 'bg-gradient-to-r from-primary to-amber-500 text-primary-foreground border-0'
+                    : 'border-border/50 text-muted-foreground hover:text-foreground hover:border-primary'
+                    }`}
             >
                 All Workouts
             </Button>
@@ -392,11 +453,10 @@ function WorkoutSelector({ workouts, selectedId, onSelect }: WorkoutSelectorProp
                     variant={selectedId === workout.id ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => onSelect(workout.id)}
-                    className={`transition-all ${
-                        selectedId === workout.id
-                            ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0'
-                            : 'border-gray-700 text-gray-400 hover:text-white hover:border-cyan-500'
-                    }`}
+                    className={`transition-all ${selectedId === workout.id
+                        ? 'bg-gradient-to-r from-primary to-amber-500 text-primary-foreground border-0'
+                        : 'border-border/50 text-muted-foreground hover:text-foreground hover:border-primary'
+                        }`}
                 >
                     {workout.name}
                 </Button>
@@ -421,50 +481,73 @@ function PersonalBestCard({ workout }: PersonalBestCardProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 200 }}
+            whileHover={{ scale: 1.02 }}
         >
-            <Card className="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border-yellow-600/50 overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full -translate-y-16 translate-x-16" />
+            <Card className="relative bg-gradient-to-br from-primary/20 to-amber-900/20 border-primary/50 overflow-hidden shadow-xl">
+                {/* Shimmer effect */}
+                <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent"
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '200%' }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -translate-y-16 translate-x-16" />
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-yellow-400 flex items-center gap-2">
-                        <Trophy className="h-5 w-5" />
+                    <CardTitle className="text-primary flex items-center gap-2">
+                        <motion.div
+                            animate={{ rotate: [0, -10, 10, -10, 0] }}
+                            transition={{ duration: 0.5, delay: 0.3 }}
+                        >
+                            <Trophy className="h-5 w-5" />
+                        </motion.div>
                         Personal Best Today!
                     </CardTitle>
-                    <CardDescription className="text-yellow-200/70">
+                    <CardDescription className="text-muted-foreground">
                         {workout.workout_name}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {pbs.has_strength_pb && pbs.strength_pb_details && (
-                        <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+                        <motion.div
+                            className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/30"
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                        >
                             <div className="flex items-center gap-2">
-                                <Zap className="h-4 w-4 text-purple-400" />
-                                <span className="text-gray-300">New 1RM</span>
+                                <Zap className="h-4 w-4 text-amber-400" />
+                                <span className="text-foreground/80">New 1RM</span>
                             </div>
                             <div className="text-right">
                                 <p className="text-lg font-bold" style={{ color: COLORS.gains }}>
                                     {pbs.strength_pb_details.new_record} kg
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-foreground">
                                     +{pbs.strength_pb_details.improvement_percentage}% improvement
                                 </p>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
                     {pbs.has_volume_pb && pbs.volume_pb_details && (
-                        <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+                        <motion.div
+                            className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/30"
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                        >
                             <div className="flex items-center gap-2">
-                                <Dumbbell className="h-4 w-4 text-cyan-400" />
-                                <span className="text-gray-300">Volume PB</span>
+                                <Dumbbell className="h-4 w-4 text-emerald-400" />
+                                <span className="text-foreground/80">Volume PB</span>
                             </div>
                             <div className="text-right">
                                 <p className="text-lg font-bold" style={{ color: COLORS.gains }}>
                                     {pbs.volume_pb_details.new_record.toLocaleString()} kg
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-foreground">
                                     +{pbs.volume_pb_details.improvement_percentage}% improvement
                                 </p>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
                 </CardContent>
             </Card>
@@ -516,17 +599,17 @@ export default function ProgressionDashboard({
                             variant="ghost"
                             size="icon"
                             asChild
-                            className="rounded-full hover:bg-gray-800"
+                            className="rounded-full hover:bg-muted"
                         >
                             <Link href={route('dashboard')}>
                                 <ArrowLeft className="h-5 w-5" />
                             </Link>
                         </Button>
                         <div>
-                            <h2 className="text-xl font-bold leading-tight text-white">
+                            <h2 className="text-xl font-bold leading-tight text-foreground">
                                 Progression Analytics
                             </h2>
-                            <p className="text-xs text-gray-400">Track your strength journey</p>
+                            <p className="text-xs text-muted-foreground">Track your strength journey</p>
                         </div>
                     </div>
                 </div>
@@ -534,7 +617,7 @@ export default function ProgressionDashboard({
         >
             <Head title="Progression Analytics" />
 
-            <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 py-8">
+            <div className="min-h-screen py-8">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <AnimatePresence mode="wait">
                         {!hasData ? (
@@ -548,8 +631,7 @@ export default function ProgressionDashboard({
                                     title="No workout data yet"
                                     description="Complete some workout sessions to start tracking your progression"
                                     icon={<Dumbbell className="h-12 w-12 text-gray-500" />}
-                                    actionLabel="Go to Workout Plans"
-                                    actionRoute={route('workout-plans.index')}
+                                    action={{ label: "Go to Workout Plans", href: route('workout-plans.index') }}
                                 />
                             </motion.div>
                         ) : (
@@ -586,14 +668,14 @@ export default function ProgressionDashboard({
                                         title="Consistency Score"
                                         value={`${consistencyScore.percentage}%`}
                                         subtitle={`${consistencyScore.completed_sessions}/${consistencyScore.target_sessions} sessions`}
-                                        icon={<Target className="h-5 w-5 text-cyan-400" />}
+                                        icon={<Target className="h-5 w-5 text-emerald-400" />}
                                         accentColor={COLORS.volume}
                                     />
                                     <MetricCard
                                         title="Total Volume"
                                         value={`${(intensityDelta.current_volume / 1000).toFixed(1)}k kg`}
                                         subtitle="Last 4 weeks"
-                                        icon={<Dumbbell className="h-5 w-5 text-purple-400" />}
+                                        icon={<Dumbbell className="h-5 w-5 text-amber-400" />}
                                         accentColor={COLORS.oneRm}
                                     />
                                     <MetricCard
@@ -607,10 +689,10 @@ export default function ProgressionDashboard({
 
                                 {/* Workout Selector */}
                                 <motion.div variants={fadeInUp}>
-                                    <Card className="bg-gray-900/50 border-gray-800">
+                                    <Card className="bg-card/40 border-border/50 backdrop-blur-md">
                                         <CardContent className="p-4">
                                             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                                                <span className="text-gray-400 text-sm whitespace-nowrap">
+                                                <span className="text-muted-foreground text-sm whitespace-nowrap">
                                                     Filter by workout:
                                                 </span>
                                                 <WorkoutSelector
@@ -639,31 +721,33 @@ export default function ProgressionDashboard({
                                 {/* Workout Details Tabs */}
                                 {currentWorkoutAnalytics && (
                                     <motion.div variants={fadeInUp}>
-                                        <Card className="bg-gray-900/80 border-gray-800">
+                                        <Card className="bg-card/40 border-border/50 backdrop-blur-md shadow-xl">
                                             <CardHeader>
-                                                <CardTitle className="text-white flex items-center gap-2">
-                                                    <Award className="h-5 w-5 text-yellow-400" />
+                                                <CardTitle className="text-foreground flex items-center gap-2">
+                                                    <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
+                                                        <Award className="h-5 w-5 text-primary" />
+                                                    </div>
                                                     Workout Details: {currentWorkoutAnalytics.workout_name}
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent>
                                                 <Tabs defaultValue="volume" className="w-full">
-                                                    <TabsList className="bg-gray-800 border-gray-700">
+                                                    <TabsList className="bg-muted/50 border-border/50">
                                                         <TabsTrigger
                                                             value="volume"
-                                                            className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white"
+                                                            className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
                                                         >
                                                             Volume Trend
                                                         </TabsTrigger>
                                                         <TabsTrigger
                                                             value="strength"
-                                                            className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+                                                            className="data-[state=active]:bg-amber-600 data-[state=active]:text-white"
                                                         >
                                                             Strength Trend
                                                         </TabsTrigger>
                                                         <TabsTrigger
                                                             value="relative"
-                                                            className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white"
+                                                            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                                                         >
                                                             Relative Strength
                                                         </TabsTrigger>
@@ -672,24 +756,24 @@ export default function ProgressionDashboard({
                                                     <TabsContent value="volume" className="mt-4">
                                                         <ResponsiveContainer width="100%" height={250}>
                                                             <ComposedChart data={currentWorkoutAnalytics.volume_trend}>
-                                                                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                                                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                                                                 <XAxis
                                                                     dataKey="session_date"
-                                                                    stroke="#666"
-                                                                    tick={{ fill: '#888', fontSize: 11 }}
+                                                                    stroke="hsl(var(--muted-foreground))"
+                                                                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                                                                     tickFormatter={(value) => {
                                                                         const date = new Date(value);
                                                                         return `${date.getMonth() + 1}/${date.getDate()}`;
                                                                     }}
                                                                 />
-                                                                <YAxis stroke="#666" tick={{ fill: '#888', fontSize: 11 }} />
+                                                                <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                                                                 <Tooltip
                                                                     contentStyle={{
-                                                                        backgroundColor: '#1a1a2e',
-                                                                        border: '1px solid #333',
+                                                                        backgroundColor: 'hsl(var(--card))',
+                                                                        border: '1px solid hsl(var(--border))',
                                                                         borderRadius: '8px',
                                                                     }}
-                                                                    labelStyle={{ color: '#888' }}
+                                                                    labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
                                                                 />
                                                                 <Bar
                                                                     dataKey="total_volume"
@@ -704,24 +788,24 @@ export default function ProgressionDashboard({
                                                     <TabsContent value="strength" className="mt-4">
                                                         <ResponsiveContainer width="100%" height={250}>
                                                             <LineChart data={currentWorkoutAnalytics.one_rm_trend}>
-                                                                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                                                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                                                                 <XAxis
                                                                     dataKey="date"
-                                                                    stroke="#666"
-                                                                    tick={{ fill: '#888', fontSize: 11 }}
+                                                                    stroke="hsl(var(--muted-foreground))"
+                                                                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                                                                     tickFormatter={(value) => {
                                                                         const date = new Date(value);
                                                                         return `${date.getMonth() + 1}/${date.getDate()}`;
                                                                     }}
                                                                 />
-                                                                <YAxis stroke="#666" tick={{ fill: '#888', fontSize: 11 }} />
+                                                                <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                                                                 <Tooltip
                                                                     contentStyle={{
-                                                                        backgroundColor: '#1a1a2e',
-                                                                        border: '1px solid #333',
+                                                                        backgroundColor: 'hsl(var(--card))',
+                                                                        border: '1px solid hsl(var(--border))',
                                                                         borderRadius: '8px',
                                                                     }}
-                                                                    labelStyle={{ color: '#888' }}
+                                                                    labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
                                                                 />
                                                                 <Line
                                                                     type="monotone"
@@ -739,25 +823,25 @@ export default function ProgressionDashboard({
                                                         {currentWorkoutAnalytics.relative_strength_trend.some(r => r.relative_strength !== null) ? (
                                                             <ResponsiveContainer width="100%" height={250}>
                                                                 <LineChart data={currentWorkoutAnalytics.relative_strength_trend}>
-                                                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                                                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                                                                     <XAxis
                                                                         dataKey="date"
-                                                                        stroke="#666"
-                                                                        tick={{ fill: '#888', fontSize: 11 }}
+                                                                        stroke="hsl(var(--muted-foreground))"
+                                                                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                                                                         tickFormatter={(value) => {
                                                                             const date = new Date(value);
                                                                             return `${date.getMonth() + 1}/${date.getDate()}`;
                                                                         }}
                                                                     />
-                                                                    <YAxis stroke="#666" tick={{ fill: '#888', fontSize: 11 }} />
+                                                                    <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                                                                     <Tooltip
                                                                         contentStyle={{
-                                                                            backgroundColor: '#1a1a2e',
-                                                                            border: '1px solid #333',
+                                                                            backgroundColor: 'hsl(var(--card))',
+                                                                            border: '1px solid hsl(var(--border))',
                                                                             borderRadius: '8px',
                                                                         }}
-                                                                        labelStyle={{ color: '#888' }}
-                                                                        formatter={(value: number) => [`${value?.toFixed(2)}x BW`, 'Relative Strength']}
+                                                                        labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
+                                                                        formatter={(value: number | undefined) => [`${typeof value === 'number' ? value.toFixed(2) : 'N/A'}x BW`, 'Relative Strength']}
                                                                     />
                                                                     <Line
                                                                         type="monotone"
@@ -771,14 +855,14 @@ export default function ProgressionDashboard({
                                                                 </LineChart>
                                                             </ResponsiveContainer>
                                                         ) : (
-                                                            <div className="h-64 flex items-center justify-center text-gray-500">
+                                                            <div className="h-64 flex items-center justify-center text-muted-foreground">
                                                                 <div className="text-center">
                                                                     <Scale className="h-12 w-12 mx-auto mb-2 opacity-50" />
                                                                     <p>Add InBody measurements to see relative strength</p>
                                                                     <Button
                                                                         variant="outline"
                                                                         size="sm"
-                                                                        className="mt-3 border-gray-700"
+                                                                        className="mt-3 border-border/50 hover:border-primary"
                                                                         asChild
                                                                     >
                                                                         <Link href={route('inbody.index')}>
@@ -798,38 +882,40 @@ export default function ProgressionDashboard({
                                 {/* InBody Correlation Section */}
                                 {inbodyTrend && inbodyTrend.length > 0 && (
                                     <motion.div variants={fadeInUp}>
-                                        <Card className="bg-gray-900/80 border-gray-800">
+                                        <Card className="bg-card/40 border-border/50 backdrop-blur-md shadow-xl">
                                             <CardHeader>
-                                                <CardTitle className="text-white flex items-center gap-2">
-                                                    <Scale className="h-5 w-5 text-emerald-400" />
+                                                <CardTitle className="text-foreground flex items-center gap-2">
+                                                    <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                                                        <Scale className="h-5 w-5 text-emerald-500" />
+                                                    </div>
                                                     Body Composition Trend
                                                 </CardTitle>
-                                                <CardDescription className="text-gray-400">
+                                                <CardDescription className="text-muted-foreground">
                                                     Track how your body composition changes with training
                                                 </CardDescription>
                                             </CardHeader>
                                             <CardContent>
                                                 <ResponsiveContainer width="100%" height={250}>
                                                     <LineChart data={inbodyTrend}>
-                                                        <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                                                         <XAxis
                                                             dataKey="date"
-                                                            stroke="#666"
-                                                            tick={{ fill: '#888', fontSize: 11 }}
+                                                            stroke="hsl(var(--muted-foreground))"
+                                                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                                                             tickFormatter={(value) => {
                                                                 const date = new Date(value);
                                                                 return `${date.getMonth() + 1}/${date.getDate()}`;
                                                             }}
                                                         />
-                                                        <YAxis yAxisId="weight" stroke="#666" tick={{ fill: '#888', fontSize: 11 }} />
-                                                        <YAxis yAxisId="percentage" orientation="right" stroke="#666" tick={{ fill: '#888', fontSize: 11 }} />
+                                                        <YAxis yAxisId="weight" stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                                                        <YAxis yAxisId="percentage" orientation="right" stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                                                         <Tooltip
                                                             contentStyle={{
-                                                                backgroundColor: '#1a1a2e',
-                                                                border: '1px solid #333',
+                                                                backgroundColor: 'hsl(var(--card))',
+                                                                border: '1px solid hsl(var(--border))',
                                                                 borderRadius: '8px',
                                                             }}
-                                                            labelStyle={{ color: '#888' }}
+                                                            labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
                                                         />
                                                         <Legend />
                                                         <Line
