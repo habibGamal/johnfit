@@ -48,13 +48,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'assessment_completed_at' => 'datetime',
-            'expo_token' => ExpoPushToken::class,
+            'expo_token' =>  'string',
         ];
     }
 
+
     public function routeNotificationForExpo(): ?ExpoPushToken
     {
-        return $this->expo_token;
+        return $this->expo_token
+            ? new ExpoPushToken($this->expo_token)
+            : null;
     }
 
     /**
