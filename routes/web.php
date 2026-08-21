@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::view('/', 'home');
+
+Route::get('/pages/{slug}', [PageController::class, 'show'])->name('pages.show');
 
 Route::get('/workout-plan/{workoutPlan}', [App\Http\Controllers\WorkoutController::class, 'show']);
 Route::get('/workout-plan/{workoutPlan}/download', [App\Http\Controllers\WorkoutController::class, 'download'])->name('workout-plan.download');
@@ -45,6 +48,9 @@ Route::middleware(['auth', 'assessment.completed'])->group(function () {
     Route::get('/meal-plans', [App\Http\Controllers\MealPlanController::class, 'index'])->name('meal-plans.index');
     Route::get('/meal-plans/{mealPlan}', [App\Http\Controllers\MealPlanController::class, 'show'])->name('meal-plans.show');
     Route::post('/meal-plans/toggle-completion', [App\Http\Controllers\MealPlanController::class, 'toggleCompletion'])->name('meal-plans.toggle-completion');
+
+    // Auto-Generate Plans Route
+    Route::post('/plans/generate', [App\Http\Controllers\PlanGenerationController::class, 'generate'])->name('plans.generate');
 
     // InBody Tracking Routes
     Route::get('/inbody', [App\Http\Controllers\InBodyLogController::class, 'index'])->name('inbody.index');

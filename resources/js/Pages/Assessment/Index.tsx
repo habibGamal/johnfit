@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Assessment, AssessmentOption, AssessmentType } from '@/types';
+import { Assessment } from '@/types';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,9 @@ import {
     Loader2,
 } from 'lucide-react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import InteractiveEmojiFace, {
+    ExpressionKey,
+} from '@/Components/InteractiveEmojiFace';
 
 interface AssessmentIndexProps {
     assessments: Assessment[];
@@ -33,16 +36,38 @@ const variants = {
     }),
 };
 
+const STEP_EXPRESSIONS: ExpressionKey[] = [
+    'thinking',
+    'serious',
+    'worried',
+    'cool',
+    'worried',
+    'serious',
+    'thinking',
+    'cool',
+    'happy',
+    'serious',
+    'excited',
+    'cool',
+    'happy',
+    'serious',
+    'fire',
+];
+
+const REACTION_EXPRESSIONS: ExpressionKey[] = ['happy', 'excited', 'cool'];
+
 export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [direction, setDirection] = useState(1);
     const [answers, setAnswers] = useState<Record<number, string | string[]>>({});
     const [submitting, setSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [bounceTrigger, setBounceTrigger] = useState(0);
+    const [lastReaction, setLastReaction] = useState<ExpressionKey | null>(null);
 
     const total = assessments.length;
     const current = assessments[currentStep];
-    const progress = ((currentStep) / total) * 100;
+    const progress = (currentStep / total) * 100;
 
     const currentAnswer = answers[current?.id];
 
@@ -57,6 +82,15 @@ export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
         return typeof currentAnswer === 'string' && currentAnswer.length > 0;
     };
 
+    const triggerReaction = () => {
+        const nextReaction =
+            REACTION_EXPRESSIONS[
+                Math.floor(Math.random() * REACTION_EXPRESSIONS.length)
+            ];
+        setLastReaction(nextReaction);
+        setBounceTrigger((b) => b + 1);
+    };
+
     const handleSelectOption = (label: string) => {
         if (current.type === 'multiple_select') {
             const prev = Array.isArray(currentAnswer) ? currentAnswer : [];
@@ -68,11 +102,15 @@ export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
             setAnswers((a) => ({ ...a, [current.id]: label }));
         }
         setErrors((e) => ({ ...e, [`answers.${current.id}`]: '' }));
+        triggerReaction();
     };
 
     const handleTextChange = (value: string) => {
         setAnswers((a) => ({ ...a, [current.id]: value }));
         setErrors((e) => ({ ...e, [`answers.${current.id}`]: '' }));
+        if (value.trim().length > 0 && !lastReaction) {
+            triggerReaction();
+        }
     };
 
     const handleNext = () => {
@@ -85,6 +123,7 @@ export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
         }
         if (currentStep < total - 1) {
             setDirection(1);
+            setLastReaction(null);
             setCurrentStep((s) => s + 1);
         }
     };
@@ -92,6 +131,7 @@ export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
     const handleBack = () => {
         if (currentStep > 0) {
             setDirection(-1);
+            setLastReaction(null);
             setCurrentStep((s) => s - 1);
         }
     };
@@ -125,6 +165,15 @@ export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
         );
     };
 
+    const defaultExpr =
+        STEP_EXPRESSIONS[currentStep % STEP_EXPRESSIONS.length] || 'thinking';
+
+    const currentExpr: ExpressionKey = isAnswered()
+        ? currentStep === total - 1
+            ? 'fire'
+            : lastReaction || 'happy'
+        : defaultExpr;
+
     return (
         <div className="min-h-screen bg-background flex flex-col">
             <Head title="Initial Assessment" />
@@ -149,8 +198,21 @@ export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
             </div>
 
             {/* Question Area */}
-            <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
-                <div className="w-full max-w-lg">
+            <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+                <div
+                    className={cn(
+                        'w-full transition-all duration-300',
+                        current?.type === 'multiple_select' ? 'max-w-xl' : 'max-w-lg'
+                    )}
+                >
+                    {/* Animated Emoji Avatar Face */}
+                    <div className="mb-6">
+                        <InteractiveEmojiFace
+                            expressionKey={currentExpr}
+                            bounceTrigger={bounceTrigger}
+                        />
+                    </div>
+
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
                             key={currentStep}
@@ -173,43 +235,60 @@ export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
                             )}
 
                             {/* Question Text */}
-                            <h2 className="text-2xl font-black uppercase tracking-wider text-foreground text-center mb-2">
+                            <h2 className="text-2xl font-black tracking-wider text-foreground text-center mb-2">
                                 {current?.question}
                             </h2>
 
                             {current?.type === 'multiple_select' && (
                                 <p className="text-sm text-muted-foreground text-center mb-6">
-                                    Select all that apply
+                                    اختر كل ما يناسبك (يمكنك اختيار أكثر من عنصر)
                                 </p>
                             )}
                             {current?.type !== 'multiple_select' && <div className="mb-6" />}
 
                             {/* Options */}
-                            {(current?.type === 'select' || current?.type === 'multiple_select') && (
-                                <div className="flex flex-col gap-3">
+                            {(current?.type === 'select' ||
+                                current?.type === 'multiple_select') && (
+                                <div
+                                    className={cn(
+                                        current.type === 'multiple_select'
+                                            ? 'grid grid-cols-2 gap-2.5 sm:gap-3'
+                                            : 'flex flex-col gap-3'
+                                    )}
+                                >
                                     {current.options?.map((option) => {
                                         const isSelected =
                                             current.type === 'multiple_select'
-                                                ? Array.isArray(currentAnswer) && currentAnswer.includes(option.label)
+                                                ? Array.isArray(currentAnswer) &&
+                                                  currentAnswer.includes(option.label)
                                                 : currentAnswer === option.label;
 
                                         return (
                                             <button
                                                 key={option.label}
+                                                type="button"
                                                 onClick={() => handleSelectOption(option.label)}
                                                 className={cn(
-                                                    'w-full flex items-center justify-between rounded-xl border px-5 py-4 text-left transition-all duration-200',
-                                                    'hover:border-primary/60 hover:bg-primary/5',
+                                                    'w-full flex items-center justify-between rounded-xl border transition-all duration-200',
+                                                    current.type === 'multiple_select'
+                                                        ? 'px-3.5 py-3 text-right'
+                                                        : 'px-5 py-4 text-right',
+                                                    'hover:border-primary/60 hover:bg-primary/5 active:scale-[0.99]',
                                                     isSelected
                                                         ? 'border-primary bg-primary/10 text-foreground shadow-sm'
                                                         : 'border-border bg-card text-muted-foreground'
                                                 )}
                                             >
-                                                <span className={cn('font-semibold text-sm', isSelected && 'text-primary')}>
+                                                <span
+                                                    className={cn(
+                                                        'font-semibold text-sm leading-snug',
+                                                        isSelected && 'text-primary'
+                                                    )}
+                                                >
                                                     {option.label}
                                                 </span>
                                                 {isSelected && (
-                                                    <CheckCircle className="h-5 w-5 text-primary shrink-0" />
+                                                    <CheckCircle className="h-5 w-5 text-primary shrink-0 ml-2" />
                                                 )}
                                             </button>
                                         );
@@ -222,12 +301,18 @@ export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
                                 <Input
                                     type="text"
                                     placeholder="Type your answer..."
-                                    value={typeof currentAnswer === 'string' ? currentAnswer : ''}
+                                    value={
+                                        typeof currentAnswer === 'string'
+                                            ? currentAnswer
+                                            : ''
+                                    }
                                     onChange={(e) => handleTextChange(e.target.value)}
                                     className="text-center text-lg h-14 rounded-xl border-border bg-card"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
-                                            currentStep < total - 1 ? handleNext() : handleSubmit();
+                                            currentStep < total - 1
+                                                ? handleNext()
+                                                : handleSubmit();
                                         }
                                     }}
                                     autoFocus

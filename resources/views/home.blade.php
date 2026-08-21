@@ -162,6 +162,29 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="col-xl-6 col-lg-7 col-sm-12 mt-4 mt-lg-0">
+                                            <div class="footer_quick_contact">
+                                                <h6 class="color_white reveal custom_lightSpeedInLeft">QUICK LINKS</h6>
+                                                <div class="footer_contact d-flex flex-wrap gap-2">
+                                                    <a href="{{ route('pages.show', ['slug' => 'about-us']) }}"
+                                                        class="satoshi_fontfamily fw_500 color_lightgray triners_icons reveal custom_zoom_in">About Us</a>
+                                                    <a href="{{ route('pages.show', ['slug' => 'privacy-policy']) }}"
+                                                        class="satoshi_fontfamily fw_500 color_lightgray triners_icons reveal custom_zoom_in">Privacy Policy</a>
+                                                    <a href="{{ route('pages.show', ['slug' => 'return-policy']) }}"
+                                                        class="satoshi_fontfamily fw_500 color_lightgray triners_icons reveal custom_zoom_in">Return Policy</a>
+                                                    <a href="{{ route('pages.show', ['slug' => 'replacement-policy']) }}"
+                                                        class="satoshi_fontfamily fw_500 color_lightgray triners_icons reveal custom_zoom_in">Replacement Policy</a>
+                                                    <a href="{{ route('pages.show', ['slug' => 'delivery-policy']) }}"
+                                                        class="satoshi_fontfamily fw_500 color_lightgray triners_icons reveal custom_zoom_in">Delivery Policy</a>
+                                                    <a href="{{ route('pages.show', ['slug' => 'shipping-policy']) }}"
+                                                        class="satoshi_fontfamily fw_500 color_lightgray triners_icons reveal custom_zoom_in">Shipping Policy</a>
+                                                    <a href="{{ route('pages.show', ['slug' => 'terms-of-service']) }}"
+                                                        class="satoshi_fontfamily fw_500 color_lightgray triners_icons reveal custom_zoom_in">Terms of Service</a>
+                                                    <a href="{{ route('pages.show', ['slug' => 'contact-us']) }}"
+                                                        class="satoshi_fontfamily fw_500 color_lightgray triners_icons reveal custom_zoom_in">Contact Us</a>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

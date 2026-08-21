@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             AssessmentSeeder::class,
             SubscriptionPlanSeeder::class,
             QuoteSeeder::class,
+            PageSeeder::class,
         ]);
     }
 }

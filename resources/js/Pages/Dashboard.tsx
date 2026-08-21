@@ -30,6 +30,7 @@ import QuickActionCard from '@/Components/Dashboard/QuickActionCard';
 import AchievementStat from '@/Components/Dashboard/AchievementStat';
 import FitnessScoreWidget from '@/Components/Dashboard/FitnessScoreWidget';
 import FitnessScoreTrend from '@/Components/Dashboard/FitnessScoreTrend';
+import AutoPlanGeneratorCard from '@/Components/Dashboard/AutoPlanGeneratorCard';
 import {
     Trophy,
     Flag,
@@ -156,6 +157,9 @@ export default function Dashboard({ auth, workoutStats, mealStats, fitnessScore,
                             </Link>
                         </motion.div>
                     )}
+
+                    {/* AI Auto Plan Generator Section */}
+                    <AutoPlanGeneratorCard />
 
                     {/* Fitness Score Section */}
                     <div className="mb-10">
