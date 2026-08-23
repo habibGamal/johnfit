@@ -179,9 +179,6 @@ export default function Edit({ mustVerifyEmail, status }: ProfileEditProps) {
             <Head title="Profile Settings" />
 
             <div className="py-10 relative min-h-[calc(100vh-10rem)]">
-                {/* Background Ambient Glow */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[450px] bg-yellow-500/5 blur-[120px] pointer-events-none rounded-full mix-blend-screen" />
-
                 <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative z-10 space-y-8">
                     {/* User Banner Card */}
                     <motion.div
@@ -192,7 +189,7 @@ export default function Edit({ mustVerifyEmail, status }: ProfileEditProps) {
                         <Card className="border-yellow-500/20 bg-card/60 backdrop-blur-md overflow-hidden shadow-xl">
                             <div className="p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6">
                                 <div className="relative">
-                                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center text-zinc-950 font-black text-2xl sm:text-3xl shadow-lg shadow-yellow-500/20 border-2 border-yellow-400/40">
+                                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-primary flex items-center justify-center text-zinc-950 font-black text-2xl sm:text-3xl shadow-md border-2 border-yellow-400/40">
                                         {initials}
                                     </div>
                                     <div className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-background border border-border shadow">
@@ -364,7 +361,7 @@ export default function Edit({ mustVerifyEmail, status }: ProfileEditProps) {
                                                 <Button
                                                     type="submit"
                                                     disabled={profileProcessing}
-                                                    className="bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-bold px-6 h-11 rounded-xl shadow-md shadow-yellow-500/10 transition-all flex items-center gap-2"
+                                                    className="bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-bold px-6 h-11 rounded-xl shadow-sm transition-all flex items-center gap-2"
                                                 >
                                                     {profileProcessing ? (
                                                         <>
@@ -515,7 +512,7 @@ export default function Edit({ mustVerifyEmail, status }: ProfileEditProps) {
                                                 <Button
                                                     type="submit"
                                                     disabled={passwordProcessing}
-                                                    className="bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-bold px-6 h-11 rounded-xl shadow-md shadow-yellow-500/10 transition-all flex items-center gap-2"
+                                                    className="bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-bold px-6 h-11 rounded-xl shadow-sm transition-all flex items-center gap-2"
                                                 >
                                                     {passwordProcessing ? (
                                                         <>

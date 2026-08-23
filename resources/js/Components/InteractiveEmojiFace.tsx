@@ -138,7 +138,7 @@ export default function InteractiveEmojiFace({
                     duration: 0.5,
                     ease: 'easeOut',
                 }}
-                className="relative p-[3px] rounded-full bg-gradient-to-tr from-amber-500 via-orange-500 to-yellow-400 shadow-[0_0_30px_rgba(245,166,35,0.35)]"
+                className="relative p-[3px] rounded-full bg-primary/20 border border-primary/30"
             >
                 <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-card flex items-center justify-center overflow-hidden border-2 border-background/40">
                     <svg

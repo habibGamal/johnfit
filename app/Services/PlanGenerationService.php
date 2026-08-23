@@ -13,6 +13,11 @@ use Illuminate\Support\Collection;
 
 class PlanGenerationService
 {
+    public function __construct(
+        protected PlanAssignmentService $assignmentService
+    ) {
+    }
+
     /**
      * Generate both Workout Plan and Meal Plan for the given user.
      *
@@ -23,7 +28,7 @@ class PlanGenerationService
         $answers = $user->assessmentAnswers()
             ->with('assessment')
             ->get()
-            ->keyBy(fn ($a) => $a->assessment->order ?? $a->assessment_id);
+            ->keyBy(fn($a) => $a->assessment->order ?? $a->assessment_id);
 
         $latestInBody = InBodyLog::where('user_id', $user->id)
             ->latestFirst()
@@ -52,9 +57,9 @@ class PlanGenerationService
      */
     private const SLOT_MACRO_RATIOS = [
         'breakfast' => ['protein' => 0.20, 'carbs' => 0.50, 'fats' => 0.30],
-        'lunch'     => ['protein' => 0.35, 'carbs' => 0.40, 'fats' => 0.25],
-        'snack'     => ['protein' => 0.15, 'carbs' => 0.55, 'fats' => 0.30],
-        'dinner'    => ['protein' => 0.35, 'carbs' => 0.35, 'fats' => 0.30],
+        'lunch' => ['protein' => 0.35, 'carbs' => 0.40, 'fats' => 0.25],
+        'snack' => ['protein' => 0.15, 'carbs' => 0.55, 'fats' => 0.30],
+        'dinner' => ['protein' => 0.35, 'carbs' => 0.35, 'fats' => 0.30],
     ];
 
     /**
@@ -62,10 +67,10 @@ class PlanGenerationService
      */
     private const QUANTITY_RANGES = [
         'very_light' => ['min' => 150, 'max' => 400],  // cal/g < 0.5 (salads, vegetables)
-        'light'      => ['min' => 100, 'max' => 350],  // cal/g 0.5-1.5 (fruits, yogurt)
-        'medium'     => ['min' => 80,  'max' => 300],   // cal/g 1.5-3.0 (meats, grains)
-        'dense'      => ['min' => 20,  'max' => 150],   // cal/g 3.0-5.0 (cheese, nuts)
-        'very_dense' => ['min' => 10,  'max' => 80],    // cal/g > 5.0 (oils, butters)
+        'light' => ['min' => 100, 'max' => 350],  // cal/g 0.5-1.5 (fruits, yogurt)
+        'medium' => ['min' => 80, 'max' => 300],   // cal/g 1.5-3.0 (meats, grains)
+        'dense' => ['min' => 20, 'max' => 150],   // cal/g 3.0-5.0 (cheese, nuts)
+        'very_dense' => ['min' => 10, 'max' => 80],    // cal/g > 5.0 (oils, butters)
     ];
 
     /**
@@ -73,41 +78,41 @@ class PlanGenerationService
      */
     private const PREFERENCE_KEYWORDS = [
         // Q11: Protein preferences
-        'فراخ'       => ['دجاج', 'فراخ', 'صدر دجاج', 'فخد دجاج', 'chicken'],
-        'كبدة بلدي'  => ['كبدة', 'كبد'],
-        'لحم أحمر'   => ['لحم', 'بقري', 'ضاني', 'عجل', 'بتلو', 'ستيك'],
-        'سلمون'      => ['سلمون', 'salmon'],
-        'سمك'        => ['سمك', 'بلطي', 'بوري', 'قاروص', 'fish'],
-        'تونة'       => ['تونة', 'تونا', 'tuna'],
-        'جمبري'      => ['جمبري', 'shrimp'],
-        'بيض'        => ['بيض', 'egg'],
-        'جبنة قريش'  => ['جبنة قريش', 'قريش'],
-        'رومي'       => ['رومي', 'ديك رومي', 'turkey'],
-        'رومي مدخن'  => ['رومي مدخن'],
+        'فراخ' => ['دجاج', 'فراخ', 'صدر دجاج', 'فخد دجاج', 'chicken'],
+        'كبدة بلدي' => ['كبدة', 'كبد'],
+        'لحم أحمر' => ['لحم', 'بقري', 'ضاني', 'عجل', 'بتلو', 'ستيك'],
+        'سلمون' => ['سلمون', 'salmon'],
+        'سمك' => ['سمك', 'بلطي', 'بوري', 'قاروص', 'fish'],
+        'تونة' => ['تونة', 'تونا', 'tuna'],
+        'جمبري' => ['جمبري', 'shrimp'],
+        'بيض' => ['بيض', 'egg'],
+        'جبنة قريش' => ['جبنة قريش', 'قريش'],
+        'رومي' => ['رومي', 'ديك رومي', 'turkey'],
+        'رومي مدخن' => ['رومي مدخن'],
         'زبادي يوناني' => ['زبادي يوناني', 'يوناني'],
-        'زبادي عادي'  => ['زبادي'],
-        'جبنة فيتا'   => ['فيتا', 'feta'],
+        'زبادي عادي' => ['زبادي'],
+        'جبنة فيتا' => ['فيتا', 'feta'],
         // Q12: Carb preferences
-        'بطاطا'       => ['بطاطا', 'sweet potato'],
-        'بطاطس'       => ['بطاطس', 'potato'],
-        'أرز أبيض'    => ['أرز أبيض', 'أرز مصري', 'رز'],
-        'أرز بسمتي'   => ['أرز بسمتي', 'بسمتي'],
-        'عدس'         => ['عدس'],
-        'فاصوليا'     => ['فاصوليا'],
-        'فول'         => ['فول'],
-        'توست بني'    => ['توست بني', 'توست'],
-        'شوفان'       => ['شوفان', 'oat'],
-        'رايس كيك'    => ['رايس كيك', 'rice cake'],
+        'بطاطا' => ['بطاطا', 'sweet potato'],
+        'بطاطس' => ['بطاطس', 'potato'],
+        'أرز أبيض' => ['أرز أبيض', 'أرز مصري', 'رز'],
+        'أرز بسمتي' => ['أرز بسمتي', 'بسمتي'],
+        'عدس' => ['عدس'],
+        'فاصوليا' => ['فاصوليا'],
+        'فول' => ['فول'],
+        'توست بني' => ['توست بني', 'توست'],
+        'شوفان' => ['شوفان', 'oat'],
+        'رايس كيك' => ['رايس كيك', 'rice cake'],
         'تورتيلا بني' => ['تورتيلا'],
         // Q13: Fat preferences
-        'فول سوداني'      => ['فول سوداني', 'سوداني'],
-        'لوز'              => ['لوز', 'almond'],
-        'كاجو'             => ['كاجو', 'cashew'],
-        'زبدة فول سوداني'  => ['زبدة فول سوداني', 'peanut butter'],
-        'سمن بلدي'         => ['سمن بلدي', 'سمن'],
-        'زيت زيتون'        => ['زيت زيتون', 'olive oil'],
-        'زيت جوز الهند'    => ['زيت جوز الهند', 'coconut oil'],
-        'أفوكادو'          => ['أفوكادو', 'avocado'],
+        'فول سوداني' => ['فول سوداني', 'سوداني'],
+        'لوز' => ['لوز', 'almond'],
+        'كاجو' => ['كاجو', 'cashew'],
+        'زبدة فول سوداني' => ['زبدة فول سوداني', 'peanut butter'],
+        'سمن بلدي' => ['سمن بلدي', 'سمن'],
+        'زيت زيتون' => ['زيت زيتون', 'olive oil'],
+        'زيت جوز الهند' => ['زيت جوز الهند', 'coconut oil'],
+        'أفوكادو' => ['أفوكادو', 'avocado'],
     ];
 
     /**
@@ -169,8 +174,8 @@ class PlanGenerationService
         $targets = [
             'calories' => round($targetCalories, 1),
             'proteins' => round($proteinGrams, 1),
-            'carbs'    => round($carbGrams, 1),
-            'fats'     => round($fatGrams, 1),
+            'carbs' => round($carbGrams, 1),
+            'fats' => round($fatGrams, 1),
         ];
 
         // Retrieve available meals and apply dietary restriction filtering
@@ -188,16 +193,16 @@ class PlanGenerationService
         $has4Meals = str_contains($mealsPerDayText, '4') || str_contains($mealsPerDayText, '5');
         $slotDistribution = $has4Meals ? [
             'Breakfast' => 0.25,
-            'Lunch'     => 0.35,
-            'Snack'     => 0.15,
-            'Dinner'    => 0.25,
+            'Lunch' => 0.35,
+            'Snack' => 0.15,
+            'Dinner' => 0.25,
         ] : [
             'Breakfast' => 0.30,
-            'Lunch'     => 0.45,
-            'Dinner'    => 0.25,
+            'Lunch' => 0.45,
+            'Dinner' => 0.25,
         ];
 
-        $daysNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        $daysNames = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
         $daysPlan = [];
 
         // Cross-day tracking: slotName => [mealId, mealId, ...]
@@ -217,8 +222,8 @@ class PlanGenerationService
                 $macroRatios = self::SLOT_MACRO_RATIOS[$slotKey] ?? self::SLOT_MACRO_RATIOS['lunch'];
                 $slotTargets = [
                     'protein' => ($targetSlotCal * $macroRatios['protein']) / 4,
-                    'carbs'   => ($targetSlotCal * $macroRatios['carbs']) / 4,
-                    'fats'    => ($targetSlotCal * $macroRatios['fats']) / 9,
+                    'carbs' => ($targetSlotCal * $macroRatios['carbs']) / 4,
+                    'fats' => ($targetSlotCal * $macroRatios['fats']) / 9,
                 ];
 
                 // Filter meals that match this slot type
@@ -226,7 +231,7 @@ class PlanGenerationService
 
                 // Exclude meals already used today
                 $availableMeals = $suitableMeals->reject(
-                    fn (Meal $m) => in_array($m->id, $usedMealIdsToday)
+                    fn(Meal $m) => in_array($m->id, $usedMealIdsToday)
                 );
 
                 // Fallback: if too few available, relax the duplicate constraint
@@ -235,13 +240,15 @@ class PlanGenerationService
                 }
 
                 // Score each meal
-                $scored = $availableMeals->map(function (Meal $meal) use (
-                    $targetSlotCal, $slotTargets, $userPreferenceTerms,
-                    $slotKey, $slotHistory, $globalUsageCount
-                ) {
+                $scored = $availableMeals->map(function (Meal $meal) use ($targetSlotCal, $slotTargets, $userPreferenceTerms, $slotKey, $slotHistory, $globalUsageCount) {
                     $score = $this->scoreMealForSlot(
-                        $meal, $targetSlotCal, $slotTargets, $userPreferenceTerms,
-                        $slotKey, $slotHistory, $globalUsageCount
+                        $meal,
+                        $targetSlotCal,
+                        $slotTargets,
+                        $userPreferenceTerms,
+                        $slotKey,
+                        $slotHistory,
+                        $globalUsageCount
                     );
 
                     return ['meal' => $meal, 'score' => $score];
@@ -264,8 +271,8 @@ class PlanGenerationService
                         [
                             'options' => [
                                 [
-                                    'meal_id'  => $selectedMeal->id,
-                                    'quantity'  => $quantityGrams,
+                                    'meal_id' => $selectedMeal->id,
+                                    'quantity' => $quantityGrams,
                                 ],
                             ],
                         ],
@@ -274,19 +281,19 @@ class PlanGenerationService
             }
 
             $daysPlan[] = [
-                'day'  => $dayName,
+                'day' => $dayName,
                 'time' => $timeSlots,
             ];
         }
 
         // Create MealPlan model
         $mealPlan = new MealPlan();
-        $mealPlan->name = 'AI Plan - '.$user->name.' ('.now()->format('d M Y - H.i.s').')';
+        $mealPlan->name = 'AI Plan - ' . $user->name . ' (' . now()->format('d M Y - H.i.s') . ')';
         $mealPlan->targets = $targets;
         $mealPlan->days = $daysPlan;
         $mealPlan->save();
 
-        $user->mealPlans()->syncWithoutDetaching([$mealPlan->id]);
+        $this->assignmentService->assignPlan($user, $mealPlan->id, 'meal');
 
         return $mealPlan;
     }
@@ -354,7 +361,7 @@ class PlanGenerationService
     {
         $suitable = $meals->filter(function (Meal $m) use ($slotType) {
             $types = $m->type; // Already an array via accessor
-            $typesLower = array_map(fn ($t) => strtolower(trim($t)), $types);
+            $typesLower = array_map(fn($t) => strtolower(trim($t)), $types);
 
             return in_array($slotType, $typesLower);
         });
@@ -410,7 +417,7 @@ class PlanGenerationService
         }
 
         // 2. User preference match (25 points max)
-        if (! empty($userPreferenceTerms)) {
+        if (!empty($userPreferenceTerms)) {
             $nameLower = mb_strtolower($meal->name);
             $matchCount = 0;
             foreach ($userPreferenceTerms as $term) {
@@ -425,17 +432,17 @@ class PlanGenerationService
         if ($mealCal > 0) {
             $densityScore = match (true) {
                 $slotKey === 'breakfast' => ($mealCal >= 0.5 && $mealCal <= 3.0) ? 15 : 5,
-                $slotKey === 'lunch'     => ($mealCal >= 0.8 && $mealCal <= 3.5) ? 15 : 5,
-                $slotKey === 'snack'     => ($mealCal >= 0.3 && $mealCal <= 4.0) ? 15 : 5,
-                $slotKey === 'dinner'    => ($mealCal >= 0.5 && $mealCal <= 3.0) ? 15 : 5,
-                default                  => 10,
+                $slotKey === 'lunch' => ($mealCal >= 0.8 && $mealCal <= 3.5) ? 15 : 5,
+                $slotKey === 'snack' => ($mealCal >= 0.3 && $mealCal <= 4.0) ? 15 : 5,
+                $slotKey === 'dinner' => ($mealCal >= 0.5 && $mealCal <= 3.0) ? 15 : 5,
+                default => 10,
             };
             $score += $densityScore;
         }
 
         // 4. Freshness penalty — penalize meals used in same slot on other days
         $timesInSlot = isset($slotHistory[$slotKey])
-            ? count(array_filter($slotHistory[$slotKey], fn ($id) => $id === $meal->id))
+            ? count(array_filter($slotHistory[$slotKey], fn($id) => $id === $meal->id))
             : 0;
         $score -= $timesInSlot * 15;
 
@@ -460,7 +467,7 @@ class PlanGenerationService
         $sorted = $scoredMeals->sortByDesc('score')->values();
 
         // Take top 5 candidates (or fewer if not enough)
-        $topCandidates = $sorted->take(5)->filter(fn ($item) => $item['score'] > 0);
+        $topCandidates = $sorted->take(5)->filter(fn($item) => $item['score'] > 0);
 
         if ($topCandidates->isEmpty()) {
             // Absolute fallback — pick any meal
@@ -500,7 +507,7 @@ class PlanGenerationService
             $calPerGram < 1.5 => self::QUANTITY_RANGES['light'],
             $calPerGram < 3.0 => self::QUANTITY_RANGES['medium'],
             $calPerGram < 5.0 => self::QUANTITY_RANGES['dense'],
-            default           => self::QUANTITY_RANGES['very_dense'],
+            default => self::QUANTITY_RANGES['very_dense'],
         };
 
         $idealGrams = $targetSlotCal / $calPerGram;
@@ -559,7 +566,7 @@ class PlanGenerationService
             ['reps' => [['count' => 12], ['count' => 12], ['count' => 12], ['count' => 12]]]
         );
 
-        $daysNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        $daysNames = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
         $daysPlan = [];
 
         // Muscle splits
@@ -572,14 +579,14 @@ class PlanGenerationService
         ];
 
         $activeDaysIndices = match ($daysCount) {
-            2 => [0, 3], // Mon, Thu
-            3 => [0, 2, 4], // Mon, Wed, Fri
-            4 => [0, 1, 3, 4], // Mon, Tue, Thu, Fri
-            default => [0, 1, 2, 3, 4], // Mon, Tue, Wed, Thu, Fri
+            2 => [0, 3], // Day 1, Day 4
+            3 => [0, 2, 4], // Day 1, Day 3, Day 5
+            4 => [0, 1, 3, 4], // Day 1, Day 2, Day 4, Day 5
+            default => [0, 1, 2, 3, 4], // Day 1, Day 2, Day 3, Day 4, Day 5
         };
 
         foreach ($daysNames as $index => $dayName) {
-            if (! in_array($index, $activeDaysIndices)) {
+            if (!in_array($index, $activeDaysIndices)) {
                 // Rest day
                 $daysPlan[] = [
                     'day' => $dayName,
@@ -622,11 +629,11 @@ class PlanGenerationService
 
         // Create WorkoutPlan model with unique timestamp
         $workoutPlan = new WorkoutPlan();
-        $workoutPlan->name = 'AI Workout Plan - '.$user->name.' ('.now()->format('d M Y - H.i.s').')';
+        $workoutPlan->name = 'AI Workout Plan - ' . $user->name . ' (' . now()->format('d M Y - H.i.s') . ')';
         $workoutPlan->days = $daysPlan; // Booted saving hook converts 'days' to JSON file_path
         $workoutPlan->save();
 
-        $user->workoutPlans()->syncWithoutDetaching([$workoutPlan->id]);
+        $this->assignmentService->assignPlan($user, $workoutPlan->id, 'workout');
 
         return $workoutPlan;
     }
@@ -634,7 +641,7 @@ class PlanGenerationService
     private function getAnswerValue(Collection $answers, int $order, string $default = ''): string
     {
         $answerObj = $answers->get($order);
-        if (! $answerObj || empty($answerObj->answer)) {
+        if (!$answerObj || empty($answerObj->answer)) {
             return $default;
         }
 
@@ -644,7 +651,7 @@ class PlanGenerationService
     private function getAnswerArray(Collection $answers, int $order): array
     {
         $answerObj = $answers->get($order);
-        if (! $answerObj || empty($answerObj->answer)) {
+        if (!$answerObj || empty($answerObj->answer)) {
             return [];
         }
 

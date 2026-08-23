@@ -25,6 +25,26 @@ class EditMealPlan extends EditRecord
         return $data;
     }
 
+    protected function afterSave(): void
+    {
+        $strategy = $this->form->getRawState()['update_strategy'] ?? $this->data['update_strategy'] ?? 'future_only';
+        if ($strategy !== 'none') {
+            $count = app(\App\Services\DailyScheduleService::class)->syncPlanUpdateToAssignedUsers(
+                $this->getRecord()->id,
+                'meal',
+                $strategy
+            );
+
+            if ($count > 0) {
+                \Filament\Notifications\Notification::make()
+                    ->title('Schedules Synced')
+                    ->body("Updated active schedules for {$count} assigned user(s) using '{$strategy}' strategy.")
+                    ->success()
+                    ->send();
+            }
+        }
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('edit', ['record' => $this->getRecord()]);

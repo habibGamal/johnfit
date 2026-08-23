@@ -61,19 +61,27 @@ class User extends Authenticatable
     }
 
     /**
-     * The workout plans that belong to the user.
+     * The plan assignments that belong to the user.
      */
-    public function workoutPlans()
+    public function planAssignments(): HasMany
     {
-        return $this->belongsToMany(WorkoutPlan::class);
+        return $this->hasMany(UserPlanAssignment::class);
     }
 
     /**
-     * The meal plans that belong to the user.
+     * The daily schedules that belong to the user.
      */
-    public function mealPlans()
+    public function dailySchedules(): HasMany
     {
-        return $this->belongsToMany(MealPlan::class, 'user_meal_plan')->withTimestamps();
+        return $this->hasMany(UserDailySchedule::class);
+    }
+
+    /**
+     * Today's daily schedule for the user.
+     */
+    public function todaySchedule(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(UserDailySchedule::class)->whereDate('date', now()->toDateString());
     }
 
     /**

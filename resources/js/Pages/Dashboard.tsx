@@ -151,7 +151,7 @@ export default function Dashboard({ auth, workoutStats, mealStats, fitnessScore,
                                 </div>
                             </div>
                             <Link href={route('packages.index')} className="flex-shrink-0">
-                                <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-black font-bold text-sm px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap shadow-[0_0_20px_-5px_rgba(252,211,77,0.5)]">
+                                <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-black font-bold text-sm px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap shadow-sm">
                                     View Plans <ArrowRight className="w-4 h-4" />
                                 </button>
                             </Link>
@@ -170,7 +170,7 @@ export default function Dashboard({ auth, workoutStats, mealStats, fitnessScore,
                             transition={{ duration: 0.5 }}
                             className="text-2xl font-bold text-white flex items-center gap-3 mb-6"
                         >
-                            <span className="bg-primary p-1.5 rounded-lg shadow-[0_0_15px_-5px_rgba(252,211,77,0.5)]">
+                            <span className="bg-primary p-1.5 rounded-lg">
                                 <TrendingUp className="w-5 h-5 text-black" />
                             </span>
                             <h2 className="text-3xl font-bold text-foreground tracking-tight">
@@ -293,40 +293,37 @@ export default function Dashboard({ auth, workoutStats, mealStats, fitnessScore,
                             transition={{ duration: 0.5 }}
                             className="text-2xl font-bold text-white flex items-center gap-3 mb-6"
                         >
-                            <span className="bg-primary p-1.5 rounded-lg shadow-[0_0_15px_-5px_rgba(252,211,77,0.5)]">
+                            <span className="bg-primary p-1.5 rounded-lg">
                                 <Flame className="w-5 h-5 text-black" />
                             </span>
                             Quick Actions
                         </motion.h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {/* Workout Plans */}
+                            {/* Daily Schedule */}
                             <QuickActionCard
-                                title="Workout Plans"
-                                description="Track your assigned plans and progress."
+                                title="Daily Schedule"
+                                description="Track your workouts, meals, and daily points."
                                 actionLabel="View"
-                                actionRoute={route('workout-plans.index')}
-                                // Using a gym-themed placeholder since generation failed
+                                actionRoute={route('schedule.index')}
                                 bgImage="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop"
                             />
 
-                            {/* Meal Plans */}
+                            {/* InBody Tracking */}
                             <QuickActionCard
-                                title="Meal Plans"
-                                description="Monitor nutrition and healthy habits."
+                                title="InBody Tracking"
+                                description="Monitor body composition, weight, and muscle trends."
                                 actionLabel="View"
-                                actionRoute={route('meal-plans.index')}
-                                // Food/Meal placeholder
+                                actionRoute={route('inbody.index')}
                                 bgImage="https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1453&auto=format&fit=crop"
                             />
 
                             {/* Analytics */}
                             <QuickActionCard
                                 title="Analytics"
-                                description="Analyze trends and body composition."
+                                description="Analyze strength progression and consistency."
                                 actionLabel="View"
                                 actionRoute={route('analytics.index')}
-                                // Analytics/Tech placeholder
                                 bgImage="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1470&auto=format&fit=crop"
                             />
                         </div>
@@ -342,7 +339,7 @@ export default function Dashboard({ auth, workoutStats, mealStats, fitnessScore,
                                 transition={{ duration: 0.5 }}
                                 className="text-2xl font-bold text-white flex items-center gap-3"
                             >
-                                <span className="text-primary drop-shadow-[0_0_10px_rgba(252,211,77,0.5)]">
+                                <span className="text-primary">
                                     <Trophy className="w-6 h-6" />
                                 </span>
                                 Achievements

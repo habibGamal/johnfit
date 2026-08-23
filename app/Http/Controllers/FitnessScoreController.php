@@ -39,15 +39,7 @@ class FitnessScoreController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $history->map(fn ($score) => [
-                'date' => $score->period_end->format('M d'),
-                'fullDate' => $score->period_end->format('Y-m-d'),
-                'total_score' => $score->total_score,
-                'workout_score' => $score->workout_score,
-                'meal_score' => $score->meal_score,
-                'inbody_score' => $score->inbody_score,
-                'level' => $score->level,
-            ])->values(),
+            'data' => $history,
         ]);
     }
 

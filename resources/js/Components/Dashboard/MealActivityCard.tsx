@@ -64,8 +64,8 @@ export default function MealActivityCard({ activities }: MealActivityCardProps) 
               Track your first meal to start building your nutrition history
             </p>
             <Button asChild className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white" size="sm">
-              <Link href={route('meal-plans.index')}>
-                View Meal Plans
+              <Link href={route('schedule.index')}>
+                Open Daily Schedule
               </Link>
             </Button>
           </div>

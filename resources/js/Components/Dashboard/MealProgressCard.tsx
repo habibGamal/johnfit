@@ -55,7 +55,7 @@ export default function MealProgressCard({ weeklyCompletionRate, activeDaysData,
       <Card className="lg:col-span-2 shadow-xl border-border/50 bg-card/40 backdrop-blur-md hover:shadow-2xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-lg font-bold text-foreground">
-            <div className="p-2.5 bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 rounded-xl border border-emerald-500/20">
+            <div className="p-2.5 bg-emerald-500/15 rounded-xl border border-emerald-500/20">
               <AppleIcon className="h-5 w-5 text-emerald-600" />
             </div>
             Meal Tracking Progress
@@ -79,7 +79,7 @@ export default function MealProgressCard({ weeklyCompletionRate, activeDaysData,
               </div>
               <div className="h-3 w-full overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000 ease-out"
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out"
                   style={{ width: `${weeklyCompletionRate.percentage}%` }}
                 />
               </div>
@@ -94,12 +94,6 @@ export default function MealProgressCard({ weeklyCompletionRate, activeDaysData,
               {activeDaysData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="mealBarGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10B981" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#059669" stopOpacity={0.7} />
-                      </linearGradient>
-                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                     <XAxis
                       dataKey="day"
@@ -115,7 +109,7 @@ export default function MealProgressCard({ weeklyCompletionRate, activeDaysData,
                       {chartData.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={entry.count > 0 ? "url(#mealBarGradient)" : "hsl(var(--muted))"}
+                          fill={entry.count > 0 ? "#10B981" : "hsl(var(--muted))"}
                         />
                       ))}
                     </Bar>

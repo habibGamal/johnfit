@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 Schedule::command('quotes:send-morning')->dailyAt('09:00');
+Schedule::command('schedules:lock-past')->dailyAt('23:59');

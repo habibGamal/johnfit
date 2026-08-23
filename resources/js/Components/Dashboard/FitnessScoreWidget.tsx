@@ -78,9 +78,6 @@ export default function FitnessScoreWidget({ data, isLoading }: FitnessScoreWidg
             transition={{ duration: 0.5 }}
             className="relative overflow-hidden rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-6 cursor-pointer hover:border-primary/50 transition-all duration-300 group"
         >
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
             <div className="relative z-10">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
@@ -116,7 +113,7 @@ export default function FitnessScoreWidget({ data, isLoading }: FitnessScoreWidg
                                 cx="80"
                                 cy="80"
                                 r="70"
-                                stroke="url(#scoreGradient)"
+                                stroke="#FCD34D"
                                 strokeWidth="8"
                                 fill="none"
                                 strokeLinecap="round"
@@ -125,12 +122,6 @@ export default function FitnessScoreWidget({ data, isLoading }: FitnessScoreWidg
                                 animate={{ strokeDashoffset }}
                                 transition={{ duration: 1.5, ease: "easeOut" }}
                             />
-                            <defs>
-                                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#FCD34D" />
-                                    <stop offset="100%" stopColor="#F59E0B" />
-                                </linearGradient>
-                            </defs>
                         </svg>
 
                         {/* Avatar Image */}

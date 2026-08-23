@@ -260,7 +260,7 @@ export default function QuickEntryModal({ trigger }: QuickEntryModalProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-2 shadow-lg hover:shadow-primary/25">
+          <Button className="gap-2 shadow-sm">
             <Plus className="h-4 w-4" />
             Log InBody
           </Button>

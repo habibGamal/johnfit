@@ -18,6 +18,7 @@ class MealPlanServices
         Storage::disk('local')->put($filePath, $jsonPlan);
         $modelData->file_path = $filePath;
         unset($modelData->days);
+        unset($modelData->update_strategy);
     }
 
     public function loadDataFromJsonFile($fileName)

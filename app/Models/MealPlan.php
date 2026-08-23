@@ -27,10 +27,19 @@ class MealPlan extends Model
     }
 
     /**
-     * The users that belong to the meal plan.
+     * The assignments for this meal plan.
+     */
+    public function assignments()
+    {
+        return $this->hasMany(UserPlanAssignment::class, 'plan_id')->where('plan_type', 'meal');
+    }
+
+    /**
+     * The users assigned to this meal plan.
      */
     public function users()
     {
-        return $this->belongsToMany(User::class, 'user_meal_plan');
+        return $this->hasManyThrough(User::class, UserPlanAssignment::class, 'plan_id', 'id', 'id', 'user_id')
+            ->where('user_plan_assignments.plan_type', 'meal');
     }
 }

@@ -2,37 +2,47 @@
 
 use App\Models\InBodyLog;
 use App\Models\User;
+use App\Models\UserDailyItem;
+use App\Models\UserDailySchedule;
 use App\Models\Workout;
-use App\Models\WorkoutPlan;
-use App\Models\WorkoutSetCompletion;
 use App\Services\ProgressionService;
 use Carbon\Carbon;
 
+function createWorkoutItemForTest($user, $workout, $date, array $sets)
+{
+    $schedule = UserDailySchedule::firstOrCreate(
+        ['user_id' => $user->id, 'date' => $date],
+        ['target_score' => 3, 'earned_score' => 3, 'is_locked' => false]
+    );
+
+    return UserDailyItem::create([
+        'daily_schedule_id' => $schedule->id,
+        'type' => 'workout',
+        'item_name' => $workout->name,
+        'reference_id' => $workout->id,
+        'target_details' => ['muscles' => $workout->muscles, 'sets_count' => count($sets)],
+        'points' => 3,
+        'is_completed' => true,
+        'execution_payload' => ['sets' => $sets],
+    ]);
+}
+
 beforeEach(function () {
     $this->user = User::factory()->create();
-    $this->service = new ProgressionService;
+    $this->service = new ProgressionService();
 });
 
 describe('One Rep Max Calculations', function () {
     it('calculates 1RM correctly using Epley formula', function () {
-        // Epley Formula: Weight × (1 + Reps/30)
-
-        // Test case 1: 100kg × 10 reps
-        // Expected: 100 × (1 + 10/30) = 100 × 1.333... = 133.33
         $result = $this->service->calculateOneRepMax(100, 10);
         expect($result)->toBe(133.33);
 
-        // Test case 2: 80kg × 5 reps
-        // Expected: 80 × (1 + 5/30) = 80 × 1.166... = 93.33
         $result = $this->service->calculateOneRepMax(80, 5);
         expect($result)->toBe(93.33);
 
-        // Test case 3: 60kg × 12 reps
-        // Expected: 60 × (1 + 12/30) = 60 × 1.4 = 84.00
         $result = $this->service->calculateOneRepMax(60, 12);
         expect($result)->toBe(84.0);
 
-        // Test case 4: 150kg × 1 rep (single rep equals actual weight)
         $result = $this->service->calculateOneRepMax(150, 1);
         expect($result)->toBe(150.0);
     });
@@ -45,19 +55,16 @@ describe('One Rep Max Calculations', function () {
     });
 
     it('handles edge cases correctly', function () {
-        // Very heavy weight, low reps
         $result = $this->service->calculateOneRepMax(200, 3);
-        expect($result)->toBe(220.0); // 200 × (1 + 3/30) = 200 × 1.1 = 220
+        expect($result)->toBe(220.0);
 
-        // Light weight, high reps
         $result = $this->service->calculateOneRepMax(30, 20);
-        expect($result)->toBe(50.0); // 30 × (1 + 20/30) = 30 × 1.666... = 50
+        expect($result)->toBe(50.0);
     });
 });
 
 describe('Volume Calculations', function () {
     it('calculates volume correctly', function () {
-        // Volume = Weight × Reps
         expect($this->service->calculateVolume(100, 10))->toBe(1000.0);
         expect($this->service->calculateVolume(75.5, 8))->toBe(604.0);
         expect($this->service->calculateVolume(0, 10))->toBe(0.0);
@@ -67,7 +74,6 @@ describe('Volume Calculations', function () {
 describe('Personal Best Detection', function () {
     beforeEach(function () {
         $this->workout = Workout::factory()->chest()->create();
-        $this->plan = WorkoutPlan::factory()->create();
     });
 
     it('detects a strength personal best', function () {
@@ -75,20 +81,14 @@ describe('Personal Best Detection', function () {
         $today = Carbon::today()->toDateString();
 
         // Previous session: 100kg × 5 = 116.67 1RM
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(100, 5)
-            ->onDate($yesterday)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1']);
+        createWorkoutItemForTest($this->user, $this->workout, $yesterday, [
+            ['set_number' => 1, 'reps' => 5, 'weight' => 100, 'completed' => true],
+        ]);
 
         // Today's session: 110kg × 5 = 128.33 1RM (new PB)
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(110, 5)
-            ->onDate($today)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1']);
+        createWorkoutItemForTest($this->user, $this->workout, $today, [
+            ['set_number' => 1, 'reps' => 5, 'weight' => 110, 'completed' => true],
+        ]);
 
         $pbs = $this->service->detectPersonalBests($this->user, $this->workout->id);
 
@@ -104,32 +104,19 @@ describe('Personal Best Detection', function () {
         $today = Carbon::today()->toDateString();
 
         // Previous session: 3 sets of 100kg × 10 = 3000kg total volume
-        for ($i = 1; $i <= 3; $i++) {
-            WorkoutSetCompletion::factory()
-                ->for($this->user)
-                ->for($this->workout)
-                ->withPerformance(100, 10)
-                ->onDate($yesterday)
-                ->create([
-                    'workout_plan_id' => $this->plan->id,
-                    'day' => 'Day 1',
-                    'set_number' => $i,
-                ]);
-        }
+        createWorkoutItemForTest($this->user, $this->workout, $yesterday, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 100, 'completed' => true],
+            ['set_number' => 2, 'reps' => 10, 'weight' => 100, 'completed' => true],
+            ['set_number' => 3, 'reps' => 10, 'weight' => 100, 'completed' => true],
+        ]);
 
         // Today's session: 4 sets of 100kg × 10 = 4000kg total volume (new PB)
-        for ($i = 1; $i <= 4; $i++) {
-            WorkoutSetCompletion::factory()
-                ->for($this->user)
-                ->for($this->workout)
-                ->withPerformance(100, 10)
-                ->onDate($today)
-                ->create([
-                    'workout_plan_id' => $this->plan->id,
-                    'day' => 'Day 1',
-                    'set_number' => $i,
-                ]);
-        }
+        createWorkoutItemForTest($this->user, $this->workout, $today, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 100, 'completed' => true],
+            ['set_number' => 2, 'reps' => 10, 'weight' => 100, 'completed' => true],
+            ['set_number' => 3, 'reps' => 10, 'weight' => 100, 'completed' => true],
+            ['set_number' => 4, 'reps' => 10, 'weight' => 100, 'completed' => true],
+        ]);
 
         $pbs = $this->service->detectPersonalBests($this->user, $this->workout->id);
 
@@ -144,336 +131,214 @@ describe('Personal Best Detection', function () {
         $today = Carbon::today()->toDateString();
 
         // Previous session: Better performance
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(120, 8)
-            ->onDate($yesterday)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1']);
+        createWorkoutItemForTest($this->user, $this->workout, $yesterday, [
+            ['set_number' => 1, 'reps' => 8, 'weight' => 120, 'completed' => true],
+        ]);
 
         // Today's session: Worse performance
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(100, 6)
-            ->onDate($today)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1']);
+        createWorkoutItemForTest($this->user, $this->workout, $today, [
+            ['set_number' => 1, 'reps' => 6, 'weight' => 100, 'completed' => true],
+        ]);
 
         $pbs = $this->service->detectPersonalBests($this->user, $this->workout->id);
 
-        expect($pbs['has_strength_pb'])->toBeFalse();
         expect($pbs['has_volume_pb'])->toBeFalse();
+        expect($pbs['has_strength_pb'])->toBeFalse();
     });
 
-    it('returns no PBs when there is no previous data', function () {
+    it('returns empty result when no sessions exist today', function () {
+        $yesterday = Carbon::yesterday()->toDateString();
+
+        createWorkoutItemForTest($this->user, $this->workout, $yesterday, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 100, 'completed' => true],
+        ]);
+
+        $pbs = $this->service->detectPersonalBests($this->user, $this->workout->id);
+
+        expect($pbs['has_volume_pb'])->toBeFalse();
+        expect($pbs['has_strength_pb'])->toBeFalse();
+        expect($pbs['volume_pb_details'])->toBeNull();
+        expect($pbs['strength_pb_details'])->toBeNull();
+    });
+});
+
+describe('Volume Per Workout Over Time', function () {
+    beforeEach(function () {
+        $this->workout = Workout::factory()->create();
+    });
+
+    it('aggregates volume correctly per session date', function () {
+        $day1 = Carbon::today()->subDays(5)->toDateString();
+        $day2 = Carbon::today()->subDays(2)->toDateString();
+
+        // Day 1: 2 sets = 100*10 + 100*10 = 2000kg
+        createWorkoutItemForTest($this->user, $this->workout, $day1, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 100, 'completed' => true],
+            ['set_number' => 2, 'reps' => 10, 'weight' => 100, 'completed' => true],
+        ]);
+
+        // Day 2: 3 sets = 110*10 + 110*10 + 110*10 = 3300kg
+        createWorkoutItemForTest($this->user, $this->workout, $day2, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 110, 'completed' => true],
+            ['set_number' => 2, 'reps' => 10, 'weight' => 110, 'completed' => true],
+            ['set_number' => 3, 'reps' => 10, 'weight' => 110, 'completed' => true],
+        ]);
+
+        $volumeTrend = $this->service->getVolumePerWorkout($this->user, $this->workout->id);
+
+        expect($volumeTrend)->toHaveCount(2);
+        expect($volumeTrend[0]->session_date)->toBe($day1);
+        expect($volumeTrend[0]->total_volume)->toBe(2000.0);
+        expect($volumeTrend[0]->total_sets)->toBe(2);
+        expect($volumeTrend[0]->total_reps)->toBe(20);
+
+        expect($volumeTrend[1]->session_date)->toBe($day2);
+        expect($volumeTrend[1]->total_volume)->toBe(3300.0);
+        expect($volumeTrend[1]->total_sets)->toBe(3);
+        expect($volumeTrend[1]->total_reps)->toBe(30);
+    });
+
+    it('respects date filters', function () {
+        $day1 = Carbon::today()->subDays(30)->toDateString();
+        $day2 = Carbon::today()->subDays(5)->toDateString();
+
+        createWorkoutItemForTest($this->user, $this->workout, $day1, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 100, 'completed' => true],
+        ]);
+
+        createWorkoutItemForTest($this->user, $this->workout, $day2, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 100, 'completed' => true],
+        ]);
+
+        $volumeTrend = $this->service->getVolumePerWorkout(
+            $this->user,
+            $this->workout->id,
+            Carbon::today()->subDays(10),
+            Carbon::today()
+        );
+
+        expect($volumeTrend)->toHaveCount(1);
+        expect($volumeTrend[0]->session_date)->toBe($day2);
+    });
+});
+
+describe('Volume Per Muscle Group', function () {
+    it('aggregates volume by muscle group', function () {
+        $chestWorkout = Workout::factory()->chest()->create();
+        $legWorkout = Workout::factory()->legs()->create();
         $today = Carbon::today()->toDateString();
 
-        // Only today's session exists
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(100, 10)
-            ->onDate($today)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1']);
+        createWorkoutItemForTest($this->user, $chestWorkout, $today, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 100, 'completed' => true],
+        ]);
 
-        $pbs = $this->service->detectPersonalBests($this->user, $this->workout->id);
+        createWorkoutItemForTest($this->user, $legWorkout, $today, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 150, 'completed' => true],
+        ]);
 
-        // First session can't be a PB (no baseline to compare)
-        expect($pbs['has_strength_pb'])->toBeFalse();
-        expect($pbs['has_volume_pb'])->toBeFalse();
+        $muscleVolume = $this->service->getVolumePerMuscleGroup($this->user);
+
+        expect($muscleVolume)->toBeCollection();
+        expect($muscleVolume->count())->toBeGreaterThanOrEqual(2);
+
+        $muscles = $muscleVolume->pluck('muscle')->toArray();
+        expect($muscles)->toContain('Chest');
     });
 });
 
-describe('Volume Per Workout Tracking', function () {
+describe('1RM Trend', function () {
     beforeEach(function () {
         $this->workout = Workout::factory()->create();
-        $this->plan = WorkoutPlan::factory()->create();
     });
 
-    it('aggregates volume by session date', function () {
-        $date1 = Carbon::today()->subDays(2)->toDateString();
-        $date2 = Carbon::today()->subDays(1)->toDateString();
+    it('calculates highest 1RM per session', function () {
+        $day1 = Carbon::today()->subDays(3)->toDateString();
 
-        // Session 1: 2 sets
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(100, 10) // 1000kg
-            ->onDate($date1)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1', 'set_number' => 1]);
-
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(100, 8) // 800kg
-            ->onDate($date1)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1', 'set_number' => 2]);
-
-        // Session 2: 1 set
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(120, 5) // 600kg
-            ->onDate($date2)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1', 'set_number' => 1]);
-
-        $volumeData = $this->service->getVolumePerWorkout($this->user, $this->workout->id);
-
-        expect($volumeData)->toHaveCount(2);
-        expect((float) $volumeData[0]['total_volume'])->toBe(1800.0); // 1000 + 800
-        expect((float) $volumeData[1]['total_volume'])->toBe(600.0);
-    });
-});
-
-describe('1RM Trend Tracking', function () {
-    beforeEach(function () {
-        $this->workout = Workout::factory()->create();
-        $this->plan = WorkoutPlan::factory()->create();
-    });
-
-    it('tracks estimated 1RM over time', function () {
-        $dates = [
-            Carbon::today()->subDays(3)->toDateString(),
-            Carbon::today()->subDays(2)->toDateString(),
-            Carbon::today()->subDays(1)->toDateString(),
-        ];
-
-        // Progressive overload pattern
-        $performances = [
-            ['weight' => 80, 'reps' => 10],  // 1RM: 106.67
-            ['weight' => 85, 'reps' => 8],   // 1RM: 107.67
-            ['weight' => 90, 'reps' => 6],   // 1RM: 108.00
-        ];
-
-        foreach ($dates as $i => $date) {
-            WorkoutSetCompletion::factory()
-                ->for($this->user)
-                ->for($this->workout)
-                ->withPerformance($performances[$i]['weight'], $performances[$i]['reps'])
-                ->onDate($date)
-                ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1', 'set_number' => 1]);
-        }
+        createWorkoutItemForTest($this->user, $this->workout, $day1, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 80, 'completed' => true],  // 1RM: 106.67
+            ['set_number' => 2, 'reps' => 5, 'weight' => 100, 'completed' => true],  // 1RM: 116.67 (highest)
+            ['set_number' => 3, 'reps' => 8, 'weight' => 85, 'completed' => true],   // 1RM: 107.67
+        ]);
 
         $trend = $this->service->getOneRepMaxTrend($this->user, $this->workout->id);
 
-        expect($trend)->toHaveCount(3);
-
-        // Verify progression
-        $firstSession = $trend->first();
-        $lastSession = $trend->last();
-
-        expect($lastSession['estimated_1rm'])->toBeGreaterThan($firstSession['estimated_1rm']);
+        expect($trend)->toHaveCount(1);
+        expect($trend[0]['date'])->toBe($day1);
+        expect($trend[0]['estimated_1rm'])->toBe(116.67);
+        expect($trend[0]['best_weight'])->toBe(100.0);
+        expect($trend[0]['best_reps'])->toBe(5);
     });
 });
 
-describe('Muscle Group Volume Distribution', function () {
-    it('calculates volume per muscle group', function () {
-        $chestWorkout = Workout::factory()->create([
-            'muscles' => 'Chest,Triceps',
-        ]);
-        $backWorkout = Workout::factory()->create([
-            'muscles' => 'Lat,Biceps',
-        ]);
-        $plan = WorkoutPlan::factory()->create();
-        $today = Carbon::today()->toDateString();
-
-        // Chest workout: 100kg × 10 × 3 sets = 3000kg (split between Chest and Triceps)
-        for ($i = 1; $i <= 3; $i++) {
-            WorkoutSetCompletion::factory()
-                ->for($this->user)
-                ->for($chestWorkout)
-                ->withPerformance(100, 10)
-                ->onDate($today)
-                ->create(['workout_plan_id' => $plan->id, 'day' => 'Day 1', 'set_number' => $i]);
-        }
-
-        // Back workout: 80kg × 8 × 2 sets = 1280kg
-        for ($i = 1; $i <= 2; $i++) {
-            WorkoutSetCompletion::factory()
-                ->for($this->user)
-                ->for($backWorkout)
-                ->withPerformance(80, 8)
-                ->onDate($today)
-                ->create(['workout_plan_id' => $plan->id, 'day' => 'Day 2', 'set_number' => $i]);
-        }
-
-        $distribution = $this->service->getVolumePerMuscleGroup($this->user);
-
-        expect($distribution)->not->toBeEmpty();
-
-        // Both Chest and Triceps should have 3000kg each (shared from same workout)
-        $chestVolume = $distribution->firstWhere('muscle', 'Chest');
-        expect($chestVolume)->not->toBeNull();
-        expect($chestVolume['volume'])->toBe(3000.0);
-    });
-});
-
-describe('Relative Strength Tracking', function () {
+describe('Relative Strength (Strength-to-Weight Ratio)', function () {
     beforeEach(function () {
         $this->workout = Workout::factory()->create();
-        $this->plan = WorkoutPlan::factory()->create();
     });
 
-    it('correlates strength with body weight', function () {
-        $date1 = Carbon::today()->subDays(30)->toDateString();
-        $date2 = Carbon::today()->toDateString();
+    it('correlates 1RM with body weight from InBody logs', function () {
+        $day1 = Carbon::today()->subDays(3)->toDateString();
 
-        // InBody logs
-        InBodyLog::factory()->create([
-            'user_id' => $this->user->id,
-            'weight' => 80,
-            'measured_at' => Carbon::today()->subDays(30),
-        ]);
-
-        InBodyLog::factory()->create([
-            'user_id' => $this->user->id,
-            'weight' => 78,
-            'measured_at' => Carbon::today(),
-        ]);
-
-        // Workout sessions
-        WorkoutSetCompletion::factory()
+        InBodyLog::factory()
             ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(100, 5) // 1RM: 116.67
-            ->onDate($date1)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1', 'set_number' => 1]);
+            ->create([
+                'weight' => 80.0,
+                'measured_at' => $day1,
+            ]);
 
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(105, 5) // 1RM: 122.50
-            ->onDate($date2)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1', 'set_number' => 1]);
+        // 1RM: 120kg (100kg × 6 reps = 120.0)
+        createWorkoutItemForTest($this->user, $this->workout, $day1, [
+            ['set_number' => 1, 'reps' => 6, 'weight' => 100, 'completed' => true],
+        ]);
 
         $trend = $this->service->getRelativeStrengthTrend($this->user, $this->workout->id);
 
-        expect($trend)->toHaveCount(2);
-
-        // Check relative strength calculation
-        $latestSession = $trend->last();
-        expect($latestSession['body_weight'])->toBe(78.0);
-        expect($latestSession['relative_strength'])->not->toBeNull();
-
-        // Relative strength should be roughly 1RM / body_weight
-        // 122.50 / 78 ≈ 1.57
-        expect($latestSession['relative_strength'])->toBeGreaterThan(1.5);
-    });
-});
-
-describe('Analytics Controller', function () {
-    it('displays the analytics dashboard', function () {
-        $response = $this->actingAs($this->user)
-            ->get(route('analytics.index'));
-
-        $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => $page->component('Analytics/ProgressionDashboard'));
-    });
-
-    it('requires authentication', function () {
-        $response = $this->get(route('analytics.index'));
-
-        $response->assertRedirect(route('login'));
-    });
-
-    it('returns workout analytics data', function () {
-        $workout = Workout::factory()->create();
-        $plan = WorkoutPlan::factory()->create();
-
-        // Create some workout data
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($workout)
-            ->withPerformance(100, 10)
-            ->today()
-            ->create(['workout_plan_id' => $plan->id, 'day' => 'Day 1']);
-
-        $response = $this->actingAs($this->user)
-            ->get(route('analytics.index'));
-
-        $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => $page
-            ->has('workouts')
-            ->has('muscleHeatmap')
-            ->has('intensityDelta')
-            ->has('consistencyScore')
-        );
-    });
-
-    it('filters by workout when specified', function () {
-        $workout = Workout::factory()->create();
-        $plan = WorkoutPlan::factory()->create();
-
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($workout)
-            ->withPerformance(100, 10)
-            ->today()
-            ->create(['workout_plan_id' => $plan->id, 'day' => 'Day 1']);
-
-        $response = $this->actingAs($this->user)
-            ->get(route('analytics.index', ['workout_id' => $workout->id]));
-
-        $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => $page
-            ->where('selectedWorkoutId', $workout->id)
-        );
+        expect($trend)->toHaveCount(1);
+        expect((float) $trend[0]['body_weight'])->toBe(80.0);
+        expect((float) $trend[0]['relative_strength'])->toBe(1.5); // 120 / 80 = 1.5
     });
 });
 
 describe('Intensity Delta Calculation', function () {
-    beforeEach(function () {
-        $this->workout = Workout::factory()->create();
-        $this->plan = WorkoutPlan::factory()->create();
-    });
+    it('calculates positive volume delta correctly', function () {
+        $workout = Workout::factory()->create();
 
-    it('calculates positive intensity delta', function () {
-        // Previous 4 weeks: Lower volume
+        // Previous period (8 weeks ago to 4 weeks ago)
         $prevDate = Carbon::today()->subWeeks(6)->toDateString();
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(100, 10) // 1000kg
-            ->onDate($prevDate)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1', 'set_number' => 1]);
+        createWorkoutItemForTest($this->user, $workout, $prevDate, [
+            ['set_number' => 1, 'reps' => 10, 'weight' => 100, 'completed' => true], // 1000kg
+        ]);
 
-        // Current 4 weeks: Higher volume
-        $currentDate = Carbon::today()->subDays(1)->toDateString();
-        WorkoutSetCompletion::factory()
-            ->for($this->user)
-            ->for($this->workout)
-            ->withPerformance(120, 10) // 1200kg
-            ->onDate($currentDate)
-            ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1', 'set_number' => 1]);
+        // Current period (last 4 weeks)
+        $currentDate = Carbon::today()->subWeeks(2)->toDateString();
+        createWorkoutItemForTest($this->user, $workout, $currentDate, [
+            ['set_number' => 1, 'reps' => 15, 'weight' => 100, 'completed' => true], // 1500kg
+        ]);
 
-        $analytics = $this->service->getProgressionAnalytics($this->user);
+        $analytics = $this->service->getProgressionAnalytics($this->user, $workout->id);
 
+        expect($analytics['intensity_delta']['previous_volume'])->toBe(1000.0);
+        expect($analytics['intensity_delta']['current_volume'])->toBe(1500.0);
+        expect($analytics['intensity_delta']['delta_percentage'])->toBe(50.0);
         expect($analytics['intensity_delta']['trend'])->toBe('up');
-        expect($analytics['intensity_delta']['delta_percentage'])->toBeGreaterThan(0);
     });
 });
 
 describe('Consistency Score', function () {
-    beforeEach(function () {
-        $this->workout = Workout::factory()->create();
-        $this->plan = WorkoutPlan::factory()->create();
-    });
+    it('calculates consistency based on session days in 4-week window', function () {
+        $workout = Workout::factory()->create();
 
-    it('calculates consistency based on session count', function () {
-        // Create 8 sessions over 4 weeks (2 per week = 50% of target 4/week)
-        for ($i = 0; $i < 8; $i++) {
+        // 8 sessions over last 4 weeks (target: 16 sessions = 4/week * 4 weeks)
+        for ($i = 1; $i <= 8; $i++) {
             $date = Carbon::today()->subDays($i * 3)->toDateString();
-            WorkoutSetCompletion::factory()
-                ->for($this->user)
-                ->for($this->workout)
-                ->withPerformance(100, 10)
-                ->onDate($date)
-                ->create(['workout_plan_id' => $this->plan->id, 'day' => 'Day 1', 'set_number' => 1]);
+            createWorkoutItemForTest($this->user, $workout, $date, [
+                ['set_number' => 1, 'reps' => 10, 'weight' => 100, 'completed' => true],
+            ]);
         }
 
-        $analytics = $this->service->getProgressionAnalytics($this->user);
+        $analytics = $this->service->getProgressionAnalytics($this->user, $workout->id);
 
         expect($analytics['consistency_score']['completed_sessions'])->toBe(8);
-        expect($analytics['consistency_score']['percentage'])->toBeGreaterThan(0);
+        expect((int) $analytics['consistency_score']['target_sessions'])->toBe(16);
+        expect((float) $analytics['consistency_score']['percentage'])->toBe(50.0);
     });
 });

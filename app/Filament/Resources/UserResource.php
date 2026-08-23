@@ -119,6 +119,67 @@ class UserResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('assign_plan')
+                    ->label('Assign Plan')
+                    ->icon('heroicon-o-calendar-days')
+                    ->color('success')
+                    ->form([
+                        Forms\Components\Select::make('plan_type')
+                            ->label('Plan Type')
+                            ->options([
+                                'workout' => 'Workout Plan',
+                                'meal' => 'Meal Plan',
+                            ])
+                            ->default('workout')
+                            ->required()
+                            ->live(),
+                        Forms\Components\Select::make('plan_id')
+                            ->label('Select Plan')
+                            ->options(function (Forms\Get $get) {
+                                $type = $get('plan_type');
+                                if ($type === 'workout') {
+                                    return \App\Models\WorkoutPlan::pluck('name', 'id')->toArray();
+                                } elseif ($type === 'meal') {
+                                    return \App\Models\MealPlan::pluck('name', 'id')->toArray();
+                                }
+                                return [];
+                            })
+                            ->searchable()
+                            ->required(),
+                        Forms\Components\DatePicker::make('start_date')
+                            ->label('Start Date')
+                            ->default(now())
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $set('end_date', \Carbon\Carbon::parse($state)->addDays(28)->toDateString());
+                                }
+                            }),
+                        Forms\Components\DatePicker::make('end_date')
+                            ->label('End Date (4 Weeks / 28 Days)')
+                            ->default(now()->addDays(28)->toDateString())
+                            ->disabled()
+                            ->dehydrated(),
+                    ])
+                    ->action(function (User $record, array $data) {
+                        $startDate = \Carbon\Carbon::parse($data['start_date']);
+                        $endDate = $startDate->copy()->addDays(28);
+
+                        app(\App\Services\PlanAssignmentService::class)->assignPlan(
+                            $record,
+                            (int) $data['plan_id'],
+                            $data['plan_type'],
+                            $startDate,
+                            $endDate
+                        );
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Plan Assigned & Schedules Materialized')
+                            ->body("Assigned {$data['plan_type']} plan to {$record->name}.")
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\ViewAction::make(),
             ])
@@ -132,6 +193,7 @@ class UserResource extends Resource
     public static function getRelations(): array
     {
         return [
+            RelationManagers\PlanAssignmentsRelationManager::class,
             RelationManagers\InBodyLogsRelationManager::class,
         ];
     }

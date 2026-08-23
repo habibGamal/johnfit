@@ -46,8 +46,8 @@ export default function AchievementStat({
             className={cn(
                 "relative flex flex-col items-center justify-center p-6 rounded-[24px] border h-[220px] transition-all duration-300 cursor-pointer",
                 isCompleted
-                    ? "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30 hover:border-primary/50 hover:shadow-[0_0_25px_-10px_rgba(252,211,77,0.4)]"
-                    : "bg-[#18181B] border-zinc-800 hover:border-zinc-700 hover:bg-[#202023] hover:shadow-[0_0_20px_-10px_rgba(255,255,255,0.1)]",
+                    ? "bg-primary/10 border-primary/30 hover:border-primary/50"
+                    : "bg-[#18181B] border-zinc-800 hover:border-zinc-700 hover:bg-[#202023]",
                 className
             )}
         >
@@ -69,7 +69,7 @@ export default function AchievementStat({
                 </div>
 
                 {/* Progress SVG Overlay */}
-                <svg className="absolute top-0 left-0 h-24 w-24 rotate-[-90deg] drop-shadow-[0_0_10px_rgba(252,211,77,0.2)]">
+                <svg className="absolute top-0 left-0 h-24 w-24 rotate-[-90deg]">
                     <motion.circle
                         cx="48"
                         cy="48"

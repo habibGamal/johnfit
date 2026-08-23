@@ -64,8 +64,8 @@ export default function RecentActivityCard({ activities }: RecentActivityCardPro
               Complete your first workout to see your activity here
             </p>
             <Button asChild className="mt-6 bg-primary hover:bg-primary/90" size="sm">
-              <Link href={route('workout-plans.index')}>
-                Start Workout
+              <Link href={route('schedule.index')}>
+                Open Daily Schedule
               </Link>
             </Button>
           </div>

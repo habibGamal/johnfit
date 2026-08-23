@@ -3,11 +3,9 @@
 namespace App\Services;
 
 use App\Models\Meal;
-use App\Models\MealCompletion;
-use App\Models\MealPlan;
 use App\Models\User;
+use App\Models\UserDailyItem;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class MealStatsService
 {
@@ -37,326 +35,278 @@ class MealStatsService
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek = Carbon::now()->endOfWeek();
 
-        // Get all meals completed this week
-        $completedMeals = MealCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
-            ->count();
+        $items = UserDailyItem::whereHas('schedule', function ($q) use ($user, $startOfWeek, $endOfWeek) {
+            $q->where('user_id', $user->id)
+                ->whereBetween('date', [$startOfWeek->toDateString(), $endOfWeek->toDateString()]);
+        })
+            ->where('type', 'meal')
+            ->where('status', '!=', 'voided')
+            ->get();
 
-        // Get count of active meal plans
-        $activeMealPlans = $user->mealPlans()->count();
-
-        // Estimate total meals for the week (assume avg 3 meals per day per plan)
-        $daysInWeek = 7;
-        $avgMealsPerDay = 3;
-        $totalPossibleMeals = $activeMealPlans * $daysInWeek * $avgMealsPerDay;
-
-        // Safety check to avoid division by zero
-        $totalPossibleMeals = max($totalPossibleMeals, 1);
-
-        $percentage = round(($completedMeals / $totalPossibleMeals) * 100);
+        $completed = $items->where('is_completed', true)->count();
+        $total = $items->count();
+        $percentage = $total > 0 ? round(($completed / $total) * 100) : 0;
 
         return [
-            'completed' => $completedMeals,
-            'total' => $totalPossibleMeals,
+            'completed' => $completed,
+            'total' => $total,
             'percentage' => $percentage,
         ];
     }
 
     /**
-     * Get the current streak of consecutive days with meal completions.
+     * Get current streak of consecutive days with meal tracking
      */
     private function getCurrentStreak(User $user): int
     {
         $streak = 0;
-        $today = Carbon::today();
-        $currentDate = $today->copy();
-        $hasCompletionToday = false;
+        $date = Carbon::now();
 
-        // Check if there's at least one completion today
-        $hasCompletionToday = MealCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->whereDate('created_at', $today)
-            ->exists();
-
-        // If no completion today, start checking from yesterday
-        if (! $hasCompletionToday) {
-            $currentDate->subDay();
-        }
-
-        // Count consecutive days with at least one completed meal
         while (true) {
-            $hasCompletion = MealCompletion::where('user_id', $user->id)
-                ->where('completed', true)
-                ->whereDate('created_at', $currentDate)
+            $dateStr = $date->toDateString();
+            $hasMeal = UserDailyItem::whereHas('schedule', function ($q) use ($user, $dateStr) {
+                $q->where('user_id', $user->id)->where('date', $dateStr);
+            })
+                ->where('type', 'meal')
+                ->where('is_completed', true)
                 ->exists();
 
-            if (! $hasCompletion) {
+            if (! $hasMeal) {
                 break;
             }
 
             $streak++;
-            $currentDate->subDay();
+            $date->subDay();
         }
 
         return $streak;
     }
 
     /**
-     * Get the most active days for meal consumption.
+     * Get most active meal tracking days of the week.
      */
     private function getMostActiveDays(User $user): array
     {
-        $startDate = Carbon::now()->startOfWeek();
-        $endDate = Carbon::now()->endOfWeek();
-
-        $completions = MealCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->whereNotNull('created_at')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
-
-        $dayCount = [
-            'Monday' => 0,
-            'Tuesday' => 0,
-            'Wednesday' => 0,
-            'Thursday' => 0,
-            'Friday' => 0,
-            'Saturday' => 0,
-            'Sunday' => 0,
-        ];
-
-        foreach ($completions as $completion) {
-            $dayName = Carbon::parse($completion->created_at)->format('l');
-            if (isset($dayCount[$dayName])) {
-                $dayCount[$dayName]++;
-            }
-        }
-
-        return $dayCount;
-    }
-
-    /**
-     * Get recent meal activity for a user.
-     */
-    private function getRecentActivity(User $user): array
-    {
-        $recentCompletions = MealCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-
-        $activities = [];
-
-        foreach ($recentCompletions as $completion) {
-            $mealPlan = MealPlan::find($completion->meal_plan_id);
-            $meal = DB::table('meals')->where('id', $completion->meal_id)->first();
-
-            if ($mealPlan && $meal) {
-                $activities[] = [
-                    'day' => $completion->day,
-                    'meal' => $meal->name,
-                    'plan_name' => $mealPlan->name,
-                    'completed_at' => Carbon::parse($completion->created_at)->format('M d, Y · h:i A'),
-                ];
-            }
-        }
-
-        return $activities;
-    }
-
-    /**
-     * Get meal completion progress over time.
-     */
-    private function getProgressOverTime(User $user): array
-    {
-        $progress = [];
-        $startDate = Carbon::now()->subDays(30);
-
-        for ($i = 0; $i < 30; $i++) {
-            $date = $startDate->copy()->addDays($i);
-            $count = MealCompletion::where('user_id', $user->id)
-                ->where('completed', true)
-                ->whereDate('created_at', $date)
-                ->count();
-
-            $progress[] = [
-                'date' => $date->format('Y-m-d'),
-                'count' => $count,
-            ];
-        }
-
-        return $progress;
-    }
-
-    /**
-     * Get aggregate meal stats for a user.
-     */
-    private function getAggregateStats(User $user): array
-    {
-        $totalCompletions = MealCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->count();
-
-        $activePlans = $user->mealPlans()->count();
-
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek = Carbon::now()->endOfWeek();
 
-        $recentCompletions = MealCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+        $items = UserDailyItem::with('schedule')
+            ->whereHas('schedule', function ($q) use ($user, $startOfWeek, $endOfWeek) {
+                $q->where('user_id', $user->id)
+                    ->whereBetween('date', [$startOfWeek->toDateString(), $endOfWeek->toDateString()]);
+            })
+            ->where('type', 'meal')
+            ->where('is_completed', true)
+            ->get()
+            ->groupBy(function ($item) {
+                return Carbon::parse($item->schedule->date)->format('l');
+            });
+
+        $dayStats = [];
+        foreach ($items as $day => $group) {
+            $dayStats[$day] = $group->count();
+        }
+
+        return $dayStats;
+    }
+
+    /**
+     * Get recent meal activity summary
+     */
+    private function getRecentActivity(User $user, int $limit = 5): array
+    {
+        return UserDailyItem::with('schedule')
+            ->whereHas('schedule', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->where('type', 'meal')
+            ->where('is_completed', true)
+            ->orderBy('completed_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'day' => Carbon::parse($item->schedule->date)->format('l'),
+                    'meal' => $item->item_name,
+                    'plan_name' => 'Daily Meal Plan',
+                    'completed_at' => $item->completed_at ? $item->completed_at->diffForHumans() : 'Recently',
+                ];
+            })
+            ->toArray();
+    }
+
+    /**
+     * Get progress over time (last 4 weeks)
+     */
+    private function getProgressOverTime(User $user): array
+    {
+        $startDate = Carbon::now()->subWeeks(4)->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+
+        $items = UserDailyItem::with('schedule')
+            ->whereHas('schedule', function ($q) use ($user, $startDate, $endDate) {
+                $q->where('user_id', $user->id)
+                    ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()]);
+            })
+            ->where('type', 'meal')
+            ->where('is_completed', true)
+            ->get()
+            ->groupBy(function ($item) {
+                return Carbon::parse($item->schedule->date)->format('Y-m-d');
+            });
+
+        $progressData = [];
+        for ($i = 28; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i)->format('Y-m-d');
+            $progressData[] = [
+                'date' => $date,
+                'count' => isset($items[$date]) ? $items[$date]->count() : 0,
+            ];
+        }
+
+        return $progressData;
+    }
+
+    /**
+     * Get aggregate statistics for meals
+     */
+    private function getAggregateStats(User $user): array
+    {
+        $totalCompletions = UserDailyItem::whereHas('schedule', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })
+            ->where('type', 'meal')
+            ->where('is_completed', true)
+            ->count();
+
+        $recentCompletions = UserDailyItem::whereHas('schedule', function ($q) use ($user) {
+            $q->where('user_id', $user->id)->where('date', '>=', now()->subDays(7)->toDateString());
+        })
+            ->where('type', 'meal')
+            ->where('is_completed', true)
             ->count();
 
         return [
             'total_completions' => $totalCompletions,
-            'active_plans' => $activePlans,
+            'active_plans' => 1,
             'recent_completions' => $recentCompletions,
         ];
     }
 
     /**
-     * Get average nutritional intake for a user.
+     * Get average daily nutrition metrics
      */
     private function getNutritionAverages(User $user): array
     {
-        // Get completed meals from the past 7 days
         $startDate = Carbon::now()->subDays(7);
-        $completions = MealCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->where('created_at', '>=', $startDate)
+        $endDate = Carbon::now();
+
+        $items = UserDailyItem::whereHas('schedule', function ($q) use ($user, $startDate, $endDate) {
+            $q->where('user_id', $user->id)
+                ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()]);
+        })
+            ->where('type', 'meal')
+            ->where('is_completed', true)
             ->get();
 
-        $dailyTotals = [];
-        $nutritionSum = [
-            'calories' => 0,
-            'protein' => 0,
-            'carbs' => 0,
-            'fat' => 0,
+        $totalCalories = 0;
+        $totalProtein = 0;
+        $totalCarbs = 0;
+        $totalFat = 0;
+
+        foreach ($items as $item) {
+            $details = $item->target_details['primary_option'] ?? [];
+            $totalCalories += ($details['calories'] ?? 0);
+            $totalProtein += ($details['protein'] ?? 0);
+            $totalCarbs += ($details['carbs'] ?? 0);
+            $totalFat += ($details['fat'] ?? 0);
+        }
+
+        $days = 7;
+
+        return [
+            'calories' => round($totalCalories / $days),
+            'protein' => round($totalProtein / $days),
+            'carbs' => round($totalCarbs / $days),
+            'fat' => round($totalFat / $days),
         ];
-        foreach ($completions as $completion) {
-            $day = Carbon::parse($completion->created_at)->format('Y-m-d');
-            $meal = Meal::where('id', $completion->meal_id)->first();
-
-            if ($meal) {
-                $multiplier = $completion->quantity ?? 1; // Use the actual quantity from completion
-
-                if (! isset($dailyTotals[$day])) {
-                    $dailyTotals[$day] = [
-                        'calories' => 0,
-                        'protein' => 0,
-                        'carbs' => 0,
-                        'fat' => 0,
-                    ];
-                }
-
-                // Get macros from the meal
-                $calories = $meal->calories ?? 0;
-                $protein = $meal->protein ?? 0;
-                $carbs = $meal->carbs ?? 0;
-                $fat = $meal->fat ?? 0;
-
-                $dailyTotals[$day]['calories'] += $calories * $multiplier;
-                $dailyTotals[$day]['protein'] += $protein * $multiplier;
-                $dailyTotals[$day]['carbs'] += $carbs * $multiplier;
-                $dailyTotals[$day]['fat'] += $fat * $multiplier;
-            }
-        }
-
-        $daysWithData = count($dailyTotals);
-
-        if ($daysWithData > 0) {
-            foreach ($dailyTotals as $dayTotal) {
-                $nutritionSum['calories'] += $dayTotal['calories'];
-                $nutritionSum['protein'] += $dayTotal['protein'];
-                $nutritionSum['carbs'] += $dayTotal['carbs'];
-                $nutritionSum['fat'] += $dayTotal['fat'];
-            }
-
-            $averages = [
-                'calories' => round($nutritionSum['calories'] / $daysWithData),
-                'protein' => round($nutritionSum['protein'] / $daysWithData, 1),
-                'carbs' => round($nutritionSum['carbs'] / $daysWithData, 1),
-                'fat' => round($nutritionSum['fat'] / $daysWithData, 1),
-            ];
-        } else {
-            $averages = [
-                'calories' => 0,
-                'protein' => 0,
-                'carbs' => 0,
-                'fat' => 0,
-            ];
-        }
-
-        return $averages;
     }
 
     /**
      * Get comparison stats (this week vs last week)
      */
-    public function getComparisonStats(User $user): array
+    private function getComparisonStats(User $user): array
     {
-        // This Week
-        $startOfThisWeek = now()->startOfWeek();
-        $endOfThisWeek = now()->endOfWeek();
+        $thisWeekStart = Carbon::now()->startOfWeek();
+        $thisWeekEnd = Carbon::now()->endOfWeek();
+        $lastWeekStart = Carbon::now()->subWeek()->startOfWeek();
+        $lastWeekEnd = Carbon::now()->subWeek()->endOfWeek();
 
-        $thisWeekCount = MealCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->where('created_at', '>=', $startOfThisWeek)
-            ->where('created_at', '<=', $endOfThisWeek)
+        $thisWeekCount = UserDailyItem::whereHas('schedule', function ($q) use ($user, $thisWeekStart, $thisWeekEnd) {
+            $q->where('user_id', $user->id)->whereBetween('date', [$thisWeekStart->toDateString(), $thisWeekEnd->toDateString()]);
+        })
+            ->where('type', 'meal')
+            ->where('is_completed', true)
             ->count();
 
-        // Last Week
-        $startOfLastWeek = now()->subWeek()->startOfWeek();
-        $endOfLastWeek = now()->subWeek()->endOfWeek();
-
-        $lastWeekCount = MealCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->where('created_at', '>=', $startOfLastWeek)
-            ->where('created_at', '<=', $endOfLastWeek)
+        $lastWeekCount = UserDailyItem::whereHas('schedule', function ($q) use ($user, $lastWeekStart, $lastWeekEnd) {
+            $q->where('user_id', $user->id)->whereBetween('date', [$lastWeekStart->toDateString(), $lastWeekEnd->toDateString()]);
+        })
+            ->where('type', 'meal')
+            ->where('is_completed', true)
             ->count();
 
-        // Avoid division by zero
-        if ($lastWeekCount == 0) {
-            $percentageChange = $thisWeekCount > 0 ? 100 : 0;
-        } else {
+        $percentageChange = 0;
+        $trend = 'neutral';
+
+        if ($lastWeekCount > 0) {
             $percentageChange = round((($thisWeekCount - $lastWeekCount) / $lastWeekCount) * 100);
+            $trend = $percentageChange > 0 ? 'up' : ($percentageChange < 0 ? 'down' : 'neutral');
+        } elseif ($thisWeekCount > 0) {
+            $percentageChange = 100;
+            $trend = 'up';
         }
 
         return [
             'this_week' => $thisWeekCount,
             'last_week' => $lastWeekCount,
-            'percentage_change' => $percentageChange,
-            'trend' => $percentageChange > 0 ? 'up' : ($percentageChange < 0 ? 'down' : 'neutral'),
+            'percentage_change' => abs($percentageChange),
+            'trend' => $trend,
         ];
     }
 
     /**
-     * Get macro distribution for donut chart
+     * Get macro distribution breakdown
      */
-    public function getMacroDistribution(User $user): array
+    private function getMacroDistribution(User $user): array
     {
         $averages = $this->getNutritionAverages($user);
+        $total = ($averages['protein'] * 4) + ($averages['carbs'] * 4) + ($averages['fat'] * 9);
 
-        $protein = $averages['protein'] * 4; // 4 cal/g
-        $carbs = $averages['carbs'] * 4;     // 4 cal/g
-        $fat = $averages['fat'] * 9;         // 9 cal/g
-
-        $totalCal = $protein + $carbs + $fat;
-
-        if ($totalCal <= 0) {
+        if ($total <= 0) {
             return [
-                ['name' => 'Protein', 'value' => 33, 'color' => '#10b981'],
-                ['name' => 'Carbs', 'value' => 33, 'color' => '#3b82f6'],
-                ['name' => 'Fat', 'value' => 33, 'color' => '#f59e0b'],
+                ['name' => 'Protein', 'value' => 30, 'color' => '#3B82F6'],
+                ['name' => 'Carbs', 'value' => 45, 'color' => '#10B981'],
+                ['name' => 'Fat', 'value' => 25, 'color' => '#F59E0B'],
             ];
         }
 
         return [
-            ['name' => 'Protein', 'value' => round(($protein / $totalCal) * 100), 'color' => '#10b981'],
-            ['name' => 'Carbs', 'value' => round(($carbs / $totalCal) * 100), 'color' => '#3b82f6'],
-            ['name' => 'Fat', 'value' => round(($fat / $totalCal) * 100), 'color' => '#f59e0b'],
+            [
+                'name' => 'Protein',
+                'value' => round((($averages['protein'] * 4) / $total) * 100),
+                'color' => '#3B82F6',
+            ],
+            [
+                'name' => 'Carbs',
+                'value' => round((($averages['carbs'] * 4) / $total) * 100),
+                'color' => '#10B981',
+            ],
+            [
+                'name' => 'Fat',
+                'value' => round((($averages['fat'] * 9) / $total) * 100),
+                'color' => '#F59E0B',
+            ],
         ];
     }
 }

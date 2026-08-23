@@ -69,12 +69,8 @@ export default function AutoPlanGeneratorCard() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-card/90 via-card/70 to-card/50 p-6 md:p-8 backdrop-blur-xl shadow-[0_10px_40px_-15px_rgba(252,211,77,0.15)] mb-10"
+            className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 md:p-8 shadow-sm mb-10"
         >
-            {/* Ambient background glow element */}
-            <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl" />
-
             <div className="relative z-10">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                     {/* Header Info */}
@@ -114,7 +110,7 @@ export default function AutoPlanGeneratorCard() {
                         <button
                             onClick={handleGenerate}
                             disabled={isGenerating}
-                            className="relative group overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-amber-400 to-yellow-500 px-7 py-4 text-black font-bold text-base shadow-[0_0_25px_-5px_rgba(252,211,77,0.5)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-75 disabled:pointer-events-none"
+                            className="relative group overflow-hidden rounded-2xl bg-primary hover:bg-primary/90 px-7 py-4 text-primary-foreground font-bold text-base shadow-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-75 disabled:pointer-events-none"
                         >
                             <div className="flex items-center gap-2.5 relative z-10">
                                 {isGenerating ? (
@@ -193,19 +189,11 @@ export default function AutoPlanGeneratorCard() {
                             {/* Navigation Quick Links */}
                             <div className="flex flex-col sm:flex-row items-center gap-3">
                                 <Link
-                                    href={route('workout-plans.show', result.workout_plan_id)}
-                                    className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 bg-primary/20 hover:bg-primary/30 border border-primary/40 text-primary font-semibold text-sm px-5 py-3 rounded-xl transition-all"
+                                    href={route('schedule.index')}
+                                    className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm px-5 py-3 rounded-xl transition-all shadow-md"
                                 >
-                                    <Dumbbell className="w-4 h-4" />
-                                    <span>View Workout Plan</span>
-                                </Link>
-
-                                <Link
-                                    href={route('meal-plans.show', result.meal_plan_id)}
-                                    className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-400 font-semibold text-sm px-5 py-3 rounded-xl transition-all"
-                                >
-                                    <Utensils className="w-4 h-4" />
-                                    <span>View Meal Plan</span>
+                                    <Sparkles className="w-4 h-4" />
+                                    <span>Open Daily Schedule & Plans</span>
                                 </Link>
                             </div>
                         </motion.div>

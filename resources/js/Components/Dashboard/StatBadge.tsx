@@ -33,9 +33,9 @@ export default function StatBadge({
         scale: 1.05,
         transition: { duration: 0.2 },
       }}
-      className={`flex items-center gap-3 rounded-xl border ${className} px-4 py-2.5 transition-all duration-300 cursor-pointer hover:shadow-[0_0_20px_-5px_rgba(252,211,77,0.3)]`}
+      className={`flex items-center gap-3 rounded-xl border ${className} px-4 py-2.5 transition-all duration-300 cursor-pointer hover:shadow-sm`}
     >
-      <div className={`p-1.5 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 ${iconClassName}`}>
+      <div className={`p-1.5 rounded-full bg-primary/10 ${iconClassName}`}>
         {icon}
       </div>
       <div>

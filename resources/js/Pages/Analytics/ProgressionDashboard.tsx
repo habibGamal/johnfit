@@ -89,12 +89,6 @@ function MetricCard({ title, value, subtitle, trend, icon, accentColor = COLORS.
             transition={{ type: 'spring', stiffness: 300 }}
         >
             <Card className="relative overflow-hidden bg-card/40 border-border/50 backdrop-blur-md shadow-xl hover:shadow-2xl transition-shadow duration-300">
-                <div
-                    className="absolute inset-0 opacity-5"
-                    style={{
-                        background: `radial-gradient(circle at top right, ${accentColor}, transparent 60%)`,
-                    }}
-                />
                 <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                         <div
@@ -165,10 +159,10 @@ function MuscleHeatmap({ data }: MuscleHeatmapProps) {
 
     // Get color based on intensity: emerald (low) -> gold (high)
     const getBarColor = (intensity: number) => {
-        if (intensity > 0.75) return { bg: '#EAB308', glow: 'rgba(234, 179, 8, 0.4)' }; // Gold
-        if (intensity > 0.5) return { bg: '#F59E0B', glow: 'rgba(245, 158, 11, 0.3)' }; // Amber
-        if (intensity > 0.25) return { bg: '#10B981', glow: 'rgba(16, 185, 129, 0.3)' }; // Emerald
-        return { bg: '#6B7280', glow: 'rgba(107, 114, 128, 0.2)' }; // Gray
+        if (intensity > 0.75) return '#EAB308'; // Gold
+        if (intensity > 0.5) return '#F59E0B'; // Amber
+        if (intensity > 0.25) return '#10B981'; // Emerald
+        return '#6B7280'; // Gray
     };
 
     return (
@@ -188,7 +182,7 @@ function MuscleHeatmap({ data }: MuscleHeatmapProps) {
                 <CardContent className="space-y-3">
                     {data.slice(0, 8).map((muscle, index) => {
                         const intensity = muscle.volume / maxVolume;
-                        const colors = getBarColor(intensity);
+                        const barBg = getBarColor(intensity);
 
                         return (
                             <motion.div
@@ -213,8 +207,7 @@ function MuscleHeatmap({ data }: MuscleHeatmapProps) {
                                     <motion.div
                                         className="h-full rounded-full"
                                         style={{
-                                            backgroundColor: colors.bg,
-                                            boxShadow: `0 0 8px ${colors.glow}`,
+                                            backgroundColor: barBg,
                                         }}
                                         initial={{ width: 0 }}
                                         animate={{ width: `${muscle.percentage}%` }}
@@ -353,12 +346,6 @@ function ProgressPulseChart({ data, selectedWorkout }: ProgressPulseChartProps) 
                 <CardContent>
                     <ResponsiveContainer width="100%" height={350}>
                         <ComposedChart data={chartData}>
-                            <defs>
-                                <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={COLORS.volume} stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor={COLORS.volume} stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                             <XAxis
                                 dataKey="date"
@@ -394,7 +381,8 @@ function ProgressPulseChart({ data, selectedWorkout }: ProgressPulseChartProps) 
                                 dataKey="volume"
                                 name="Volume"
                                 stroke={COLORS.volume}
-                                fill="url(#volumeGradient)"
+                                fill={COLORS.volume}
+                                fillOpacity={0.15}
                                 strokeWidth={2}
                                 connectNulls
                             />
@@ -441,7 +429,7 @@ function WorkoutSelector({ workouts, selectedId, onSelect }: WorkoutSelectorProp
                 size="sm"
                 onClick={() => onSelect(null)}
                 className={`transition-all ${selectedId === null
-                    ? 'bg-gradient-to-r from-primary to-amber-500 text-primary-foreground border-0'
+                    ? 'bg-primary text-primary-foreground border-0'
                     : 'border-border/50 text-muted-foreground hover:text-foreground hover:border-primary'
                     }`}
             >
@@ -454,7 +442,7 @@ function WorkoutSelector({ workouts, selectedId, onSelect }: WorkoutSelectorProp
                     size="sm"
                     onClick={() => onSelect(workout.id)}
                     className={`transition-all ${selectedId === workout.id
-                        ? 'bg-gradient-to-r from-primary to-amber-500 text-primary-foreground border-0'
+                        ? 'bg-primary text-primary-foreground border-0'
                         : 'border-border/50 text-muted-foreground hover:text-foreground hover:border-primary'
                         }`}
                 >
@@ -483,15 +471,7 @@ function PersonalBestCard({ workout }: PersonalBestCardProps) {
             transition={{ type: 'spring', stiffness: 200 }}
             whileHover={{ scale: 1.02 }}
         >
-            <Card className="relative bg-gradient-to-br from-primary/20 to-amber-900/20 border-primary/50 overflow-hidden shadow-xl">
-                {/* Shimmer effect */}
-                <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent"
-                    initial={{ x: '-100%' }}
-                    animate={{ x: '200%' }}
-                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                />
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -translate-y-16 translate-x-16" />
+            <Card className="relative bg-primary/10 border-primary/40 overflow-hidden shadow-md">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-primary flex items-center gap-2">
                         <motion.div
@@ -631,7 +611,7 @@ export default function ProgressionDashboard({
                                     title="No workout data yet"
                                     description="Complete some workout sessions to start tracking your progression"
                                     icon={<Dumbbell className="h-12 w-12 text-gray-500" />}
-                                    action={{ label: "Go to Workout Plans", href: route('workout-plans.index') }}
+                                    action={{ label: "Go to Daily Schedule", href: route('schedule.index') }}
                                 />
                             </motion.div>
                         ) : (

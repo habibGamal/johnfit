@@ -55,7 +55,7 @@ export default function WeeklyProgressCard({ weeklyCompletionRate, activeDaysDat
       <Card className="lg:col-span-2 shadow-xl border-border/50 bg-card/40 backdrop-blur-md hover:shadow-2xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 text-lg font-bold text-foreground">
-            <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl border border-primary/20">
+            <div className="p-2.5 bg-primary/15 rounded-xl border border-primary/20">
               <TrendingUp className="h-5 w-5 text-primary" />
             </div>
             Weekly Progress
@@ -84,12 +84,6 @@ export default function WeeklyProgressCard({ weeklyCompletionRate, activeDaysDat
               {activeDaysData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#EAB308" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#CA8A04" stopOpacity={0.7} />
-                      </linearGradient>
-                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                     <XAxis
                       dataKey="day"
@@ -105,7 +99,7 @@ export default function WeeklyProgressCard({ weeklyCompletionRate, activeDaysDat
                       {chartData.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={entry.count > 0 ? "url(#barGradient)" : "hsl(var(--muted))"}
+                          fill={entry.count > 0 ? "#EAB308" : "hsl(var(--muted))"}
                         />
                       ))}
                     </Bar>

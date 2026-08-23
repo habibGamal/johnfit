@@ -76,14 +76,14 @@ class Workout extends Model
     }
 
     /**
-     * Set the muscles from an array.
+     * Set the muscles from an array or string.
      *
-     * @param array $value
+     * @param array|string $value
      * @return void
      */
-    public function setMusclesAttribute(array $value)
+    public function setMusclesAttribute($value)
     {
-        $this->attributes['muscles'] = implode(',', $value);
+        $this->attributes['muscles'] = is_array($value) ? implode(',', $value) : (string) $value;
     }
 
     /**
@@ -94,18 +94,18 @@ class Workout extends Model
      */
     public function getToolsAttribute($value)
     {
-        return explode(',', $value);
+        return is_array($value) ? $value : ($value ? explode(',', $value) : []);
     }
 
     /**
-     * Set the tools from an array.
+     * Set the tools from an array or string.
      *
-     * @param array $value
+     * @param array|string $value
      * @return void
      */
-    public function setToolsAttribute(array $value)
+    public function setToolsAttribute($value)
     {
-        $this->attributes['tools'] = implode(',', $value);
+        $this->attributes['tools'] = is_array($value) ? implode(',', $value) : (string) $value;
     }
 
 

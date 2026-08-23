@@ -21,10 +21,19 @@ class WorkoutPlan extends Model
 
 
     /**
-     * The users that belong to the workout.
+     * The assignments for this workout plan.
+     */
+    public function assignments()
+    {
+        return $this->hasMany(UserPlanAssignment::class, 'plan_id')->where('plan_type', 'workout');
+    }
+
+    /**
+     * The users assigned to this workout plan.
      */
     public function users()
     {
-        return $this->belongsToMany(User::class);
+        return $this->hasManyThrough(User::class, UserPlanAssignment::class, 'plan_id', 'id', 'id', 'user_id')
+            ->where('user_plan_assignments.plan_type', 'workout');
     }
 }

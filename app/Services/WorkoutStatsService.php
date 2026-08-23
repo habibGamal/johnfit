@@ -3,10 +3,9 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Models\WorkoutCompletion;
+use App\Models\UserDailyItem;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class WorkoutStatsService
 {
@@ -29,23 +28,22 @@ class WorkoutStatsService
 
     /**
      * Get the weekly completion rate for a user
-     *
-     * @param  int  $daysBack
      */
     public function getWeeklyCompletionRate(User $user): array
     {
         $startDate = now()->startOfWeek();
         $endDate = now()->endOfWeek();
 
-        // Get all workout completions for the user in the current week
-        $completions = WorkoutCompletion::where('user_id', $user->id)
-            ->where('created_at', '>=', $startDate)
-            ->where('created_at', '<=', $endDate)
+        $items = UserDailyItem::whereHas('schedule', function ($q) use ($user, $startDate, $endDate) {
+            $q->where('user_id', $user->id)
+                ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()]);
+        })
+            ->where('type', 'workout')
+            ->where('status', '!=', 'voided')
             ->get();
 
-        $completed = $completions->where('completed', true)->count();
-        $total = $completions->count();
-
+        $completed = $items->where('is_completed', true)->count();
+        $total = $items->count();
         $percentage = $total > 0 ? round(($completed / $total) * 100) : 0;
 
         return [
@@ -64,9 +62,12 @@ class WorkoutStatsService
         $date = now();
 
         while (true) {
-            $hasWorkoutOnDate = WorkoutCompletion::where('user_id', $user->id)
-                ->where('completed', true)
-                ->whereDate('updated_at', $date->format('Y-m-d'))
+            $dateStr = $date->format('Y-m-d');
+            $hasWorkoutOnDate = UserDailyItem::whereHas('schedule', function ($q) use ($user, $dateStr) {
+                $q->where('user_id', $user->id)->where('date', $dateStr);
+            })
+                ->where('type', 'workout')
+                ->where('is_completed', true)
                 ->exists();
 
             if (! $hasWorkoutOnDate) {
@@ -88,18 +89,21 @@ class WorkoutStatsService
         $startDate = now()->startOfWeek();
         $endDate = now()->endOfWeek();
 
-        $completions = WorkoutCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->whereBetween('updated_at', [$startDate, $endDate])
+        $items = UserDailyItem::with('schedule')
+            ->whereHas('schedule', function ($q) use ($user, $startDate, $endDate) {
+                $q->where('user_id', $user->id)
+                    ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()]);
+            })
+            ->where('type', 'workout')
+            ->where('is_completed', true)
             ->get()
-            ->groupBy(function ($completion) {
-                return Carbon::parse($completion->updated_at)->format('l'); // Day name
+            ->groupBy(function ($item) {
+                return Carbon::parse($item->schedule->date)->format('l');
             });
 
         $dayStats = [];
-
-        foreach ($completions as $day => $items) {
-            $dayStats[$day] = $items->count();
+        foreach ($items as $day => $group) {
+            $dayStats[$day] = $group->count();
         }
 
         return $dayStats;
@@ -110,23 +114,21 @@ class WorkoutStatsService
      */
     public function getRecentActivity(User $user, int $limit = 5): Collection
     {
-        return WorkoutCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->with(['workoutPlan'])
-            ->orderBy('updated_at', 'desc')
+        return UserDailyItem::with('schedule')
+            ->whereHas('schedule', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->where('type', 'workout')
+            ->where('is_completed', true)
+            ->orderBy('completed_at', 'desc')
             ->limit($limit)
             ->get()
-            ->map(function ($completion) {
-                // Get the workout data if possible
-                $workoutName = DB::table('workouts')
-                    ->where('id', $completion->workout_id)
-                    ->value('name') ?? 'Unknown Workout';
-
+            ->map(function ($item) {
                 return [
-                    'day' => $completion->day,
-                    'workout' => $workoutName,
-                    'plan_name' => $completion->workoutPlan->name ?? 'Unknown Plan',
-                    'completed_at' => $completion->updated_at->diffForHumans(),
+                    'day' => Carbon::parse($item->schedule->date)->format('l'),
+                    'workout' => $item->item_name,
+                    'plan_name' => 'Daily Workout',
+                    'completed_at' => $item->completed_at ? $item->completed_at->diffForHumans() : 'Recently',
                 ];
             });
     }
@@ -139,55 +141,52 @@ class WorkoutStatsService
         $startDate = now()->subWeeks(4)->startOfDay();
         $endDate = now()->endOfDay();
 
-        $completions = WorkoutCompletion::where('user_id', $user->id)
-            ->where('updated_at', '>=', $startDate)
-            ->where('updated_at', '<=', $endDate)
-            ->where('completed', true)
+        $items = UserDailyItem::with('schedule')
+            ->whereHas('schedule', function ($q) use ($user, $startDate, $endDate) {
+                $q->where('user_id', $user->id)
+                    ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()]);
+            })
+            ->where('type', 'workout')
+            ->where('is_completed', true)
             ->get()
-            ->groupBy(function ($completion) {
-                return Carbon::parse($completion->updated_at)->format('Y-m-d');
+            ->groupBy(function ($item) {
+                return Carbon::parse($item->schedule->date)->format('Y-m-d');
             });
 
         $progressData = [];
-
-        $currentDate = $startDate->copy();
-        while ($currentDate <= $endDate) {
-            $dateString = $currentDate->format('Y-m-d');
-            $formattedDate = $currentDate->format('M d');
-
+        for ($i = 28; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
             $progressData[] = [
-                'date' => $formattedDate,
-                'count' => $completions->get($dateString) ? count($completions->get($dateString)) : 0,
+                'date' => $date,
+                'count' => isset($items[$date]) ? $items[$date]->count() : 0,
             ];
-
-            $currentDate->addDay();
         }
 
         return $progressData;
     }
 
     /**
-     * Get aggregate stats for a user
+     * Get aggregate statistics
      */
     public function getAggregateStats(User $user): array
     {
-        // Total workouts completed ever
-        $totalCompletions = WorkoutCompletion::where('user_id', $user->id)
-            ->where('completed', true)
+        $totalCompletions = UserDailyItem::whereHas('schedule', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })
+            ->where('type', 'workout')
+            ->where('is_completed', true)
             ->count();
 
-        // Total active plans
-        $activePlans = $user->workoutPlans()->count();
-
-        // Recently completed workouts (last 7 days)
-        $recentCompletions = WorkoutCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->where('updated_at', '>=', now()->subDays(7))
+        $recentCompletions = UserDailyItem::whereHas('schedule', function ($q) use ($user) {
+            $q->where('user_id', $user->id)->where('date', '>=', now()->subDays(7)->toDateString());
+        })
+            ->where('type', 'workout')
+            ->where('is_completed', true)
             ->count();
 
         return [
             'total_completions' => $totalCompletions,
-            'active_plans' => $activePlans,
+            'active_plans' => 1,
             'recent_completions' => $recentCompletions,
         ];
     }
@@ -197,119 +196,86 @@ class WorkoutStatsService
      */
     public function getComparisonStats(User $user): array
     {
-        // This Week
-        $startOfThisWeek = now()->startOfWeek();
-        $endOfThisWeek = now()->endOfWeek();
+        $thisWeekStart = now()->startOfWeek();
+        $thisWeekEnd = now()->endOfWeek();
+        $lastWeekStart = now()->subWeek()->startOfWeek();
+        $lastWeekEnd = now()->subWeek()->endOfWeek();
 
-        $thisWeekCount = WorkoutCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->where('updated_at', '>=', $startOfThisWeek)
-            ->where('updated_at', '<=', $endOfThisWeek)
+        $thisWeekCount = UserDailyItem::whereHas('schedule', function ($q) use ($user, $thisWeekStart, $thisWeekEnd) {
+            $q->where('user_id', $user->id)->whereBetween('date', [$thisWeekStart->toDateString(), $thisWeekEnd->toDateString()]);
+        })
+            ->where('type', 'workout')
+            ->where('is_completed', true)
             ->count();
 
-        // Last Week
-        $startOfLastWeek = now()->subWeek()->startOfWeek();
-        $endOfLastWeek = now()->subWeek()->endOfWeek();
-
-        $lastWeekCount = WorkoutCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->where('updated_at', '>=', $startOfLastWeek)
-            ->where('updated_at', '<=', $endOfLastWeek)
+        $lastWeekCount = UserDailyItem::whereHas('schedule', function ($q) use ($user, $lastWeekStart, $lastWeekEnd) {
+            $q->where('user_id', $user->id)->whereBetween('date', [$lastWeekStart->toDateString(), $lastWeekEnd->toDateString()]);
+        })
+            ->where('type', 'workout')
+            ->where('is_completed', true)
             ->count();
 
-        // Avoid division by zero
-        if ($lastWeekCount == 0) {
-            $percentageChange = $thisWeekCount > 0 ? 100 : 0;
-        } else {
+        $percentageChange = 0;
+        $trend = 'neutral';
+
+        if ($lastWeekCount > 0) {
             $percentageChange = round((($thisWeekCount - $lastWeekCount) / $lastWeekCount) * 100);
+            $trend = $percentageChange > 0 ? 'up' : ($percentageChange < 0 ? 'down' : 'neutral');
+        } elseif ($thisWeekCount > 0) {
+            $percentageChange = 100;
+            $trend = 'up';
         }
 
         return [
             'this_week' => $thisWeekCount,
             'last_week' => $lastWeekCount,
-            'percentage_change' => $percentageChange,
-            'trend' => $percentageChange > 0 ? 'up' : ($percentageChange < 0 ? 'down' : 'neutral'),
+            'percentage_change' => abs($percentageChange),
+            'trend' => $trend,
         ];
     }
 
     /**
-     * Get user achievements based on stats
+     * Get achievements
      */
     public function getAchievements(User $user): array
     {
-        $achievements = [];
-        $totalCompletions = WorkoutCompletion::where('user_id', $user->id)
-            ->where('completed', true)
+        $totalCompletions = UserDailyItem::whereHas('schedule', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })
+            ->where('type', 'workout')
+            ->where('is_completed', true)
             ->count();
 
         $streak = $this->getCurrentStreak($user);
 
-        // Define potential achievements
-        $definitions = [
+        return [
             [
-                'id' => 'first_step',
+                'id' => 'first_workout',
                 'title' => 'First Step',
-                'description' => 'Completed your first workout',
-                'icon' => 'Target', // Lucide icon name
-                'condition' => $totalCompletions >= 1,
-                'progress' => min($totalCompletions, 1) / 1 * 100,
+                'description' => 'Complete your first workout',
+                'icon' => 'Award',
+                'progress' => min(100, $totalCompletions > 0 ? 100 : 0),
                 'tier' => 'bronze',
+                'unlocked' => $totalCompletions >= 1,
             ],
             [
-                'id' => 'getting_serious',
-                'title' => 'Getting Serious',
-                'description' => 'Completed 10 workouts',
-                'icon' => 'Dumbbell',
-                'condition' => $totalCompletions >= 10,
-                'progress' => min($totalCompletions, 10) / 10 * 100,
-                'tier' => 'silver',
-            ],
-            [
-                'id' => 'workout_warrior',
-                'title' => 'Workout Warrior',
-                'description' => 'Completed 50 workouts',
-                'icon' => 'Trophy',
-                'condition' => $totalCompletions >= 50,
-                'progress' => min($totalCompletions, 50) / 50 * 100,
-                'tier' => 'gold',
-            ],
-            [
-                'id' => 'week_streak',
-                'title' => 'On Fire',
-                'description' => '7 day workout streak',
+                'id' => 'streak_3',
+                'title' => 'Consistency Builder',
+                'description' => 'Maintain a 3-day workout streak',
                 'icon' => 'Flame',
-                'condition' => $streak >= 7,
-                'progress' => min($streak, 7) / 7 * 100,
-                'tier' => 'gold',
+                'progress' => min(100, round(($streak / 3) * 100)),
+                'tier' => 'silver',
+                'unlocked' => $streak >= 3,
             ],
             [
-                'id' => 'consistent',
-                'title' => 'Consistency',
-                'description' => '3 day workout streak',
-                'icon' => 'Zap',
-                'condition' => $streak >= 3,
-                'progress' => min($streak, 3) / 3 * 100,
-                'tier' => 'bronze',
+                'id' => 'total_10',
+                'title' => 'Dedication',
+                'description' => 'Complete 10 workouts',
+                'icon' => 'Trophy',
+                'progress' => min(100, round(($totalCompletions / 10) * 100)),
+                'tier' => 'gold',
+                'unlocked' => $totalCompletions >= 10,
             ],
         ];
-
-        foreach ($definitions as $def) {
-            if ($def['condition']) {
-                $achievements[] = array_merge($def, ['unlocked' => true]);
-            } else {
-                $achievements[] = array_merge($def, ['unlocked' => false]);
-            }
-        }
-
-        // Sort: Unlocked first, then by progress
-        usort($achievements, function ($a, $b) {
-            if ($a['unlocked'] === $b['unlocked']) {
-                return $b['progress'] <=> $a['progress'];
-            }
-
-            return $b['unlocked'] <=> $a['unlocked'];
-        });
-
-        return $achievements;
     }
 }

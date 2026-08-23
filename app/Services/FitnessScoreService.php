@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\FitnessScore;
-use App\Models\MealCompletion;
 use App\Models\User;
-use App\Models\WorkoutSetCompletion;
+use App\Models\UserDailyItem;
+use App\Models\UserDailySchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -145,11 +145,16 @@ class FitnessScoreService
      */
     private function calculateWorkoutScore(User $user, Carbon $start, Carbon $end): array
     {
-        $sets = WorkoutSetCompletion::where('user_id', $user->id)
-            ->whereBetween('session_date', [$start, $end])
+        $items = UserDailyItem::with('schedule')
+            ->whereHas('schedule', function ($q) use ($user, $start, $end) {
+                $q->where('user_id', $user->id)
+                    ->whereBetween('date', [$start->toDateString(), $end->toDateString()]);
+            })
+            ->where('type', 'workout')
+            ->where('status', '!=', 'voided')
             ->get();
 
-        if ($sets->isEmpty()) {
+        if ($items->isEmpty()) {
             return [
                 'score' => 0,
                 'metrics' => [
@@ -162,28 +167,63 @@ class FitnessScoreService
             ];
         }
 
-        // Completion rate (0-60 pts)
-        $totalSets = $sets->count();
-        $completedSets = $sets->where('completed', true)->count();
+        // Calculate total sets & completed sets from items payload
+        $totalSets = 0;
+        $completedSets = 0;
+        $currentVolume = 0.0;
+
+        foreach ($items as $item) {
+            $sets = $item->execution_payload['sets'] ?? [];
+            if (! empty($sets) && is_array($sets)) {
+                foreach ($sets as $set) {
+                    $totalSets++;
+                    if (! empty($set['completed'])) {
+                        $completedSets++;
+                        $weight = (float) ($set['weight'] ?? 0);
+                        $reps = (int) ($set['reps'] ?? 0);
+                        $currentVolume += ($weight * $reps);
+                    }
+                }
+            } else {
+                $totalSets++;
+                if ($item->is_completed) {
+                    $completedSets++;
+                }
+            }
+        }
+
         $completionRate = $totalSets > 0 ? ($completedSets / $totalSets) : 0;
         $completionScore = $completionRate * 60;
 
         // Volume progression (0-30 pts)
-        $currentVolume = $this->calculateTotalVolume($sets->where('completed', true));
         $previousPeriodStart = $start->copy()->subDays($end->diffInDays($start) + 1);
-        $previousSets = WorkoutSetCompletion::where('user_id', $user->id)
-            ->whereBetween('session_date', [$previousPeriodStart, $start->copy()->subDay()])
-            ->where('completed', true)
+        $previousItems = UserDailyItem::whereHas('schedule', function ($q) use ($user, $previousPeriodStart, $start) {
+            $q->where('user_id', $user->id)
+                ->whereBetween('date', [$previousPeriodStart->toDateString(), $start->copy()->subDay()->toDateString()]);
+        })
+            ->where('type', 'workout')
+            ->where('is_completed', true)
+            ->where('status', '!=', 'voided')
             ->get();
-        $previousVolume = $this->calculateTotalVolume($previousSets);
+
+        $previousVolume = 0.0;
+        foreach ($previousItems as $pItem) {
+            $pSets = $pItem->execution_payload['sets'] ?? [];
+            foreach ($pSets as $pSet) {
+                if (! empty($pSet['completed'])) {
+                    $previousVolume += ((float) ($pSet['weight'] ?? 0) * (int) ($pSet['reps'] ?? 0));
+                }
+            }
+        }
+
         $volumeProgression = $previousVolume > 0
             ? (($currentVolume - $previousVolume) / $previousVolume) * 100
             : 0;
         $volumeScore = $this->getVolumeProgressionScore($volumeProgression);
 
         // Streak bonus (0-10 pts)
-        $workoutDays = $sets->where('completed', true)
-            ->pluck('session_date')
+        $workoutDays = $items->where('is_completed', true)
+            ->map(fn ($item) => $item->schedule->date)
             ->unique()
             ->count();
         $streakScore = $this->getStreakScore($workoutDays);
@@ -205,15 +245,7 @@ class FitnessScoreService
     }
 
     /**
-     * Calculate total volume (weight × reps) from sets.
-     */
-    private function calculateTotalVolume(Collection $sets): float
-    {
-        return $sets->sum(fn ($set) => (float) $set->weight * (int) $set->reps);
-    }
-
-    /**
-     * Get volume progression score based on percentage change.
+     * Get volume progression score based on percentage change (0-30 pts).
      */
     private function getVolumeProgressionScore(float $progression): float
     {
@@ -227,7 +259,7 @@ class FitnessScoreService
     }
 
     /**
-     * Get streak bonus score based on workout days.
+     * Get streak bonus score based on workout days (0-10 pts).
      */
     private function getStreakScore(int $days): float
     {
@@ -242,16 +274,16 @@ class FitnessScoreService
 
     /**
      * Calculate meal tracking score (0-100).
-     *
-     * Components:
-     * - Completion Rate (0-70 pts): Completed meals / Planned meals
-     * - Consistency (0-20 pts): Days with all meals / Total days
-     * - Quantity Accuracy (0-10 pts): Deviation from planned quantities
      */
     private function calculateMealScore(User $user, Carbon $start, Carbon $end): array
     {
-        $meals = MealCompletion::where('user_id', $user->id)
-            ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+        $meals = UserDailyItem::with('schedule')
+            ->whereHas('schedule', function ($q) use ($user, $start, $end) {
+                $q->where('user_id', $user->id)
+                    ->whereBetween('date', [$start->toDateString(), $end->toDateString()]);
+            })
+            ->where('type', 'meal')
+            ->where('status', '!=', 'voided')
             ->get();
 
         if ($meals->isEmpty()) {
@@ -270,22 +302,19 @@ class FitnessScoreService
 
         // Completion rate (0-70 pts)
         $totalMeals = $meals->count();
-        $completedMeals = $meals->where('completed', true)->count();
+        $completedMeals = $meals->where('is_completed', true)->count();
         $completionRate = $totalMeals > 0 ? ($completedMeals / $totalMeals) : 0;
         $completionScore = $completionRate * 70;
 
         // Consistency (0-20 pts) - days with all meals completed
         $totalDays = $end->diffInDays($start) + 1;
-        $mealsByDay = $meals->groupBy(fn ($m) => $m->created_at->toDateString());
+        $mealsByDay = $meals->groupBy(fn ($m) => $m->schedule->date);
         $perfectDays = $mealsByDay->filter(function ($dayMeals) {
-            return $dayMeals->every(fn ($m) => $m->completed);
+            return $dayMeals->every(fn ($m) => $m->is_completed);
         })->count();
         $consistency = $totalDays > 0 ? ($perfectDays / $totalDays) : 0;
         $consistencyScore = $consistency * 20;
 
-        // Quantity accuracy (0-10 pts)
-        // For now, if completed = true, we consider it accurate
-        // In the future, we could compare actual vs planned quantity
         $quantityAccuracy = $completedMeals > 0 ? 1.0 : 0;
         $quantityScore = $quantityAccuracy * 10;
 

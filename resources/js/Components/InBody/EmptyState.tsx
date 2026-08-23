@@ -26,7 +26,6 @@ export default function EmptyState({ onAddClick }: EmptyStateProps) {
         }}
       >
         <div className="relative">
-          <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-2xl opacity-30" />
           <div className="relative p-8 bg-primary/10 rounded-3xl border border-primary/20">
             <Activity className="h-16 w-16 text-primary" />
           </div>

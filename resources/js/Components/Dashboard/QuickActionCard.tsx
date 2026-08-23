@@ -51,7 +51,7 @@ export default function QuickActionCard({
                 transform: `perspective(1000px) rotateX(${-mousePosition.y * 0.1}deg) rotateY(${mousePosition.x * 0.1}deg)`,
             }}
             className={cn(
-                "group relative overflow-hidden rounded-3xl h-[240px] w-full transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 cursor-pointer will-change-transform",
+                "group relative overflow-hidden rounded-3xl h-[240px] w-full transition-all duration-300 hover:shadow-xl cursor-pointer will-change-transform",
                 className
             )}
         >
@@ -64,10 +64,10 @@ export default function QuickActionCard({
                         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                 ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-zinc-800 to-zinc-900" />
+                    <div className="h-full w-full bg-zinc-900" />
                 )}
-                {/* Enhanced Gradient Overlay for Text Readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent z-10" />
+                {/* Clean dark scrim overlay */}
+                <div className="absolute inset-0 bg-black/60 z-10" />
             </div>
 
             {/* Content */}
@@ -76,7 +76,7 @@ export default function QuickActionCard({
                     {/* Optional: Add icon here if needed */}
                 </div>
 
-                <h3 className="text-2xl font-bold text-white mb-2 leading-tight drop-shadow-sm">
+                <h3 className="text-2xl font-bold text-white mb-2 leading-tight">
                     {title}
                 </h3>
 
@@ -93,7 +93,7 @@ export default function QuickActionCard({
                     ) : (
                         <Button
                             asChild
-                            className="bg-[#FCD34D] hover:bg-[#FCD34D]/90 text-black font-semibold rounded-full px-6 transition-all duration-300 shadow-[0_0_15px_-3px_rgba(252,211,77,0.3)] hover:shadow-[0_0_25px_-3px_rgba(252,211,77,0.6)]"
+                            className="bg-[#FCD34D] hover:bg-[#FCD34D]/90 text-black font-semibold rounded-full px-6 transition-all duration-300 shadow-sm"
                         >
                             <Link href={actionRoute} className="flex items-center gap-2">
                                 {actionLabel}

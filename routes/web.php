@@ -34,20 +34,11 @@ Route::middleware(['auth', 'assessment.completed'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Workout Plan Routes
-    Route::get('/workout-plans', [App\Http\Controllers\WorkoutPlanController::class, 'index'])->name('workout-plans.index');
-    Route::get('/workout-plans/{workoutPlan}', [App\Http\Controllers\WorkoutPlanController::class, 'show'])->name('workout-plans.show');
-    Route::post('/workout-plans/toggle-completion', [App\Http\Controllers\WorkoutPlanController::class, 'toggleCompletion'])->name('workout-plans.toggle-completion');
-    Route::post('/workout-plans/save-set', [App\Http\Controllers\WorkoutPlanController::class, 'saveSet'])->name('workout-plans.save-set');
-    Route::post('/workout-plans/toggle-set', [App\Http\Controllers\WorkoutPlanController::class, 'toggleSet'])->name('workout-plans.toggle-set');
-    Route::delete('/workout-plans/delete-set', [App\Http\Controllers\WorkoutPlanController::class, 'deleteSet'])->name('workout-plans.delete-set');
-    Route::post('/workout-plans/finish-day', [App\Http\Controllers\WorkoutPlanController::class, 'finishDay'])->name('workout-plans.finish-day');
-    Route::get('/workout-plans/{workoutPlan}/session-summary/{day}', [App\Http\Controllers\WorkoutPlanController::class, 'sessionSummary'])->name('workout-plans.session-summary');
-
-    // Meal Plan Routes
-    Route::get('/meal-plans', [App\Http\Controllers\MealPlanController::class, 'index'])->name('meal-plans.index');
-    Route::get('/meal-plans/{mealPlan}', [App\Http\Controllers\MealPlanController::class, 'show'])->name('meal-plans.show');
-    Route::post('/meal-plans/toggle-completion', [App\Http\Controllers\MealPlanController::class, 'toggleCompletion'])->name('meal-plans.toggle-completion');
+    // Unified Daily Schedule & Tracking Hub
+    Route::get('/schedule', [App\Http\Controllers\ScheduleController::class, 'index'])->name('schedule.index');
+    Route::post('/schedule/items/{item}/toggle', [App\Http\Controllers\ScheduleController::class, 'toggleItem'])->name('schedule.items.toggle');
+    Route::post('/schedule/items/{item}/workout-sets', [App\Http\Controllers\ScheduleController::class, 'saveWorkoutSets'])->name('schedule.items.workout-sets');
+    Route::post('/schedule/items/{item}/meal-consumption', [App\Http\Controllers\ScheduleController::class, 'saveMealConsumption'])->name('schedule.items.meal-consumption');
 
     // Auto-Generate Plans Route
     Route::post('/plans/generate', [App\Http\Controllers\PlanGenerationController::class, 'generate'])->name('plans.generate');

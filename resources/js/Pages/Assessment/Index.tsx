@@ -11,6 +11,7 @@ import {
     CheckCircle,
     Dumbbell,
     Loader2,
+    Sparkles,
 } from 'lucide-react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import InteractiveEmojiFace, {
@@ -165,6 +166,36 @@ export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
         );
     };
 
+    const handleDevFillAll = () => {
+        const autoAnswers: Record<number, string | string[]> = {};
+        assessments.forEach((item) => {
+            if (item.type === 'multiple_select') {
+                if (item.options && item.options.length > 0) {
+                    autoAnswers[item.id] = item.options
+                        .slice(0, Math.min(2, item.options.length))
+                        .map((o) => o.label);
+                } else {
+                    autoAnswers[item.id] = ['Sample option'];
+                }
+            } else if (item.type === 'select') {
+                if (item.options && item.options.length > 0) {
+                    autoAnswers[item.id] = item.options[0].label;
+                } else {
+                    autoAnswers[item.id] = 'Sample option';
+                }
+            } else {
+                autoAnswers[item.id] = 'Dev answer';
+            }
+        });
+
+        setAnswers(autoAnswers);
+        setErrors({});
+        setDirection(1);
+        setCurrentStep(total - 1);
+        setLastReaction('fire');
+        setBounceTrigger((b) => b + 1);
+    };
+
     const defaultExpr =
         STEP_EXPRESSIONS[currentStep % STEP_EXPRESSIONS.length] || 'thinking';
 
@@ -181,10 +212,23 @@ export default function AssessmentIndex({ assessments }: AssessmentIndexProps) {
             {/* Header */}
             <div className="border-b border-border bg-card px-4 py-4 flex items-center justify-between">
                 <ApplicationLogo className="h-8 w-auto fill-current text-primary" />
-                <div className="text-sm text-muted-foreground font-medium">
-                    <span className="text-foreground font-bold">{currentStep + 1}</span>
-                    <span className="mx-1">/</span>
-                    <span>{total}</span>
+                <div className="flex items-center gap-3">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDevFillAll}
+                        className="h-8 px-2.5 text-xs font-semibold border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-400 gap-1.5 rounded-lg shadow-sm"
+                        title="Dev: Fill all questions with sample answers and jump to last step"
+                    >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span>Dev Auto-Fill</span>
+                    </Button>
+                    <div className="text-sm text-muted-foreground font-medium">
+                        <span className="text-foreground font-bold">{currentStep + 1}</span>
+                        <span className="mx-1">/</span>
+                        <span>{total}</span>
+                    </div>
                 </div>
             </div>
 

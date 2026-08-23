@@ -1,14 +1,3 @@
-// Types for authentication and user
-export interface User {
-    id: number;
-    name: string;
-    email: string;
-    email_verified_at?: string;
-}
-
-// Types for workout plans and related interfaces
-
-// User and authentication types
 export interface User {
     id: number;
     name: string;
@@ -23,6 +12,114 @@ export interface Auth {
 export interface PageProps<T extends Record<string, any> = {}> extends T {
     auth: Auth;
     [key: string]: any;
+}
+
+// Plan Progress Management & Daily Schedule Types
+export interface ItemWorkoutOption {
+    workout_id: number;
+    name: string;
+    muscles: string[] | string;
+    tools: string[] | string;
+    thumb?: string | null;
+    video_url?: string | null;
+    sets_count: number;
+    reps_preset_name?: string | null;
+    target_reps: number[];
+}
+
+export interface ItemMealOption {
+    meal_id: number;
+    name: string;
+    quantity: number;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+}
+
+export interface UserDailyItemTargetDetails {
+    workout_id?: number;
+    muscles?: string[] | string;
+    tools?: string[] | string;
+    thumb?: string | null;
+    video_url?: string | null;
+    sets_count?: number;
+    reps_preset_name?: string | null;
+    target_reps?: number[];
+    time_slot?: string;
+    options?: (ItemWorkoutOption | ItemMealOption)[];
+    primary_option?: ItemWorkoutOption | ItemMealOption | any;
+    [key: string]: any;
+}
+
+export interface ItemWorkoutSet {
+    set_number: number;
+    target_reps?: number;
+    reps: number;
+    weight: number | null;
+    completed: boolean;
+    [key: string]: any;
+}
+
+export interface UserDailyItemExecutionPayload {
+    selected_workout_id?: number | null;
+    sets?: ItemWorkoutSet[];
+    consumed_option_id?: number | null;
+    consumed_quantity?: number | null;
+    [key: string]: any;
+}
+
+export interface UserDailyItem {
+    id: number;
+    type: 'workout' | 'meal';
+    item_name: string;
+    reference_id: number | null;
+    target_details: UserDailyItemTargetDetails;
+    points: number;
+    is_completed: boolean;
+    completed_at: string | null;
+    execution_payload: UserDailyItemExecutionPayload | null;
+    status: 'active' | 'voided' | 'edited';
+    order_index: number;
+}
+
+export interface UserDailySchedule {
+    id: number;
+    date: string;
+    target_score: number;
+    earned_score: number;
+    adherence_percentage: number;
+    is_completed: boolean;
+    is_locked: boolean;
+    notes: string | null;
+    items: UserDailyItem[];
+}
+
+export interface WeeklyAdherenceDay {
+    date: string;
+    day_name: string;
+    day_full: string;
+    target_score: number;
+    earned_score: number;
+    percentage: number;
+    is_completed: boolean;
+    is_today: boolean;
+    is_past: boolean;
+    is_locked: boolean;
+}
+
+export interface WeeklyAdherence {
+    days: WeeklyAdherenceDay[];
+    total_target: number;
+    total_earned: number;
+    overall_percentage: number;
+}
+
+export interface SchedulePageProps extends PageProps {
+    selectedDate: string;
+    schedule: UserDailySchedule | null;
+    weeklyAdherence: WeeklyAdherence;
+    currentStreak: number;
 }
 
 export interface Workout {

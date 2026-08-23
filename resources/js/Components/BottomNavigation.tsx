@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Home, Dumbbell, Utensils, User, Scale } from 'lucide-react';
+import { Home, CalendarCheck, TrendingUp, User, Scale } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -18,16 +18,16 @@ export default function BottomNavigation() {
             isActive: route().current('dashboard'),
         },
         {
-            name: 'Workouts',
-            href: route('workout-plans.index'),
-            icon: Dumbbell,
-            isActive: route().current('workout-plans.*'),
+            name: 'Schedule',
+            href: route('schedule.index'),
+            icon: CalendarCheck,
+            isActive: route().current('schedule.*'),
         },
         {
-            name: 'Meals',
-            href: route('meal-plans.index'),
-            icon: Utensils,
-            isActive: route().current('meal-plans.*'),
+            name: 'Analytics',
+            href: route('analytics.index'),
+            icon: TrendingUp,
+            isActive: route().current('analytics.*'),
         },
         {
             name: 'InBody',

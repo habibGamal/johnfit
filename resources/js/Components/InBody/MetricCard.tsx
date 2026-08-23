@@ -16,7 +16,6 @@ interface MetricCardProps {
   };
   invertTrend?: boolean;
   iconColor?: string;
-  bgGradient?: string;
   delay?: number;
 }
 

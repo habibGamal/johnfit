@@ -72,9 +72,6 @@ export default function Packages({ plans, activeSubscription }: PackagesProps) {
             <Head title="Subscription Plans" />
 
             <div className="min-h-screen bg-background py-12 relative">
-                {/* Background Glow */}
-                <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 blur-[120px] pointer-events-none rounded-full" />
-
                 <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
 
                     {/* Active Subscription Banner */}
@@ -142,8 +139,8 @@ export default function Packages({ plans, activeSubscription }: PackagesProps) {
                                     transition={{ duration: 0.4, delay: index * 0.1 }}
                                 >
                                     <Card className={cn(
-                                        'relative h-full flex flex-col border border-border/50 bg-card/60 backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_40px_-12px_rgba(252,211,77,0.3)] hover:-translate-y-1',
-                                        plan.tag?.toLowerCase().includes('popular') && 'border-primary/50 shadow-[0_0_40px_-12px_rgba(252,211,77,0.2)]'
+                                        'relative h-full flex flex-col border border-border/50 bg-card/60 backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:-translate-y-1',
+                                        plan.tag?.toLowerCase().includes('popular') && 'border-primary/50 shadow-md'
                                     )}>
                                         {/* Tag Badge */}
                                         {plan.tag && (
@@ -198,7 +195,7 @@ export default function Packages({ plans, activeSubscription }: PackagesProps) {
                                                 className={cn(
                                                     'w-full font-bold py-6 text-base transition-all',
                                                     plan.tag?.toLowerCase().includes('popular')
-                                                        ? 'bg-primary hover:bg-primary/90 text-black shadow-[0_0_20px_-5px_rgba(252,211,77,0.5)]'
+                                                        ? 'bg-primary hover:bg-primary/90 text-black shadow-sm'
                                                         : 'bg-card border border-primary/40 text-primary hover:bg-primary/10'
                                                 )}
                                             >

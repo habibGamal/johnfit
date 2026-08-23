@@ -140,69 +140,65 @@ class MealPlanResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Section::make('Plan')->schema([
-                    Forms\Components\Repeater::make('days')->schema([
-                        Forms\Components\TextInput::make('day')
-                            ->datalist([
-                                'Monday',
-                                'Tuesday',
-                                'Wednesday',
-                                'Thursday',
-                                'Friday',
-                                'Saturday',
-                                'Sunday',
-                            ])
-                            ->required(),
-                        Forms\Components\Repeater::make('time')
-                            ->itemLabel(fn (array $state) => $state['meal_time'].' Time')
-                            ->schema([
-                                Forms\Components\TextInput::make('meal_time')
-                                    ->datalist([
-                                        'Breakfast',
-                                        'Lunch',
-                                        'Dinner',
-                                        'Snack',
-                                        'Before Workout',
-                                        'After Workout',
-                                    ])
-                                    ->required(),
-                                Forms\Components\Repeater::make('meals')
-                                    ->label('Meal Slots')
-                                    ->addActionLabel('Add Meal Slot')
-                                    ->schema([
-                                        Forms\Components\Repeater::make('options')
-                                            ->label('Options (choose ONE — add more for OR alternatives)')
-                                            ->addActionLabel('Add OR Option')
-                                            ->minItems(1)
-                                            ->schema([
-                                                Forms\Components\Placeholder::make('_placeholder')
-                                                    ->label('Meal Details')
-                                                    ->content(function (Get $get) use ($meals) {
-                                                        $meal = $meals->where('id', '=', $get('meal_id'))->first();
-                                                        if (! $meal) {
-                                                            return new HtmlString('<p>Meal not chosen yet</p>');
-                                                        }
+                    Forms\Components\Repeater::make('days')
+                        ->itemLabel(fn (array $state): ?string => $state['day'] ?? null)
+                        ->schema([
+                            Forms\Components\Select::make('day')
+                                ->label('Day')
+                                ->options(collect(range(1, 30))->mapWithKeys(fn ($i) => ["Day {$i}" => "Day {$i}"]))
+                                ->default(fn (Get $get) => 'Day ' . (count($get('../../days') ?? []) + 1))
+                                ->required(),
+                            Forms\Components\Repeater::make('time')
+                                ->itemLabel(fn (array $state) => ($state['meal_time'] ?? 'Meal').' Time')
+                                ->schema([
+                                    Forms\Components\TextInput::make('meal_time')
+                                        ->datalist([
+                                            'Breakfast',
+                                            'Lunch',
+                                            'Dinner',
+                                            'Snack',
+                                            'Before Workout',
+                                            'After Workout',
+                                        ])
+                                        ->required(),
+                                    Forms\Components\Repeater::make('meals')
+                                        ->label('Meal Slots')
+                                        ->addActionLabel('Add Meal Slot')
+                                        ->schema([
+                                            Forms\Components\Repeater::make('options')
+                                                ->label('Options (choose ONE — add more for OR alternatives)')
+                                                ->addActionLabel('Add OR Option')
+                                                ->minItems(1)
+                                                ->schema([
+                                                    Forms\Components\Placeholder::make('_placeholder')
+                                                        ->label('Meal Details')
+                                                        ->content(function (Get $get) use ($meals) {
+                                                            $meal = $meals->where('id', '=', $get('meal_id'))->first();
+                                                            if (! $meal) {
+                                                                return new HtmlString('<p>Meal not chosen yet</p>');
+                                                            }
 
-                                                        return view('placeholders.meal_details', ['meal' => $meal, 'quantity' => $get('quantity')]);
-                                                    }),
-                                                Forms\Components\Select::make('meal_id')
-                                                    ->label('Meal')
-                                                    ->options($meals->pluck('name', 'id')->toArray())
-                                                    ->searchable()
-                                                    ->live(onBlur: true)
-                                                    ->required(),
-                                                Forms\Components\TextInput::make('quantity')
-                                                    ->label('Quantity')
-                                                    ->numeric()
-                                                    ->default(100)
-                                                    ->live(onBlur: true)
-                                                    ->required(),
-                                            ])
-                                            ->defaultItems(1),
-                                    ])
-                                    ->defaultItems(1),
-                            ])
-                            ->collapsible(),
-                    ])->defaultItems(1)
+                                                            return view('placeholders.meal_details', ['meal' => $meal, 'quantity' => $get('quantity')]);
+                                                        }),
+                                                    Forms\Components\Select::make('meal_id')
+                                                        ->label('Meal')
+                                                        ->options($meals->pluck('name', 'id')->toArray())
+                                                        ->searchable()
+                                                        ->live(onBlur: true)
+                                                        ->required(),
+                                                    Forms\Components\TextInput::make('quantity')
+                                                        ->label('Quantity')
+                                                        ->numeric()
+                                                        ->default(100)
+                                                        ->live(onBlur: true)
+                                                        ->required(),
+                                                ])
+                                                ->defaultItems(1),
+                                        ])
+                                        ->defaultItems(1),
+                                ])
+                                ->collapsible(),
+                        ])->defaultItems(1)
                         ->live(onBlur: true)
                         ->afterStateUpdated(function (Livewire $livewire, $state) use ($meals) {
                             $values = self::calcValues($meals, $state);
@@ -212,6 +208,20 @@ class MealPlanResource extends Resource
                             $livewire->dispatch('update-current-value', 'fats', $values['fats']);
                         }),
                 ]),
+                Forms\Components\Section::make('Schedule Sync Strategy')
+                    ->description('Choose how saving changes to this plan affects active user schedules.')
+                    ->schema([
+                        Forms\Components\Radio::make('update_strategy')
+                            ->label('Update Strategy')
+                            ->options([
+                                'future_only' => 'Future Days Only (Recommended — drops and re-materializes future days starting tomorrow)',
+                                'today_and_future' => 'Today & Future Days (Re-materializes uncompleted items today and future days)',
+                                'none' => 'Template Only (Keep existing user schedules unchanged)',
+                            ])
+                            ->default('future_only')
+                            ->dehydrated(false),
+                    ])
+                    ->visible(fn (?MealPlan $record) => $record && $record->assignments()->where('status', 'active')->exists()),
             ])->columns(1);
     }
 
@@ -281,11 +291,54 @@ class MealPlanResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('assignments_count')
+                    ->label('Assigned Users')
+                    ->counts('assignments')
+                    ->badge()
+                    ->color('primary')
+                    ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('assign_to_user')
+                    ->label('Assign User')
+                    ->icon('heroicon-o-user-plus')
+                    ->color('success')
+                    ->form([
+                        Forms\Components\Select::make('user_id')
+                            ->label('User')
+                            ->options(\App\Models\User::pluck('name', 'id')->toArray())
+                            ->searchable()
+                            ->required(),
+                        Forms\Components\DatePicker::make('start_date')
+                            ->label('Start Date')
+                            ->default(now())
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $set('end_date', \Carbon\Carbon::parse($state)->addDays(28)->toDateString());
+                                }
+                            }),
+                        Forms\Components\DatePicker::make('end_date')
+                            ->label('End Date (4 Weeks / 28 Days)')
+                            ->default(now()->addDays(28)->toDateString())
+                            ->disabled()
+                            ->dehydrated(),
+                    ])
+                    ->action(function (MealPlan $record, array $data) {
+                        $user = \App\Models\User::findOrFail($data['user_id']);
+                        $startDate = \Carbon\Carbon::parse($data['start_date']);
+                        $endDate = $startDate->copy()->addDays(28);
+                        app(\App\Services\PlanAssignmentService::class)->assignPlan($user, $record->id, 'meal', $startDate, $endDate);
+                        \Filament\Notifications\Notification::make()
+                            ->title('Meal Plan Assigned')
+                            ->body("Assigned {$record->name} to {$user->name} (4 weeks) and materialized daily schedules.")
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
