@@ -36,9 +36,9 @@ class PlanGenerationService
 
         // 1. Generate Meal Plan
         $mealPlan = $this->generateMealPlan($user, $answers, $latestInBody);
-
         // 2. Generate Workout Plan
         $workoutPlan = $this->generateWorkoutPlan($user, $answers);
+
 
         return [
             'workout_plan' => $workoutPlan,

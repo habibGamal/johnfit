@@ -1,5 +1,10 @@
 import { SVGProps } from 'react';
 
+export interface PointsBreakdown {
+    target: number;
+    earned: number;
+}
+
 export interface FitnessScoreData {
     total_score: number;
     level: string;
@@ -13,41 +18,17 @@ export interface FitnessScoreData {
         workout: {
             score: number;
             weight: number;
-            metrics: {
-                completion_rate: number;
-                volume_progression: number;
-                streak_days: number;
-                total_sets: number;
-                completed_sets: number;
-                current_volume: number;
-                previous_volume: number;
-            };
+            metrics: PointsBreakdown;
         };
         meal: {
             score: number;
             weight: number;
-            metrics: {
-                completion_rate: number;
-                consistency: number;
-                quantity_accuracy: number;
-                total_meals: number;
-                completed_meals: number;
-                perfect_days: number;
-                total_days: number;
-            };
+            metrics: PointsBreakdown;
         };
         inbody: {
             score: number;
             weight: number;
-            metrics: {
-                smm_change: number;
-                pbf_change: number;
-                classification: string;
-                muscle_trend: string;
-                fat_trend: string;
-                status: string;
-                raw_progress_score: number;
-            };
+            metrics: { earned_points: number };
         } | null;
     };
     updated_at: string;

@@ -31,6 +31,8 @@ import AchievementStat from '@/Components/Dashboard/AchievementStat';
 import FitnessScoreWidget from '@/Components/Dashboard/FitnessScoreWidget';
 import FitnessScoreTrend from '@/Components/Dashboard/FitnessScoreTrend';
 import AutoPlanGeneratorCard from '@/Components/Dashboard/AutoPlanGeneratorCard';
+import WaterIntakeWidget from '@/Components/Water/WaterIntakeWidget';
+import { WaterData } from '@/types/water';
 import {
     Trophy,
     Flag,
@@ -63,9 +65,10 @@ interface DashboardProps {
     fitnessScoreHistory: FitnessScoreHistory[];
     hasActiveSubscription: boolean;
     activeSubscription: Subscription | null;
+    waterData?: WaterData;
 }
 
-export default function Dashboard({ auth, workoutStats, mealStats, fitnessScore, fitnessScoreHistory, hasActiveSubscription, activeSubscription }: DashboardProps) {
+export default function Dashboard({ auth, workoutStats, mealStats, fitnessScore, fitnessScoreHistory, hasActiveSubscription, activeSubscription, waterData }: DashboardProps) {
     // Get user's first name for personalized greeting
     const firstName = auth?.user?.name?.split(' ')[0] || 'Athlete';
 
@@ -135,23 +138,21 @@ export default function Dashboard({ auth, workoutStats, mealStats, fitnessScore,
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.4 }}
-                            className="mb-8 rounded-2xl border border-primary/30 bg-primary/5 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4"
+                            className="mb-8 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 flex items-center gap-3"
                         >
-                            <div className="flex items-center gap-4 flex-1">
-                                <div className="p-3 bg-primary/15 rounded-xl flex-shrink-0">
-                                    <Crown className="w-6 h-6 text-primary" />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-foreground text-base">
-                                        Unlock your full fitness journey
-                                    </p>
-                                    <p className="text-sm text-muted-foreground mt-0.5">
-                                        Subscribe to get access to personalized workout plans, meal plans, and expert coaching.
-                                    </p>
-                                </div>
+                            <div className="p-2 bg-primary/15 rounded-lg flex-shrink-0">
+                                <Crown className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-foreground text-sm leading-tight">
+                                    Unlock your full fitness journey
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate sm:whitespace-normal">
+                                    Get personalized workout & meal plans plus expert coaching.
+                                </p>
                             </div>
                             <Link href={route('packages.index')} className="flex-shrink-0">
-                                <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-black font-bold text-sm px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap shadow-sm">
+                                <button className="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-black font-semibold text-sm px-4 py-2 rounded-lg transition-colors whitespace-nowrap">
                                     View Plans <ArrowRight className="w-4 h-4" />
                                 </button>
                             </Link>
@@ -204,7 +205,7 @@ export default function Dashboard({ auth, workoutStats, mealStats, fitnessScore,
                                         value="nutrition"
                                         className="data-[state=active]:bg-card data-[state=active]:shadow-sm rounded-lg transition-all duration-200"
                                     >
-                                        Nutrition Progress
+                                        Nutrition & Hydration
                                     </TabsTrigger>
                                 </TabsList>
                             </div>
@@ -267,6 +268,15 @@ export default function Dashboard({ auth, workoutStats, mealStats, fitnessScore,
                                                 }}
                                                 macroDistribution={mealStats?.macroDistribution}
                                             />
+
+                                            {/* Water Intake Tracker */}
+                                            {waterData && (
+                                                <WaterIntakeWidget
+                                                    initialLog={waterData.log}
+                                                    calculation={waterData.calculation}
+                                                    weeklyStats={waterData.weekly_stats}
+                                                />
+                                            )}
                                         </div>
                                     </TabsContent>
 

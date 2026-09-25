@@ -179,7 +179,7 @@ export default function FitnessScoreWidget({ data, isLoading }: FitnessScoreWidg
                             <div>
                                 <div className="text-sm font-medium text-foreground">Workout</div>
                                 <div className="text-xs text-muted-foreground">
-                                    {components.workout.metrics.completion_rate.toFixed(0)}% complete
+                                    {components.workout.metrics.earned}/{components.workout.metrics.target} pts
                                 </div>
                             </div>
                         </div>
@@ -207,7 +207,7 @@ export default function FitnessScoreWidget({ data, isLoading }: FitnessScoreWidg
                             <div>
                                 <div className="text-sm font-medium text-foreground">Nutrition</div>
                                 <div className="text-xs text-muted-foreground">
-                                    {components.meal.metrics.completion_rate.toFixed(0)}% complete
+                                    {components.meal.metrics.earned}/{components.meal.metrics.target} pts
                                 </div>
                             </div>
                         </div>
@@ -235,8 +235,8 @@ export default function FitnessScoreWidget({ data, isLoading }: FitnessScoreWidg
                                 </div>
                                 <div>
                                     <div className="text-sm font-medium text-foreground">Body Comp</div>
-                                    <div className="text-xs text-muted-foreground capitalize">
-                                        {components.inbody.metrics.classification.replace('_', ' ')}
+                                    <div className="text-xs text-muted-foreground">
+                                        {components.inbody.metrics.earned_points} pts
                                     </div>
                                 </div>
                             </div>

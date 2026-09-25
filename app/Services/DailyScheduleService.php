@@ -98,6 +98,10 @@ class DailyScheduleService
 
             $orderIndex = 0;
 
+            // clean schedule items if exists
+            $schedule->items()->delete();
+
+
             foreach ($activeAssignments as $assignment) {
                 if ($assignment->plan_type === 'workout' || $assignment->plan_type === 'unified') {
                     $workoutPlan = WorkoutPlan::find($assignment->plan_id);
@@ -331,19 +335,20 @@ class DailyScheduleService
         $meals = Meal::findMany($mealIds)->keyBy('id');
 
         foreach ($matchingDay['time'] as $timeSlot) {
-            $timeSlotName = $timeSlot['time'] ?? 'Meal Time';
+            $timeSlotName = $timeSlot['meal_time'] ?? $timeSlot['time'] ?? 'Meal Time';
 
             foreach ($timeSlot['meals'] ?? [] as $group) {
                 $options = collect($group['options'] ?? [])->map(function ($opt) use ($meals) {
                     $meal = $meals->get($opt['meal_id'] ?? null);
+                    $qty = (float) ($opt['quantity'] ?? 100);
                     return [
                         'meal_id' => $opt['meal_id'] ?? null,
                         'name' => $meal?->name ?? 'Meal Option',
-                        'quantity' => $opt['quantity'] ?? 1,
-                        'calories' => $meal?->calories ?? 0,
-                        'protein' => $meal?->protein ?? 0,
-                        'carbs' => $meal?->carbs ?? 0,
-                        'fat' => $meal?->fat ?? 0,
+                        'quantity' => $qty,
+                        'calories' => round(($meal?->calories ?? 0) * $qty, 1),
+                        'protein' => round(($meal?->protein ?? 0) * $qty, 1),
+                        'carbs' => round(($meal?->carbs ?? 0) * $qty, 1),
+                        'fat' => round(($meal?->fat ?? 0) * $qty, 1),
                     ];
                 })->all();
 
@@ -364,7 +369,7 @@ class DailyScheduleService
                     'is_completed' => false,
                     'execution_payload' => [
                         'consumed_option_id' => $primaryOption['meal_id'] ?? null,
-                        'consumed_quantity' => $primaryOption['quantity'] ?? 1,
+                        'consumed_quantity' => $primaryOption['quantity'] ?? 100,
                     ],
                     'status' => 'active',
                     'order_index' => $startOrder++,

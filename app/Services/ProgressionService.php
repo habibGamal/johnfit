@@ -9,6 +9,7 @@ use App\Models\Workout;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class ProgressionService
 {
@@ -42,9 +43,29 @@ class ProgressionService
     }
 
     /**
+     * Get IDs of workouts that have tracking data for a user.
+     */
+    public function getTrackedWorkoutIds(User $user): Collection
+    {
+        return $this->getCompletedSets($user)
+            ->pluck('workout_id')
+            ->filter()
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * Check if a user has tracking data for a specific workout.
+     */
+    public function hasTrackingData(User $user, int $workoutId): bool
+    {
+        return $this->getCompletedSets($user, $workoutId)->isNotEmpty();
+    }
+
+    /**
      * Helper to extract flat list of completed sets from materialized UserDailyItems.
      */
-    protected function getCompletedSets(
+    public function getCompletedSets(
         User $user,
         ?int $workoutId = null,
         ?Carbon $startDate = null,
@@ -74,20 +95,24 @@ class ProgressionService
             $date = Carbon::parse($item->schedule->date)->toDateString();
             $payload = $item->execution_payload ?? [];
             $sets = $payload['sets'] ?? [];
+            $hasCompletedSetsInPayload = false;
 
             if (! empty($sets) && is_array($sets)) {
                 foreach ($sets as $set) {
-                    if (! empty($set['completed']) && isset($set['weight']) && (float) $set['weight'] > 0) {
+                    if (! empty($set['completed'])) {
+                        $hasCompletedSetsInPayload = true;
                         $flattenedSets->push((object) [
                             'session_date' => $date,
                             'workout_id' => $item->reference_id,
-                            'weight' => (float) $set['weight'],
+                            'weight' => (float) ($set['weight'] ?? 0.0),
                             'reps' => (int) ($set['reps'] ?? 0),
                             'muscles' => $item->target_details['muscles'] ?? $item->workout?->muscles ?? [],
                         ]);
                     }
                 }
-            } elseif ($item->is_completed) {
+            }
+
+            if (! $hasCompletedSetsInPayload && $item->is_completed) {
                 // Single logged item without individual set payload
                 $flattenedSets->push((object) [
                     'session_date' => $date,
@@ -114,8 +139,7 @@ class ProgressionService
         $cacheKey = $this->getCacheKey($user, "volume_workout_{$workoutId}", $startDate, $endDate);
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($user, $workoutId, $startDate, $endDate) {
-            $sets = $this->getCompletedSets($user, $workoutId, $startDate, $endDate)
-                ->filter(fn ($s) => $s->weight > 0);
+            $sets = $this->getCompletedSets($user, $workoutId, $startDate, $endDate);
 
             return $sets->groupBy('session_date')->map(function ($sessionSets, $date) {
                 return (object) [
@@ -180,8 +204,7 @@ class ProgressionService
         $cacheKey = $this->getCacheKey($user, "1rm_trend_{$workoutId}", $startDate, $endDate);
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($user, $workoutId, $startDate, $endDate) {
-            $sets = $this->getCompletedSets($user, $workoutId, $startDate, $endDate)
-                ->filter(fn ($s) => $s->weight > 0);
+            $sets = $this->getCompletedSets($user, $workoutId, $startDate, $endDate);
 
             return $sets->groupBy('session_date')->map(function ($sessionSets, $date) {
                 $maxOneRepMax = 0;
@@ -198,8 +221,8 @@ class ProgressionService
                 return [
                     'date' => $date,
                     'estimated_1rm' => $maxOneRepMax,
-                    'best_weight' => $bestSet?->weight,
-                    'best_reps' => $bestSet?->reps,
+                    'best_weight' => $bestSet?->weight ?? ($sessionSets->first()?->weight ?? 0.0),
+                    'best_reps' => $bestSet?->reps ?? ($sessionSets->first()?->reps ?? 0),
                 ];
             })->sortBy('date')->values();
         });
@@ -438,6 +461,15 @@ class ProgressionService
     public function clearUserCache(User $user): void
     {
         Cache::forget("progression_analytics_{$user->id}");
+
+        try {
+            DB::table('cache')
+                ->where('key', 'like', "%progression_{$user->id}_%")
+                ->orWhere('key', 'like', "%pb_detection_{$user->id}_%")
+                ->delete();
+        } catch (\Throwable) {
+            // Fail silently if cache store is not a DB table
+        }
     }
 
     /**

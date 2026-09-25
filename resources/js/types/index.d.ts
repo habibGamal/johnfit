@@ -120,6 +120,7 @@ export interface SchedulePageProps extends PageProps {
     schedule: UserDailySchedule | null;
     weeklyAdherence: WeeklyAdherence;
     currentStreak: number;
+    waterData?: import('./water').WaterData;
 }
 
 export interface Workout {

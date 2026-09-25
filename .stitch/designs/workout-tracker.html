@@ -1,0 +1,169 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Workout Tracker Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ffbd33",
+                        "background-dark": "#000000",
+                        "card-dark": "#121212",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        :root {
+            --primary-color: #ffbd33;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark font-display text-white">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl overflow-x-hidden">
+
+<main class="flex-1 pb-28">
+<section class="px-4 py-2 mb-4">
+<div class="flex justify-between items-center text-center">
+<div class="flex flex-col gap-1 items-center opacity-40">
+<span class="text-xs font-medium uppercase tracking-wide">Mon</span>
+<span class="text-sm font-bold">15</span>
+</div>
+<div class="flex flex-col gap-1 items-center opacity-40">
+<span class="text-xs font-medium uppercase tracking-wide">Tue</span>
+<span class="text-sm font-bold">16</span>
+</div>
+<div class="flex flex-col gap-1 items-center opacity-40">
+<span class="text-xs font-medium uppercase tracking-wide">Wed</span>
+<span class="text-sm font-bold">17</span>
+</div>
+<div class="flex flex-col gap-1 items-center bg-primary rounded-xl px-3 py-2 text-background-dark shadow-[0_0_20px_rgba(255,189,51,0.3)] border border-primary">
+<span class="text-xs font-bold uppercase tracking-wide">Thu</span>
+<span class="text-lg font-black leading-none">18</span>
+</div>
+<div class="flex flex-col gap-1 items-center opacity-40">
+<span class="text-xs font-medium uppercase tracking-wide">Fri</span>
+<span class="text-sm font-bold">19</span>
+</div>
+<div class="flex flex-col gap-1 items-center opacity-40">
+<span class="text-xs font-medium uppercase tracking-wide">Sat</span>
+<span class="text-sm font-bold">20</span>
+</div>
+</div>
+</section>
+<section class="px-4">
+<div class="bg-card-dark border border-white/10 rounded-2xl p-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+<div class="flex flex-col gap-4 relative z-0">
+<div class="flex justify-between items-center">
+<div>
+<p class="text-white text-lg font-bold">Weekly Goal</p>
+<p class="text-white/60 text-xs">Keep the streak alive!</p>
+</div>
+<div class="bg-white/5 px-3 py-1 rounded-full border border-white/10 backdrop-blur-sm">
+<span class="text-primary font-bold text-sm">3 / 5</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="rounded-full bg-white/10 h-3 overflow-hidden">
+<div class="h-full rounded-full bg-primary shadow-[0_0_10px_rgba(255,189,51,0.5)]" style="width: 60%;"></div>
+</div>
+<p class="text-primary text-xs font-medium text-right">2 workouts left</p>
+</div>
+</div>
+</div>
+</section>
+<section class="px-4 mt-6">
+<h3 class="text-white text-xl font-bold mb-4 flex items-center gap-2">
+            Today's Schedule
+        </h3>
+<div class="flex flex-col gap-5">
+<div class="bg-card-dark border border-primary/30 rounded-2xl p-0 overflow-hidden group shadow-lg shadow-black/50">
+<div class="p-5 flex flex-col gap-4 relative bg-cover bg-center" style="background-image: linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%), url('https://lh3.googleusercontent.com/aida/AEtjO1XsRzP4VaXU9Qo6ycg036ry5apYQa7e-9MeQLZADuyyCE165TLiLlTrtc7JH_qDODuEcAKk81KEquQQY5vJJtj_oV5z5oyGZjwbbLipNrJxSWeJa-L8Q5WTDne4fW3FmmAyc186whkdRuqxTk1UocGNVLIVQT_6wO5tIV34un2WigomqrYOKWRaM4PxhxiwTTS3vK8AL-bZPLBNBddaATrTLXSgysT7EyxoeDHMm-q_zWlJ-NACuzVCmg');">
+<div class="flex justify-between items-start">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-primary text-black uppercase tracking-wider">Strength</span>
+</div>
+<h4 class="text-2xl font-bold text-white leading-tight">Push Day</h4>
+<p class="text-white/60 text-sm mt-1">Chest, Shoulders &amp; Triceps</p>
+</div>
+<div class="size-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-primary">fitness_center</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5 text-primary pt-4 mt-1 border-t border-white/5">
+<span class="material-symbols-outlined text-[18px] filled">stars</span>
+<span class="text-sm font-bold tracking-wider">+50 PTS</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-[#e6aa2e] text-background-dark font-black tracking-wide py-4 text-center text-sm uppercase transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined filled" style="font-variation-settings: &quot;FILL&quot; 1;">play_arrow</span>
+                        START WORKOUT
+                    </button>
+</div>
+<div class="bg-card-dark border border-white/10 rounded-2xl p-0 overflow-hidden">
+<div class="p-5 flex flex-col gap-4 bg-cover bg-center relative" style="background-image: linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%), url('https://lh3.googleusercontent.com/aida/AEtjO1XsRzP4VaXU9Qo6ycg036ry5apYQa7e-9MeQLZADuyyCE165TLiLlTrtc7JH_qDODuEcAKk81KEquQQY5vJJtj_oV5z5oyGZjwbbLipNrJxSWeJa-L8Q5WTDne4fW3FmmAyc186whkdRuqxTk1UocGNVLIVQT_6wO5tIV34un2WigomqrYOKWRaM4PxhxiwTTS3vK8AL-bZPLBNBddaATrTLXSgysT7EyxoeDHMm-q_zWlJ-NACuzVCmg');">
+<div class="flex justify-between items-start">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-white/10 text-white/80 uppercase tracking-wider">Cardio</span>
+</div>
+<h4 class="text-xl font-bold text-white leading-tight">HIIT Cardio</h4>
+<p class="text-white/60 text-sm mt-1">High Intensity Intervals</p>
+</div>
+<div class="size-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-white/70">monitor_heart</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5 text-primary pt-4 mt-1 border-t border-white/5">
+<span class="material-symbols-outlined text-[18px] filled">stars</span>
+<span class="text-sm font-bold tracking-wider">+30 PTS</span>
+</div>
+</div>
+<button class="w-full bg-primary/10 hover:bg-primary text-primary hover:text-background-dark font-bold tracking-wide py-4 text-center text-sm uppercase transition-all flex items-center justify-center gap-2 border-t border-white/5 group">
+<span class="material-symbols-outlined group-hover:fill-current transition-all" style="font-variation-settings: &quot;FILL&quot; 1;">play_arrow</span>
+                        START
+                    </button>
+</div>
+</div>
+</section>
+</main>
+
+</div>
+
+
+
+
+
+</body></html>

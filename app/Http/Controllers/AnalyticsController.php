@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Workout;
-use App\Models\WorkoutSetCompletion;
 use App\Services\ProgressionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,10 +22,7 @@ class AnalyticsController extends Controller
         $user = Auth::user();
 
         // Get user's workouts that have tracking data
-        $trackedWorkoutIds = WorkoutSetCompletion::where('user_id', $user->id)
-            ->where('completed', true)
-            ->distinct()
-            ->pluck('workout_id');
+        $trackedWorkoutIds = $this->progressionService->getTrackedWorkoutIds($user);
 
         $workouts = Workout::whereIn('id', $trackedWorkoutIds)
             ->select('id', 'name', 'muscles')
@@ -66,10 +62,7 @@ class AnalyticsController extends Controller
         $user = Auth::user();
 
         // Verify user has data for this workout
-        $hasData = WorkoutSetCompletion::where('user_id', $user->id)
-            ->where('workout_id', $workout->id)
-            ->where('completed', true)
-            ->exists();
+        $hasData = $this->progressionService->hasTrackingData($user, $workout->id);
 
         if (! $hasData) {
             return response()->json([

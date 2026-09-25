@@ -62,6 +62,12 @@ Route::middleware(['auth', 'assessment.completed'])->group(function () {
     Route::get('/fitness-score/history', [App\Http\Controllers\FitnessScoreController::class, 'history'])->name('fitness-score.history');
     Route::post('/fitness-score/recalculate', [App\Http\Controllers\FitnessScoreController::class, 'recalculate'])->name('fitness-score.recalculate');
 
+    // Water Intake Routes
+    Route::get('/water', [App\Http\Controllers\WaterIntakeController::class, 'index'])->name('water.index');
+    Route::post('/water/log', [App\Http\Controllers\WaterIntakeController::class, 'log'])->name('water.log');
+    Route::delete('/water/entries/{id}', [App\Http\Controllers\WaterIntakeController::class, 'deleteEntry'])->name('water.delete');
+    Route::post('/water/target', [App\Http\Controllers\WaterIntakeController::class, 'setTarget'])->name('water.target');
+
     // Notification Routes
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');

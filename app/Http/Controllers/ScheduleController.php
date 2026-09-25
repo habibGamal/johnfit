@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UserDailyItem;
 use App\Services\DailyItemTrackingService;
 use App\Services\DailyScheduleService;
 use App\Services\PlanAssignmentService;
+use App\Services\WaterIntakeService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,8 +20,26 @@ class ScheduleController extends Controller
     public function __construct(
         protected DailyScheduleService $scheduleService,
         protected DailyItemTrackingService $itemTrackingService,
-        protected PlanAssignmentService $assignmentService
+        protected PlanAssignmentService $assignmentService,
+        protected WaterIntakeService $waterService
     ) {}
+
+    /**
+     * Ensure the schedule item belongs to today's schedule before allowing edits.
+     * Past and future days are visible but read-only.
+     */
+    protected function ensureScheduleEditable(int $itemId): void
+    {
+        $item = UserDailyItem::find($itemId);
+
+        if (!$item || !$item->schedule) {
+            abort(404, 'Schedule item not found.');
+        }
+
+        if ($item->schedule->is_locked || !$item->schedule->date->isToday()) {
+            abort(403, 'This schedule is read-only. Items can only be tracked on their scheduled day.');
+        }
+    }
 
     /**
      * Display the daily schedule and tracking hub for the given date.
@@ -68,6 +88,11 @@ class ScheduleController extends Controller
             ] : null,
             'weeklyAdherence' => $weeklyAdherence,
             'currentStreak' => $currentStreak,
+            'waterData' => [
+                'log' => $this->waterService->getOrCreateDailyLog($user, $currentDate),
+                'calculation' => $this->waterService->calculateDailyTarget($user, $currentDate),
+                'weekly_stats' => $this->waterService->getWeeklyStats($user, $currentDate),
+            ],
         ]);
     }
 
@@ -78,6 +103,8 @@ class ScheduleController extends Controller
     {
         $user = Auth::user();
         $status = $request->has('completed') ? $request->boolean('completed') : null;
+
+        $this->ensureScheduleEditable($item);
 
         $updatedItem = $this->itemTrackingService->toggleItemCompletion($user, $item, $status);
 
@@ -112,6 +139,9 @@ class ScheduleController extends Controller
         ]);
 
         $user = Auth::user();
+
+        $this->ensureScheduleEditable($item);
+
         $updatedItem = $this->itemTrackingService->saveWorkoutSets(
             $user,
             $item,
@@ -146,6 +176,9 @@ class ScheduleController extends Controller
         ]);
 
         $user = Auth::user();
+
+        $this->ensureScheduleEditable($item);
+
         $updatedItem = $this->itemTrackingService->saveMealConsumption(
             $user,
             $item,

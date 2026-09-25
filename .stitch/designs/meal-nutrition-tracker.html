@@ -1,0 +1,211 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Meal &amp; Nutrition Tracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ffbd33",
+                        "background-dark": "#000000",
+                        "card-dark": "#121212",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        :root {
+            --primary-color: #ffbd33;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark font-display text-white">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto shadow-2xl overflow-x-hidden">
+
+<main class="flex-1 pb-28">
+<section class="p-4"><div class="mb-6">
+  <div class="flex justify-center mb-4">
+    
+  </div>
+  <div class="flex justify-between items-center gap-2 overflow-x-auto no-scrollbar">
+    <div class="flex flex-col items-center gap-1 min-w-[44px] py-2 rounded-xl">
+      <span class="text-white/40 text-[10px] font-medium uppercase">Mon</span>
+      <span class="text-white text-sm font-bold">15</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 min-w-[44px] py-2 rounded-xl">
+      <span class="text-white/40 text-[10px] font-medium uppercase">Tue</span>
+      <span class="text-white text-sm font-bold">16</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 min-w-[44px] py-2 rounded-xl">
+      <span class="text-white/40 text-[10px] font-medium uppercase">Wed</span>
+      <span class="text-white text-sm font-bold">17</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 min-w-[44px] py-2 rounded-xl bg-primary">
+      <span class="text-background-dark text-[10px] font-bold uppercase">Thu</span>
+      <span class="text-background-dark text-sm font-bold">18</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 min-w-[44px] py-2 rounded-xl">
+      <span class="text-white/40 text-[10px] font-medium uppercase">Fri</span>
+      <span class="text-white text-sm font-bold">19</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 min-w-[44px] py-2 rounded-xl">
+      <span class="text-white/40 text-[10px] font-medium uppercase">Sat</span>
+      <span class="text-white text-sm font-bold">20</span>
+    </div>
+    <div class="flex flex-col items-center gap-1 min-w-[44px] py-2 rounded-xl">
+      <span class="text-white/40 text-[10px] font-medium uppercase">Sun</span>
+      <span class="text-white text-sm font-bold">21</span>
+    </div>
+  </div>
+</div>
+<div class="bg-primary/10 border border-primary/20 rounded-xl p-6">
+<div class="flex flex-col gap-3">
+<div class="flex gap-6 justify-between items-end">
+<p class="text-white text-base font-medium leading-normal">Daily Calories Remaining</p>
+<p class="text-primary text-2xl font-bold leading-none">1,450</p>
+</div>
+<div class="flex justify-between items-center text-xs text-white/60 mb-1">
+<span class="">Goal: 2,200 kcal</span>
+<span class="">65% Consumed</span>
+</div>
+<div class="rounded-full bg-white/10 h-3 overflow-hidden">
+<div class="h-full rounded-full bg-primary" style="width: 65%;"></div>
+</div>
+<p class="text-primary/80 text-sm font-normal leading-normal">750 kcal left to hit your goal</p>
+</div>
+</div>
+</section>
+<section class="px-4 py-2">
+<div class="flex gap-3 overflow-x-auto no-scrollbar">
+<div class="flex min-w-[120px] flex-1 flex-col gap-2 rounded-xl p-4 border border-white/10 bg-card-dark"><div class="flex justify-between items-start mb-1"><p class="text-white/60 text-xs font-medium uppercase tracking-wider">Protein</p><span class="material-symbols-outlined text-primary text-lg">skillet</span></div><div class="flex flex-col gap-1"><p class="text-white text-xl font-bold tracking-tight">85<span class="text-white/40 text-sm font-normal">/150g</span></p><div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div class="h-full bg-primary shadow-[0_0_8px_rgba(255,189,51,0.4)]" style="width: 56%;"></div></div></div></div>
+<div class="flex min-w-[120px] flex-1 flex-col gap-2 rounded-xl p-4 border border-white/10 bg-card-dark"><div class="flex justify-between items-start mb-1"><p class="text-white/60 text-xs font-medium uppercase tracking-wider">Carbs</p><span class="material-symbols-outlined text-primary text-lg">bakery_dining</span></div><div class="flex flex-col gap-1"><p class="text-white text-xl font-bold tracking-tight">120<span class="text-white/40 text-sm font-normal">/200g</span></p><div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div class="h-full bg-primary shadow-[0_0_8px_rgba(255,189,51,0.4)]" style="width: 60%;"></div></div></div></div>
+<div class="flex min-w-[120px] flex-1 flex-col gap-2 rounded-xl p-4 border border-white/10 bg-card-dark"><div class="flex justify-between items-start mb-1"><p class="text-white/60 text-xs font-medium uppercase tracking-wider">Fats</p><span class="material-symbols-outlined text-primary text-lg">opacity</span></div><div class="flex flex-col gap-1"><p class="text-white text-xl font-bold tracking-tight">40<span class="text-white/40 text-sm font-normal">/65g</span></p><div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div class="h-full bg-primary shadow-[0_0_8px_rgba(255,189,51,0.4)]" style="width: 61%;"></div></div></div></div>
+</div>
+</section>
+<section class="mt-4">
+<h2 class="text-white text-xl font-bold leading-tight px-4 pb-4">Today's Timeline</h2>
+<div class="grid grid-cols-[48px_1fr] gap-x-2 px-4">
+<div class="flex flex-col items-center gap-1 pt-3">
+<div class="bg-primary/20 flex items-center justify-center rounded-full size-8">
+<span class="material-symbols-outlined text-primary text-sm">wb_sunny</span>
+</div>
+<div class="w-[2px] bg-white/10 h-full grow"></div>
+</div>
+<div class="flex flex-1 flex-col py-3 border-b border-white/5">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-white text-base font-medium">Breakfast</p>
+<p class="text-white/50 text-sm">8:00 AM • 450 kcal</p>
+<p class="text-primary text-xs mt-1">Avocado Toast &amp; Egg</p>
+</div>
+<div class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-sm">check_circle</span><span class="text-xs font-medium">Done</span></div>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<div class="w-[2px] bg-white/10 h-2"></div>
+<div class="bg-primary/20 flex items-center justify-center rounded-full size-8">
+<span class="material-symbols-outlined text-primary text-sm">lunch_dining</span>
+</div>
+<div class="w-[2px] bg-white/10 h-full grow"></div>
+</div>
+<div class="flex flex-1 flex-col py-3 border-b border-white/5">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-white text-base font-medium">Lunch</p>
+<p class="text-white/50 text-sm">12:30 PM • 650 kcal</p>
+<p class="text-primary text-xs mt-1">Quinoa Chicken Bowl</p>
+</div>
+<div class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-sm">check_circle</span><span class="text-xs font-medium">Done</span></div>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<div class="w-[2px] bg-white/10 h-2"></div>
+<div class="bg-primary/20 flex items-center justify-center rounded-full size-8">
+<span class="material-symbols-outlined text-primary text-sm">cookie</span>
+</div>
+<div class="w-[2px] bg-white/10 h-full grow"></div>
+</div>
+<div class="flex flex-1 flex-col py-3 border-b border-white/5"><div class="flex justify-between items-start">
+<div>
+<p class="text-white text-base font-medium">Snack</p>
+<p class="text-white/50 text-sm">4:00 PM • 250 kcal</p>
+<p class="text-primary text-xs mt-1">Greek Yogurt &amp; Berries</p>
+</div>
+<div class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-sm">check_circle</span><span class="text-xs font-medium">Done</span></div>
+</div></div>
+<div class="flex flex-col items-center gap-1 pb-3">
+<div class="w-[2px] bg-white/10 h-2"></div>
+<div class="bg-primary/20 flex items-center justify-center rounded-full size-8">
+<span class="material-symbols-outlined text-primary text-sm">dinner_dining</span>
+</div>
+</div>
+<div class="flex flex-1 flex-col py-3"><div class="flex justify-between items-start">
+<div>
+<p class="text-white text-base font-medium">Dinner</p>
+<p class="text-white/50 text-sm">7:30 PM • 550 kcal</p>
+<p class="text-primary text-xs mt-1">Baked Salmon with Asparagus</p>
+</div>
+<div class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-sm">check_circle</span><span class="text-xs font-medium">Done</span></div>
+</div></div>
+</div>
+</section>
+<section class="mt-6 px-4">
+<div class="bg-card-dark rounded-xl p-4 border border-white/10">
+<div class="flex justify-between items-center mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">water_drop</span>
+<h3 class="text-white font-medium">Water Intake</h3>
+</div>
+<p class="text-primary font-bold">1,750 / 3,000 ml</p>
+</div>
+<div class="flex justify-between items-center gap-2">
+<div class="flex-1 flex justify-between px-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">local_drink</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">local_drink</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">local_drink</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">local_drink</span>
+<span class="material-symbols-outlined text-primary/20">local_drink</span>
+<span class="material-symbols-outlined text-primary/20">local_drink</span>
+<span class="material-symbols-outlined text-primary/20">local_drink</span>
+<span class="material-symbols-outlined text-primary/20">local_drink</span>
+</div>
+<button class="bg-primary/20 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">add</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+
+</div>
+
+
+
+
+
+</body></html>

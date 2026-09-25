@@ -11,7 +11,8 @@ class PlanAssignmentService
 {
     public function __construct(
         protected DailyScheduleService $scheduleService
-    ) {}
+    ) {
+    }
 
     /**
      * Assign a plan template to a user and pre-materialize upcoming schedule window.
@@ -22,7 +23,7 @@ class PlanAssignmentService
         string $planType = 'workout',
         ?Carbon $startDate = null,
         ?Carbon $endDate = null,
-        int $preMaterializeDays = 14
+        int $preMaterializeDays = 7
     ): UserPlanAssignment {
         $startDate = $startDate ?? Carbon::today();
         $endDate = $endDate ?? $startDate->copy()->addDays(28); // Default 4-week window

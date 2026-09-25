@@ -9,6 +9,10 @@ use Illuminate\Validation\ValidationException;
 
 class DailyItemTrackingService
 {
+    public function __construct(
+        protected ProgressionService $progressionService
+    ) {}
+
     /**
      * Toggle or set an item's completion status.
      */
@@ -50,6 +54,10 @@ class DailyItemTrackingService
         $item->save();
 
         $item->schedule->recalculateScores();
+
+        if ($item->type === 'workout') {
+            $this->progressionService->clearUserCache($user);
+        }
 
         return $item->fresh(['schedule']);
     }
@@ -100,6 +108,8 @@ class DailyItemTrackingService
         $item->save();
 
         $item->schedule->recalculateScores();
+
+        $this->progressionService->clearUserCache($user);
 
         return $item->fresh(['schedule']);
     }

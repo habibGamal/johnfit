@@ -110,6 +110,41 @@ class PlanAssignmentsRelationManager extends RelationManager
                         'completed' => 'info',
                         default => 'danger',
                     }),
+                Tables\Columns\TextColumn::make('remaining')
+                    ->label('Validity')
+                    ->state(function (UserPlanAssignment $record): string {
+                        if ($record->status !== 'active') {
+                            return ucfirst($record->status);
+                        }
+                        if (! $record->end_date) {
+                            return 'Ongoing';
+                        }
+                        $diff = now()->startOfDay()->diffInDays(Carbon::parse($record->end_date)->startOfDay(), false);
+                        if ($diff < 0) {
+                            return 'Ended (' . abs($diff) . 'd ago)';
+                        }
+                        if ($diff <= 3) {
+                            return "Expiring ({$diff}d left)";
+                        }
+                        return "{$diff}d left";
+                    })
+                    ->badge()
+                    ->color(function (UserPlanAssignment $record): string {
+                        if ($record->status !== 'active') {
+                            return 'gray';
+                        }
+                        if (! $record->end_date) {
+                            return 'success';
+                        }
+                        $diff = now()->startOfDay()->diffInDays(Carbon::parse($record->end_date)->startOfDay(), false);
+                        if ($diff < 0) {
+                            return 'danger';
+                        }
+                        if ($diff <= 3) {
+                            return 'warning';
+                        }
+                        return 'success';
+                    }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime('M d, Y H:i')
                     ->sortable()
@@ -194,6 +229,34 @@ class PlanAssignmentsRelationManager extends RelationManager
                     }),
             ])
             ->actions([
+                Tables\Actions\Action::make('extend')
+                    ->label('Extend (+28d)')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('success')
+                    ->visible(fn (UserPlanAssignment $record): bool => $record->status === 'active')
+                    ->requiresConfirmation()
+                    ->modalHeading('Extend Plan Assignment')
+                    ->modalDescription('Extend this assignment by 28 days and materialize additional daily schedules?')
+                    ->action(function (UserPlanAssignment $record) {
+                        $currentEnd = $record->end_date ? Carbon::parse($record->end_date) : now();
+                        $newEnd = $currentEnd->copy()->addDays(28);
+                        $record->update(['end_date' => $newEnd->toDateString()]);
+
+                        $user = $record->user ?? $this->getOwnerRecord();
+                        if ($user) {
+                            $service = app(\App\Services\DailyScheduleService::class);
+                            $period = \Carbon\CarbonPeriod::create(now()->toDateString(), now()->addDays(7)->toDateString());
+                            foreach ($period as $date) {
+                                $service->materializeDateForUser($user, $date);
+                            }
+                        }
+
+                        Notification::make()
+                            ->title('Plan Assignment Extended')
+                            ->body("Extended {$record->plan_name} by 28 days to {$newEnd->format('M d, Y')}.")
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

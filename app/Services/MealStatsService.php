@@ -216,10 +216,14 @@ class MealStatsService
 
         foreach ($items as $item) {
             $details = $item->target_details['primary_option'] ?? [];
-            $totalCalories += ($details['calories'] ?? 0);
-            $totalProtein += ($details['protein'] ?? 0);
-            $totalCarbs += ($details['carbs'] ?? 0);
-            $totalFat += ($details['fat'] ?? 0);
+            $baseQty = (float) ($details['quantity'] ?? 100);
+            $consumedQty = (float) ($item->execution_payload['consumed_quantity'] ?? $baseQty);
+            $ratio = $baseQty > 0 ? $consumedQty / $baseQty : 1;
+
+            $totalCalories += ($details['calories'] ?? 0) * $ratio;
+            $totalProtein += ($details['protein'] ?? 0) * $ratio;
+            $totalCarbs += ($details['carbs'] ?? 0) * $ratio;
+            $totalFat += ($details['fat'] ?? 0) * $ratio;
         }
 
         $days = 7;
