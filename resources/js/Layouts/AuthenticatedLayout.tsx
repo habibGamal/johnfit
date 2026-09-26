@@ -4,7 +4,8 @@ import BottomNavigation from '@/Components/BottomNavigation';
 import NotificationBell from '@/Components/NotificationBell';
 import { Link, usePage } from '@inertiajs/react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, History, LayoutDashboard, CalendarCheck, TrendingUp, Trophy, Scale } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function Authenticated({
     header,
@@ -15,16 +16,104 @@ export default function Authenticated({
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
+    const navLinks = [
+        {
+            name: 'Dashboard',
+            href: route('dashboard'),
+            icon: LayoutDashboard,
+            isActive: route().current('dashboard'),
+        },
+        {
+            name: 'Recent Activity',
+            href: route('activity.index'),
+            icon: History,
+            isActive: route().current('activity.*'),
+        },
+        {
+            name: 'Schedule',
+            href: route('schedule.index'),
+            icon: CalendarCheck,
+            isActive: route().current('schedule.*'),
+        },
+        {
+            name: 'Analytics',
+            href: route('analytics.index'),
+            icon: TrendingUp,
+            isActive: route().current('analytics.*'),
+        },
+        {
+            name: 'Journey',
+            href: route('achievements.index'),
+            icon: Trophy,
+            isActive: route().current('achievements.*'),
+        },
+        {
+            name: 'InBody',
+            href: route('inbody.index'),
+            icon: Scale,
+            isActive: route().current('inbody.*'),
+        },
+    ];
+
     return (
         <div className="min-h-screen bg-background pb-16">
             <nav className="border-b border-border bg-card">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between items-center">
-                        {/* Left: Logo */}
-                        <div className="flex items-center">
-                            <a href="/dashboard">
+                        {/* Left: Logo & Desktop Navigation */}
+                        <div className="flex items-center gap-8">
+                            <a href="/dashboard" className="shrink-0 flex items-center">
                                 <ApplicationLogo className="block h-9 w-auto fill-current text-primary" />
                             </a>
+
+                            <div className="hidden lg:flex items-center gap-1">
+                                {navLinks.map((link) => {
+                                    const Icon = link.icon;
+                                    return (
+                                        <Link
+                                            key={link.name}
+                                            href={link.href}
+                                            className={cn(
+                                                'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                                                link.isActive
+                                                    ? 'bg-secondary text-primary font-semibold'
+                                                    : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                                            )}
+                                        >
+                                            <Icon className="h-4 w-4" />
+                                            <span>{link.name}</span>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Mid-sized screen compact links (Dashboard + Recent Activity) */}
+                            <div className="hidden md:flex lg:hidden items-center gap-1">
+                                <Link
+                                    href={route('dashboard')}
+                                    className={cn(
+                                        'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                                        route().current('dashboard')
+                                            ? 'bg-secondary text-primary font-semibold'
+                                            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                                    )}
+                                >
+                                    <LayoutDashboard className="h-4 w-4" />
+                                    <span>Dashboard</span>
+                                </Link>
+                                <Link
+                                    href={route('activity.index')}
+                                    className={cn(
+                                        'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                                        route().current('activity.*')
+                                            ? 'bg-secondary text-primary font-semibold'
+                                            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                                    )}
+                                >
+                                    <History className="h-4 w-4" />
+                                    <span>Recent Activity</span>
+                                </Link>
+                            </div>
                         </div>
 
                         {/* Right: Notifications & User */}
@@ -66,6 +155,11 @@ export default function Authenticated({
                                     </Dropdown.Trigger>
 
                                     <Dropdown.Content>
+                                        <Dropdown.Link
+                                            href={route('activity.index')}
+                                        >
+                                            Recent Activity
+                                        </Dropdown.Link>
                                         <Dropdown.Link
                                             href={route('profile.edit')}
                                         >
@@ -110,9 +204,9 @@ export default function Authenticated({
                         ' sm:hidden'
                     }
                 >
-                    <div className="border-t border-border pb-1 pt-4">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-foreground">
+                    <div className="border-t border-border pb-3 pt-4">
+                        <div className="px-4 mb-3">
+                            <div className="text-base font-semibold text-foreground">
                                 {user.name}
                             </div>
                             <div className="text-sm font-medium text-muted-foreground">
@@ -120,7 +214,51 @@ export default function Authenticated({
                             </div>
                         </div>
 
-                        <div className="mt-3 space-y-1 px-4">
+                        <div className="space-y-1 px-4">
+                            <Link
+                                href={route('dashboard')}
+                                className={cn(
+                                    'block rounded-lg px-3 py-2 text-base font-medium transition-colors',
+                                    route().current('dashboard')
+                                        ? 'bg-secondary text-primary font-semibold'
+                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                )}
+                            >
+                                Dashboard
+                            </Link>
+                            <Link
+                                href={route('activity.index')}
+                                className={cn(
+                                    'block rounded-lg px-3 py-2 text-base font-medium transition-colors',
+                                    route().current('activity.*')
+                                        ? 'bg-secondary text-primary font-semibold'
+                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                )}
+                            >
+                                Recent Activity
+                            </Link>
+                            <Link
+                                href={route('schedule.index')}
+                                className={cn(
+                                    'block rounded-lg px-3 py-2 text-base font-medium transition-colors',
+                                    route().current('schedule.*')
+                                        ? 'bg-secondary text-primary font-semibold'
+                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                )}
+                            >
+                                Daily Schedule
+                            </Link>
+                            <Link
+                                href={route('analytics.index')}
+                                className={cn(
+                                    'block rounded-lg px-3 py-2 text-base font-medium transition-colors',
+                                    route().current('analytics.*')
+                                        ? 'bg-secondary text-primary font-semibold'
+                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                )}
+                            >
+                                Analytics
+                            </Link>
                             <Link
                                 href={route('profile.edit')}
                                 className="block rounded-lg px-3 py-2 text-base font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"

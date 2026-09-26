@@ -9,6 +9,10 @@ use Illuminate\Support\Collection;
 
 class WorkoutStatsService
 {
+    public function __construct(
+        protected StreakService $streakService
+    ) {}
+
     /**
      * Get all workout statistics for a user.
      */
@@ -22,7 +26,6 @@ class WorkoutStatsService
             'progressOverTime' => $this->getProgressOverTime($user),
             'aggregateStats' => $this->getAggregateStats($user),
             'comparisonStats' => $this->getComparisonStats($user),
-            'achievements' => $this->getAchievements($user),
         ];
     }
 
@@ -54,31 +57,14 @@ class WorkoutStatsService
     }
 
     /**
-     * Get the current streak of consecutive workout days
+     * Get the current streak of consecutive workout days.
+     *
+     * Delegates to the persisted streak record so the value stays consistent
+     * between the dashboard, the schedule page and badge evaluation.
      */
     public function getCurrentStreak(User $user): int
     {
-        $streak = 0;
-        $date = now();
-
-        while (true) {
-            $dateStr = $date->format('Y-m-d');
-            $hasWorkoutOnDate = UserDailyItem::whereHas('schedule', function ($q) use ($user, $dateStr) {
-                $q->where('user_id', $user->id)->where('date', $dateStr);
-            })
-                ->where('type', 'workout')
-                ->where('is_completed', true)
-                ->exists();
-
-            if (! $hasWorkoutOnDate) {
-                break;
-            }
-
-            $streak++;
-            $date = $date->subDay();
-        }
-
-        return $streak;
+        return (int) $this->streakService->sync($user, 'workout')->current_streak;
     }
 
     /**
@@ -231,51 +217,6 @@ class WorkoutStatsService
             'last_week' => $lastWeekCount,
             'percentage_change' => abs($percentageChange),
             'trend' => $trend,
-        ];
-    }
-
-    /**
-     * Get achievements
-     */
-    public function getAchievements(User $user): array
-    {
-        $totalCompletions = UserDailyItem::whereHas('schedule', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
-        })
-            ->where('type', 'workout')
-            ->where('is_completed', true)
-            ->count();
-
-        $streak = $this->getCurrentStreak($user);
-
-        return [
-            [
-                'id' => 'first_workout',
-                'title' => 'First Step',
-                'description' => 'Complete your first workout',
-                'icon' => 'Award',
-                'progress' => min(100, $totalCompletions > 0 ? 100 : 0),
-                'tier' => 'bronze',
-                'unlocked' => $totalCompletions >= 1,
-            ],
-            [
-                'id' => 'streak_3',
-                'title' => 'Consistency Builder',
-                'description' => 'Maintain a 3-day workout streak',
-                'icon' => 'Flame',
-                'progress' => min(100, round(($streak / 3) * 100)),
-                'tier' => 'silver',
-                'unlocked' => $streak >= 3,
-            ],
-            [
-                'id' => 'total_10',
-                'title' => 'Dedication',
-                'description' => 'Complete 10 workouts',
-                'icon' => 'Trophy',
-                'progress' => min(100, round(($totalCompletions / 10) * 100)),
-                'tier' => 'gold',
-                'unlocked' => $totalCompletions >= 10,
-            ],
         ];
     }
 }

@@ -11,7 +11,7 @@ import {
     Cell,
 } from 'recharts';
 import { WaterWeeklyStats } from '@/types/water';
-import { CheckCircle2, TrendingUp, Calendar } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 interface WaterWeeklyChartProps {
     stats: WaterWeeklyStats;
@@ -25,11 +25,13 @@ export default function WaterWeeklyChart({ stats, targetMl }: WaterWeeklyChartPr
         if (active && payload && payload.length) {
             const item = payload[0].payload;
             return (
-                <div className="bg-card/95 backdrop-blur-md border border-border rounded-xl p-3 shadow-xl text-xs space-y-1">
-                    <p className="font-semibold text-foreground">{item.full_date} ({item.day_name})</p>
+                <div className="bg-card border border-border rounded-xl p-3 shadow-xl text-xs space-y-1">
+                    <p className="font-bold text-foreground">
+                        {item.full_date} ({item.day_name})
+                    </p>
                     <div className="flex items-center justify-between gap-4">
                         <span className="text-muted-foreground">Consumed:</span>
-                        <span className="font-bold text-blue-600 dark:text-blue-400">
+                        <span className="font-bold text-sky-400">
                             {item.consumed_ml.toLocaleString()} ml
                         </span>
                     </div>
@@ -39,9 +41,9 @@ export default function WaterWeeklyChart({ stats, targetMl }: WaterWeeklyChartPr
                             {item.target_ml.toLocaleString()} ml
                         </span>
                     </div>
-                    <div className="flex items-center justify-between gap-4 pt-1 border-t border-border/40">
+                    <div className="flex items-center justify-between gap-4 pt-1 border-t border-border">
                         <span className="text-muted-foreground">Adherence:</span>
-                        <span className={`font-semibold ${item.is_completed ? 'text-emerald-500' : 'text-amber-500'}`}>
+                        <span className={`font-semibold ${item.is_completed ? 'text-emerald-400' : 'text-sky-400'}`}>
                             {item.percentage}% {item.is_completed && '✓'}
                         </span>
                     </div>
@@ -52,32 +54,38 @@ export default function WaterWeeklyChart({ stats, targetMl }: WaterWeeklyChartPr
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 pt-1">
             {/* Top Stat Pills */}
             <div className="grid grid-cols-3 gap-2">
-                <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
-                    <span className="text-[11px] text-muted-foreground block">Daily Avg</span>
-                    <span className="text-sm font-bold text-foreground">
+                <div className="p-3 rounded-xl border border-border bg-secondary/30">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block">
+                        Daily Avg
+                    </span>
+                    <span className="text-sm font-extrabold text-foreground mt-0.5 block">
                         {stats.average_daily_ml.toLocaleString()} ml
                     </span>
                 </div>
-                <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
-                    <span className="text-[11px] text-muted-foreground block">Days Reached</span>
-                    <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <div className="p-3 rounded-xl border border-border bg-secondary/30">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block">
+                        Days Reached
+                    </span>
+                    <span className="text-sm font-extrabold text-emerald-400 flex items-center gap-1 mt-0.5">
                         <CheckCircle2 className="w-3.5 h-3.5 inline" />
                         {stats.completed_days} / 7
                     </span>
                 </div>
-                <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
-                    <span className="text-[11px] text-muted-foreground block">Weekly Rate</span>
-                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                <div className="p-3 rounded-xl border border-border bg-secondary/30">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block">
+                        Weekly Rate
+                    </span>
+                    <span className="text-sm font-extrabold text-sky-400 mt-0.5 block">
                         {stats.completion_rate}%
                     </span>
                 </div>
             </div>
 
             {/* Recharts Bar Graph */}
-            <div className="h-44 w-full pt-2">
+            <div className="h-44 w-full pt-1">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.08} />
@@ -96,34 +104,34 @@ export default function WaterWeeklyChart({ stats, targetMl }: WaterWeeklyChartPr
                         <Tooltip content={<CustomTooltip />} />
                         <ReferenceLine
                             y={targetMl}
-                            stroke="#3b82f6"
+                            stroke="#38bdf8"
                             strokeDasharray="4 4"
-                            strokeOpacity={0.6}
+                            strokeOpacity={0.7}
                         />
                         <Bar dataKey="consumed_ml" radius={[6, 6, 0, 0]} maxBarSize={28}>
                             {data.map((entry, index) => (
                                 <Cell
                                     key={`cell-${index}`}
-                                    fill={entry.is_completed ? '#10b981' : '#3b82f6'}
-                                    fillOpacity={entry.is_completed ? 0.9 : 0.75}
+                                    fill={entry.is_completed ? '#10b981' : '#0284c7'}
+                                    fillOpacity={entry.is_completed ? 0.95 : 0.85}
                                 />
                             ))}
                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
             </div>
-            <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground">
+            <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground pt-1">
                 <span className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block" />
-                    Target Reached
+                    Target Smashed
                 </span>
                 <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-blue-500 inline-block" />
-                    In Progress
+                    <span className="w-2.5 h-2.5 rounded-sm bg-sky-600 inline-block" />
+                    Logged
                 </span>
                 <span className="flex items-center gap-1.5">
-                    <span className="w-3 h-0.5 border-t border-dashed border-blue-500 inline-block" />
-                    Daily Target Line
+                    <span className="w-3 h-0.5 border-t border-dashed border-sky-400 inline-block" />
+                    Target Line
                 </span>
             </div>
         </div>

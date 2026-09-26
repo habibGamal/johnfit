@@ -265,7 +265,6 @@ export interface WorkoutStats {
     }[];
     aggregateStats: AchievementStats;
     comparisonStats: ComparisonStats;
-    achievements: Achievement[];
 }
 
 export interface NutritionAverages {

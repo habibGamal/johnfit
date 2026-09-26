@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             SubscriptionPlanSeeder::class,
             QuoteSeeder::class,
             PageSeeder::class,
+            AchievementSeeder::class,
         ]);
     }
 }

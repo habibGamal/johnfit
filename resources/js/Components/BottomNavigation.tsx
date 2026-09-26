@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Home, CalendarCheck, TrendingUp, User, Scale } from 'lucide-react';
+import { Home, CalendarCheck, TrendingUp, User, Scale, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -30,6 +30,12 @@ export default function BottomNavigation() {
             isActive: route().current('analytics.*'),
         },
         {
+            name: 'Journey',
+            href: route('achievements.index'),
+            icon: Trophy,
+            isActive: route().current('achievements.*'),
+        },
+        {
             name: 'InBody',
             href: route('inbody.index'),
             icon: Scale,
@@ -45,7 +51,7 @@ export default function BottomNavigation() {
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border">
-            <div className="grid grid-cols-5 h-16 max-w-7xl mx-auto">
+            <div className="grid grid-cols-6 h-16 max-w-7xl mx-auto">
                 {navItems.map((item) => {
                     const Icon = item.icon;
                     return (

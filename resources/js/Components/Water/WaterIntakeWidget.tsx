@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
-import { Badge } from '@/Components/ui/badge';
 import { Input } from '@/Components/ui/input';
 import {
     Droplets,
@@ -10,14 +8,14 @@ import {
     RotateCcw,
     Info,
     CheckCircle2,
-    Calendar,
     MessageSquare,
-    Sparkles,
     GlassWater,
     CupSoda,
-    TrendingUp
+    Sparkles,
 } from 'lucide-react';
-import { UserDailyWaterLog, WaterCalculation, WaterWeeklyStats, UserWaterEntry } from '@/types/water';
+import { cn } from '@/lib/utils';
+import { UserDailyWaterLog, WaterCalculation, WaterWeeklyStats } from '@/types/water';
+import ProgressRing from '@/Components/Dashboard/ProgressRing';
 import HydrationCalculatorModal from './HydrationCalculatorModal';
 import WaterWeeklyChart from './WaterWeeklyChart';
 import axios from 'axios';
@@ -64,12 +62,11 @@ export default function WaterIntakeWidget({
                 setLog(updatedLog);
 
                 if (updatedLog.is_completed && !log.is_completed) {
-                    showToast('🎉 Goal Reached! Excellent hydration today!');
+                    showToast('🎉 Goal Smashed! Great hydration today!');
                 } else {
                     showToast(`+${amountMl}ml logged successfully!`);
                 }
 
-                // Refresh weekly stats
                 refreshWeeklyStats();
             }
         } catch (error: any) {
@@ -144,262 +141,279 @@ export default function WaterIntakeWidget({
     const remaining = Math.max(0, target - consumed);
     const lastEntry = log.entries && log.entries.length > 0 ? log.entries[0] : null;
 
+    let statusText: string;
+    let statusColor = 'text-muted-foreground';
+
+    if (percentage >= 100) {
+        statusText = 'Hydration goal achieved today!';
+        statusColor = 'text-emerald-400 font-semibold';
+    } else if (consumed === 0) {
+        statusText = `${target.toLocaleString()} ml remaining today. First sip awaits.`;
+    } else {
+        statusText = `${remaining.toLocaleString()} ml more to hit your daily target.`;
+    }
+
     return (
         <>
-            <Card className={`relative overflow-hidden border border-border/70 shadow-sm bg-gradient-to-b from-card to-card/90 ${className}`}>
-                {/* Subtle Water Shimmer Background */}
-                <div
-                    className="absolute -top-24 -right-24 w-52 h-52 rounded-full bg-blue-500/5 blur-3xl pointer-events-none"
-                    aria-hidden="true"
-                />
-
-                <CardHeader className="pb-3 pt-5 px-5 flex flex-row items-center justify-between">
+            <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: 'easeOut', delay: 0.1 }}
+                className={cn('rounded-2xl border border-border bg-card/60 p-4 shadow-sm sm:p-5', className)}
+            >
+                {/* Header */}
+                <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                        <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                            <Droplets className="w-5 h-5" />
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
+                            <Droplets className="h-5 w-5" />
                         </div>
                         <div>
-                            <CardTitle className="text-base font-bold flex items-center gap-2">
-                                Water Intake
-                                {log.is_completed && (
-                                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[11px] font-semibold py-0.5">
+                            <div className="flex items-center gap-2">
+                                <h3 className="text-base font-bold text-foreground sm:text-lg">
+                                    Water Intake
+                                </h3>
+                                {log.is_completed ? (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold text-emerald-400 border border-emerald-500/20">
+                                        <CheckCircle2 className="h-3 w-3" />
                                         Goal Achieved
-                                    </Badge>
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-0.5 text-[11px] font-bold text-sky-400 border border-sky-500/20">
+                                        <Droplets className="h-3 w-3" />
+                                        In Progress
+                                    </span>
                                 )}
-                            </CardTitle>
+                            </div>
                             <p className="text-xs text-muted-foreground mt-0.5">
                                 {calcData.tier_name}
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                        {/* Tab Switcher */}
-                        <div className="flex p-0.5 rounded-lg bg-muted/60 border border-border/40 text-xs">
+                    <div className="flex items-center gap-2">
+                        {/* Sub-Tabs: Today vs 7 Days */}
+                        <div className="flex rounded-lg bg-muted/60 p-0.5 border border-border text-xs">
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('today')}
-                                className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                                className={cn(
+                                    'px-2.5 py-1 rounded-md text-xs font-semibold transition-all',
                                     activeTab === 'today'
-                                        ? 'bg-background text-foreground shadow-xs'
+                                        ? 'bg-card text-foreground shadow-xs'
                                         : 'text-muted-foreground hover:text-foreground'
-                                }`}
+                                )}
                             >
                                 Today
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('history')}
-                                className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                                className={cn(
+                                    'px-2.5 py-1 rounded-md text-xs font-semibold transition-all',
                                     activeTab === 'history'
-                                        ? 'bg-background text-foreground shadow-xs'
+                                        ? 'bg-card text-foreground shadow-xs'
                                         : 'text-muted-foreground hover:text-foreground'
-                                }`}
+                                )}
                             >
-                                History
+                                7 Days
                             </button>
                         </div>
 
-                        {/* Info / Target Modal Trigger */}
+                        {/* Modal Settings Trigger */}
                         <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => setIsModalOpen(true)}
-                            className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                            title="Hydration Breakdown & Goal Settings"
+                            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+                            title="Hydration Breakdown & Settings"
                         >
-                            <Info className="w-4 h-4" />
+                            <Info className="h-4 w-4" />
                         </Button>
                     </div>
-                </CardHeader>
+                </div>
 
-                <CardContent className="px-5 pb-5 pt-1 space-y-4">
-                    {/* Toast Notification */}
-                    <AnimatePresence>
-                        {toastMessage && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                className="text-xs font-medium text-center py-1.5 px-3 rounded-lg bg-blue-600 text-white shadow-sm"
+                {/* Toast Feedback */}
+                <AnimatePresence>
+                    {toastMessage && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            className="mb-4 rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-center text-xs font-semibold text-sky-400 shadow-sm"
+                        >
+                            {toastMessage}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {activeTab === 'today' ? (
+                    <div className="space-y-4">
+                        {/* Headline Progress + Ring */}
+                        <div className="flex items-center gap-4">
+                            <ProgressRing
+                                value={percentage}
+                                size={92}
+                                strokeWidth={9}
+                                trackClassName="text-sky-500/20"
+                                progressClassName="text-sky-400"
                             >
-                                {toastMessage}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                <span className="text-xl font-extrabold leading-none text-foreground">
+                                    {Math.round(percentage)}%
+                                </span>
+                                <span className="mt-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    done
+                                </span>
+                            </ProgressRing>
 
-                    {activeTab === 'today' ? (
-                        <>
-                            {/* Water Progress Gauge Bar / Liquid Display */}
-                            <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50/60 via-background to-blue-50/30 dark:from-blue-950/20 dark:via-card dark:to-blue-950/10 border border-blue-100/80 dark:border-blue-900/30">
-                                <div className="flex items-end justify-between mb-2">
-                                    <div>
-                                        <span className="text-xs text-muted-foreground font-medium block">
-                                            Consumed Today
-                                        </span>
-                                        <div className="flex items-baseline gap-1 mt-0.5">
-                                            <span className="text-2xl font-black text-foreground tracking-tight">
-                                                {consumed.toLocaleString()}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground font-semibold">
-                                                / {target.toLocaleString()} ml
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                                            {percentage}%
-                                        </span>
-                                        <span className="text-[11px] text-muted-foreground block">
-                                            {remaining > 0 ? `${remaining.toLocaleString()} ml left` : 'Completed!'}
-                                        </span>
-                                    </div>
-                                </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-2xl font-extrabold leading-none text-foreground sm:text-3xl">
+                                    {consumed.toLocaleString()}
+                                    <span className="text-base font-semibold text-muted-foreground">
+                                        {' '}
+                                        / {target.toLocaleString()} ml
+                                    </span>
+                                </p>
+                                <p className={`mt-2 text-xs font-semibold leading-snug ${statusColor}`}>
+                                    {statusText}
+                                </p>
 
-                                {/* Animated Fluid Progress Reservoir */}
-                                <div className="relative h-3 w-full bg-blue-100/80 dark:bg-blue-950/60 rounded-full overflow-hidden">
+                                {/* Slim Liquid Progress Bar */}
+                                <div className="mt-3 relative h-2 w-full rounded-full bg-muted overflow-hidden">
                                     <motion.div
-                                        className={`h-full rounded-full ${
+                                        className={cn(
+                                            'h-full rounded-full',
                                             percentage >= 100
                                                 ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
-                                                : 'bg-gradient-to-r from-blue-500 via-sky-400 to-blue-600'
-                                        }`}
+                                                : 'bg-gradient-to-r from-sky-500 to-cyan-400'
+                                        )}
                                         initial={{ width: 0 }}
                                         animate={{ width: `${percentage}%` }}
                                         transition={{ duration: 0.6, ease: 'easeOut' }}
                                     />
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Coach Notes Banner (if provided) */}
-                            {calcData.admin_notes && (
-                                <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200">
-                                    <MessageSquare className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-                                    <span className="line-clamp-2">
-                                        <strong className="font-semibold text-amber-700 dark:text-amber-300">Coach: </strong>
-                                        {calcData.admin_notes}
-                                    </span>
+                        {/* Coach Guidance Banner (if available) */}
+                        {calcData.admin_notes && (
+                            <div className="flex items-start gap-2.5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground">
+                                <MessageSquare className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                <div className="leading-relaxed">
+                                    <strong className="font-semibold text-primary">Coach Guidance: </strong>
+                                    <span className="text-muted-foreground">{calcData.admin_notes}</span>
                                 </div>
-                            )}
-
-                            {/* One-Tap Quick Log Presets */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                        Quick Add
-                                    </span>
-                                    {lastEntry && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            disabled={isUndoing}
-                                            onClick={handleUndoLast}
-                                            className="h-6 text-[11px] text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 px-2 flex items-center gap-1"
-                                            title="Undo last logged intake"
-                                        >
-                                            <RotateCcw className="w-3 h-3" />
-                                            Undo {lastEntry.amount_ml}ml
-                                        </Button>
-                                    )}
-                                </div>
-
-                                <div className="grid grid-cols-4 gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={isLogging !== null}
-                                        onClick={() => handleLogIntake(250, 'cup')}
-                                        className="h-14 flex-col gap-1 border-border/70 hover:border-blue-300 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 transition-all rounded-xl"
-                                    >
-                                        <GlassWater className="w-4 h-4 text-blue-500" />
-                                        <span className="text-xs font-bold">+250 ml</span>
-                                        <span className="text-[10px] text-muted-foreground font-normal">Glass</span>
-                                    </Button>
-
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={isLogging !== null}
-                                        onClick={() => handleLogIntake(500, 'bottle')}
-                                        className="h-14 flex-col gap-1 border-border/70 hover:border-blue-300 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 transition-all rounded-xl"
-                                    >
-                                        <Droplets className="w-4 h-4 text-sky-500" />
-                                        <span className="text-xs font-bold">+500 ml</span>
-                                        <span className="text-[10px] text-muted-foreground font-normal">Bottle</span>
-                                    </Button>
-
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={isLogging !== null}
-                                        onClick={() => handleLogIntake(750, 'shaker')}
-                                        className="h-14 flex-col gap-1 border-border/70 hover:border-blue-300 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 transition-all rounded-xl"
-                                    >
-                                        <CupSoda className="w-4 h-4 text-indigo-500" />
-                                        <span className="text-xs font-bold">+750 ml</span>
-                                        <span className="text-[10px] text-muted-foreground font-normal">Shaker</span>
-                                    </Button>
-
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setShowCustomInput(!showCustomInput)}
-                                        className={`h-14 flex-col gap-1 border-border/70 transition-all rounded-xl ${
-                                            showCustomInput
-                                                ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 text-blue-600'
-                                                : 'hover:border-blue-300 hover:bg-blue-50/60 dark:hover:bg-blue-950/30'
-                                        }`}
-                                    >
-                                        <Plus className="w-4 h-4 text-slate-500" />
-                                        <span className="text-xs font-bold">Custom</span>
-                                        <span className="text-[10px] text-muted-foreground font-normal">Amount</span>
-                                    </Button>
-                                </div>
-
-                                {/* Custom Amount Pop-in */}
-                                <AnimatePresence>
-                                    {showCustomInput && (
-                                        <motion.form
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            exit={{ opacity: 0, height: 0 }}
-                                            onSubmit={handleCustomSubmit}
-                                            className="pt-2 flex gap-2 overflow-hidden"
-                                        >
-                                            <Input
-                                                type="number"
-                                                placeholder="Amount in ml (e.g. 330)"
-                                                value={customAmount}
-                                                onChange={(e) => setCustomAmount(e.target.value)}
-                                                min={50}
-                                                max={2000}
-                                                step={25}
-                                                autoFocus
-                                                className="h-9 text-xs"
-                                            />
-                                            <Button
-                                                type="submit"
-                                                size="sm"
-                                                disabled={isLogging !== null || !customAmount}
-                                                className="h-9 px-4 text-xs bg-blue-600 hover:bg-blue-700 text-white shrink-0"
-                                            >
-                                                Log
-                                            </Button>
-                                        </motion.form>
-                                    )}
-                                </AnimatePresence>
                             </div>
-                        </>
-                    ) : (
-                        /* 7-Day Adherence Chart Tab */
-                        <WaterWeeklyChart stats={weeklyStats} targetMl={target} />
-                    )}
-                </CardContent>
-            </Card>
+                        )}
+
+                        {/* Quick Add Section */}
+                        <div className="border-t border-border pt-4">
+                            <div className="mb-3 flex items-center justify-between">
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    Quick Log
+                                </span>
+                                {lastEntry && (
+                                    <button
+                                        type="button"
+                                        disabled={isUndoing}
+                                        onClick={handleUndoLast}
+                                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                                        title="Undo last logged intake"
+                                    >
+                                        <RotateCcw className="h-3 w-3" />
+                                        Undo {lastEntry.amount_ml}ml
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                                <button
+                                    type="button"
+                                    disabled={isLogging !== null}
+                                    onClick={() => handleLogIntake(250, 'cup')}
+                                    className="flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-secondary/30 hover:bg-secondary/70 hover:border-sky-500/40 text-foreground transition-all duration-200 group active:scale-95 text-center disabled:opacity-50"
+                                >
+                                    <GlassWater className="h-4 w-4 text-sky-400 group-hover:scale-110 transition-transform" />
+                                    <span className="mt-1 text-xs font-bold text-foreground">+250 ml</span>
+                                    <span className="text-[10px] text-muted-foreground">Glass</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    disabled={isLogging !== null}
+                                    onClick={() => handleLogIntake(500, 'bottle')}
+                                    className="flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-secondary/30 hover:bg-secondary/70 hover:border-sky-500/40 text-foreground transition-all duration-200 group active:scale-95 text-center disabled:opacity-50"
+                                >
+                                    <Droplets className="h-4 w-4 text-sky-400 group-hover:scale-110 transition-transform" />
+                                    <span className="mt-1 text-xs font-bold text-foreground">+500 ml</span>
+                                    <span className="text-[10px] text-muted-foreground">Bottle</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    disabled={isLogging !== null}
+                                    onClick={() => handleLogIntake(750, 'shaker')}
+                                    className="flex flex-col items-center justify-center p-3 rounded-xl border border-border bg-secondary/30 hover:bg-secondary/70 hover:border-sky-500/40 text-foreground transition-all duration-200 group active:scale-95 text-center disabled:opacity-50"
+                                >
+                                    <CupSoda className="h-4 w-4 text-sky-400 group-hover:scale-110 transition-transform" />
+                                    <span className="mt-1 text-xs font-bold text-foreground">+750 ml</span>
+                                    <span className="text-[10px] text-muted-foreground">Shaker</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCustomInput(!showCustomInput)}
+                                    className={cn(
+                                        'flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 group active:scale-95 text-center',
+                                        showCustomInput
+                                            ? 'border-sky-500 bg-sky-500/10 text-sky-400'
+                                            : 'border-border bg-secondary/30 hover:bg-secondary/70 hover:border-sky-500/40 text-foreground'
+                                    )}
+                                >
+                                    <Plus className="h-4 w-4 text-sky-400 group-hover:scale-110 transition-transform" />
+                                    <span className="mt-1 text-xs font-bold">Custom</span>
+                                    <span className="text-[10px] text-muted-foreground">Amount</span>
+                                </button>
+                            </div>
+
+                            {/* Custom Amount Form */}
+                            <AnimatePresence>
+                                {showCustomInput && (
+                                    <motion.form
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        onSubmit={handleCustomSubmit}
+                                        className="mt-3 flex gap-2 overflow-hidden"
+                                    >
+                                        <Input
+                                            type="number"
+                                            placeholder="Enter ml (e.g. 350)"
+                                            value={customAmount}
+                                            onChange={(e) => setCustomAmount(e.target.value)}
+                                            min={50}
+                                            max={2000}
+                                            step={25}
+                                            autoFocus
+                                            className="h-9 text-xs bg-background border-border"
+                                        />
+                                        <Button
+                                            type="submit"
+                                            size="sm"
+                                            disabled={isLogging !== null || !customAmount}
+                                            className="h-9 px-4 text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-black shrink-0"
+                                        >
+                                            Log
+                                        </Button>
+                                    </motion.form>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                ) : (
+                    /* 7-Day Adherence Chart Tab */
+                    <WaterWeeklyChart stats={weeklyStats} targetMl={target} />
+                )}
+            </motion.div>
 
             {/* Hydration Calculator & Goal Setting Modal */}
             <HydrationCalculatorModal

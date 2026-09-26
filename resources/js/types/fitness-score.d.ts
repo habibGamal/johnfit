@@ -1,56 +1,52 @@
-import { SVGProps } from 'react';
-
-export interface PointsBreakdown {
-    target: number;
-    earned: number;
+export interface PointCategory {
+    points: number;
+    label: string;
+    icon: string;
 }
 
-export interface FitnessScoreData {
-    total_score: number;
-    level: string;
-    trend: 'up' | 'down' | 'stable' | null;
-    period: {
-        start: string;
-        end: string;
-        days: number;
-    };
+export interface PointsSummaryData {
+    level: number;
+    title: string;
+    total_points: number;
+    level_min_points: number;
+    level_max_points: number;
+    points_in_level: number;
+    points_needed_in_level: number;
+    points_to_next_level: number;
+    progress_percent: number;
     components: {
-        workout: {
-            score: number;
-            weight: number;
-            metrics: PointsBreakdown;
-        };
-        meal: {
-            score: number;
-            weight: number;
-            metrics: PointsBreakdown;
-        };
-        inbody: {
-            score: number;
-            weight: number;
-            metrics: { earned_points: number };
-        } | null;
+        workout: PointCategory;
+        meal: PointCategory;
+        hydration: PointCategory;
     };
     updated_at: string;
 }
 
-export interface FitnessScoreHistory {
+// Alias for backwards-compatibility in existing dashboard imports
+export type FitnessScoreData = PointsSummaryData;
+
+export interface PointsHistoryItem {
     date: string;
     fullDate: string;
-    total_score: number;
-    workout_score: number;
-    meal_score: number;
-    inbody_score: number | null;
-    level: string;
+    workout_points: number;
+    meal_points: number;
+    hydration_points: number;
+    points_earned: number;
+    total_points: number;
+    total_score?: number;
+    level: number;
 }
 
+// Alias for backwards-compatibility
+export type FitnessScoreHistory = PointsHistoryItem;
+
 export interface FitnessScoreWidgetProps {
-    data?: FitnessScoreData;
+    data?: PointsSummaryData;
     isLoading?: boolean;
 }
 
 export interface FitnessScoreTrendProps {
-    history?: FitnessScoreHistory[];
+    history?: PointsHistoryItem[];
     weeks?: number;
     isLoading?: boolean;
 }

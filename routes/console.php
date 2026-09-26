@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('quotes:send-morning')->dailyAt('09:00');
 Schedule::command('schedules:lock-past')->dailyAt('23:59');
+Schedule::command('streaks:sync-all')->dailyAt('00:10');

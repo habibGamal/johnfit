@@ -30,6 +30,11 @@ class User extends Authenticatable
         'water_multiplier_per_kg',
         'admin_water_notes',
         'allow_user_water_override',
+        'workout_points',
+        'meal_points',
+        'hydration_points',
+        'total_points',
+        'level',
     ];
 
     /**
@@ -57,6 +62,11 @@ class User extends Authenticatable
             'admin_water_target_ml' => 'integer',
             'water_multiplier_per_kg' => 'float',
             'allow_user_water_override' => 'boolean',
+            'workout_points' => 'integer',
+            'meal_points' => 'integer',
+            'hydration_points' => 'integer',
+            'total_points' => 'integer',
+            'level' => 'integer',
         ];
     }
 
@@ -108,6 +118,22 @@ class User extends Authenticatable
     public function todayWaterLog(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(UserDailyWaterLog::class)->whereDate('date', now()->toDateString());
+    }
+
+    /**
+     * The badges this user has unlocked.
+     */
+    public function userBadges(): HasMany
+    {
+        return $this->hasMany(UserBadge::class);
+    }
+
+    /**
+     * The persisted streak records for this user, one per streak type.
+     */
+    public function streaks(): HasMany
+    {
+        return $this->hasMany(UserStreak::class);
     }
 
     public function isAdmin(): bool

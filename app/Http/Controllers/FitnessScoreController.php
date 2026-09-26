@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\FitnessScoreService;
-use Carbon\Carbon;
+use App\Services\PointsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class FitnessScoreController extends Controller
 {
     public function __construct(
-        private FitnessScoreService $scoreService
+        private PointsService $pointsService
     ) {}
 
     /**
-     * Get current fitness score for authenticated user.
+     * Get current points and level summary for authenticated user.
      */
     public function current(Request $request): JsonResponse
     {
         $user = $request->user();
-        $summary = $this->scoreService->getScoreSummary($user);
+        $summary = $this->pointsService->getSummary($user);
 
         return response()->json([
             'success' => true,
@@ -28,14 +27,14 @@ class FitnessScoreController extends Controller
     }
 
     /**
-     * Get fitness score history for trend charts.
+     * Get points history for trend charts.
      */
     public function history(Request $request): JsonResponse
     {
         $user = $request->user();
         $weeks = $request->integer('weeks', 12);
 
-        $history = $this->scoreService->getScoreHistory($user, $weeks);
+        $history = $this->pointsService->getPointsHistory($user, $weeks);
 
         return response()->json([
             'success' => true,
@@ -44,19 +43,17 @@ class FitnessScoreController extends Controller
     }
 
     /**
-     * Recalculate fitness score for current period.
+     * Recalculate user points and level from completion state.
      */
     public function recalculate(Request $request): JsonResponse
     {
         $user = $request->user();
-        $periodDays = $request->integer('period_days', 7);
-
-        $score = $this->scoreService->calculateScore($user, Carbon::today(), $periodDays);
+        $summary = $this->pointsService->recalculateUserPoints($user);
 
         return response()->json([
             'success' => true,
-            'message' => 'Score recalculated successfully',
-            'data' => $this->scoreService->getScoreSummary($user),
+            'message' => 'Points and levels recalculated successfully',
+            'data' => $summary,
         ]);
     }
 }

@@ -34,6 +34,9 @@ Route::middleware(['auth', 'assessment.completed'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Recent Activity History
+    Route::get('/activity', [App\Http\Controllers\ActivityController::class, 'index'])->name('activity.index');
+
     // Unified Daily Schedule & Tracking Hub
     Route::get('/schedule', [App\Http\Controllers\ScheduleController::class, 'index'])->name('schedule.index');
     Route::post('/schedule/items/{item}/toggle', [App\Http\Controllers\ScheduleController::class, 'toggleItem'])->name('schedule.items.toggle');
@@ -61,6 +64,10 @@ Route::middleware(['auth', 'assessment.completed'])->group(function () {
     Route::get('/fitness-score', [App\Http\Controllers\FitnessScoreController::class, 'current'])->name('fitness-score.current');
     Route::get('/fitness-score/history', [App\Http\Controllers\FitnessScoreController::class, 'history'])->name('fitness-score.history');
     Route::post('/fitness-score/recalculate', [App\Http\Controllers\FitnessScoreController::class, 'recalculate'])->name('fitness-score.recalculate');
+
+    // Achievements & Streaks Routes
+    Route::get('/achievements', [App\Http\Controllers\AchievementController::class, 'index'])->name('achievements.index');
+    Route::post('/achievements/sync', [App\Http\Controllers\AchievementController::class, 'sync'])->name('achievements.sync');
 
     // Water Intake Routes
     Route::get('/water', [App\Http\Controllers\WaterIntakeController::class, 'index'])->name('water.index');

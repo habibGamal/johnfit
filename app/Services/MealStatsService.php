@@ -113,7 +113,7 @@ class MealStatsService
     /**
      * Get recent meal activity summary
      */
-    private function getRecentActivity(User $user, int $limit = 5): array
+    public function getRecentActivity(User $user, int $limit = 5): array
     {
         return UserDailyItem::with('schedule')
             ->whereHas('schedule', function ($q) use ($user) {

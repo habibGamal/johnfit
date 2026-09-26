@@ -84,8 +84,14 @@ class UserDailyWaterLog extends Model
 
         if ($isNowCompleted && ! $wasCompleted) {
             $this->completed_at = now();
-        } elseif (! $isNowCompleted) {
+            if ($this->user) {
+                app(\App\Services\PointsService::class)->addHydrationPoints($this->user);
+            }
+        } elseif (! $isNowCompleted && $wasCompleted) {
             $this->completed_at = null;
+            if ($this->user) {
+                app(\App\Services\PointsService::class)->deductHydrationPoints($this->user);
+            }
         }
 
         $this->save();

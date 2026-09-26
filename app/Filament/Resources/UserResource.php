@@ -673,7 +673,78 @@ class UserResource extends Resource
                             ->placeholder('No specific instructions set')
                             ->columnSpanFull(),
                     ]),
+
+                // 7. Achievements & Streaks Section
+                Section::make('Achievements & Streaks')
+                    ->icon('heroicon-o-trophy')
+                    ->collapsible()
+                    ->columns(4)
+                    ->schema([
+                        TextEntry::make('badges_unlocked')
+                            ->label('Badges Unlocked')
+                            ->state(function (User $record): string {
+                                $unlocked = $record->userBadges()->count();
+                                $total = \App\Models\Badge::where('is_active', true)->count();
+
+                                return $unlocked . ' / ' . $total;
+                            })
+                            ->badge()
+                            ->color(fn (User $record): string => $record->userBadges()->count() > 0 ? 'success' : 'gray'),
+
+                        TextEntry::make('streak_workout')
+                            ->label('Workout Streak')
+                            ->state(fn (User $record): string => $this->streakText($record, 'workout'))
+                            ->badge()
+                            ->color(fn (User $record): string => ($record->streaks->firstWhere('streak_type', 'workout')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
+
+                        TextEntry::make('streak_meal')
+                            ->label('Meal Streak')
+                            ->state(fn (User $record): string => $this->streakText($record, 'meal'))
+                            ->badge()
+                            ->color(fn (User $record): string => ($record->streaks->firstWhere('streak_type', 'meal')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
+
+                        TextEntry::make('streak_hydration')
+                            ->label('Hydration Streak')
+                            ->state(fn (User $record): string => $this->streakText($record, 'hydration'))
+                            ->badge()
+                            ->color(fn (User $record): string => ($record->streaks->firstWhere('streak_type', 'hydration')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
+
+                        TextEntry::make('streak_overall')
+                            ->label('Perfect Day Streak')
+                            ->state(fn (User $record): string => $this->streakText($record, 'overall'))
+                            ->badge()
+                            ->color(fn (User $record): string => ($record->streaks->firstWhere('streak_type', 'overall')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
+
+                        TextEntry::make('earned_badges_list')
+                            ->label('Badges Earned')
+                            ->state(function (User $record): string {
+                                $names = $record->userBadges()
+                                    ->with('badge')
+                                    ->get()
+                                    ->map(fn ($userBadge) => $userBadge->badge?->name)
+                                    ->filter()
+                                    ->implode(', ');
+
+                                return $names !== '' ? $names : 'None yet';
+                            })
+                            ->placeholder('None yet')
+                            ->columnSpanFull(),
+                    ]),
             ]);
+    }
+
+    /**
+     * Format a user's streak as "current (best ever)".
+     */
+    protected static function streakText(User $record, string $type): string
+    {
+        $streak = $record->streaks->firstWhere('streak_type', $type);
+
+        if (! $streak) {
+            return '—';
+        }
+
+        return $streak->current_streak . ' (' . $streak->longest_streak . ')';
     }
 
     public static function table(Table $table): Table
@@ -683,6 +754,8 @@ class UserResource extends Resource
                 'subscriptions.plan',
                 'planAssignments.workoutPlan',
                 'planAssignments.mealPlan',
+                'streaks',
+                'todayWaterLog',
             ]))
             ->columns([
                 Tables\Columns\TextColumn::make('name')

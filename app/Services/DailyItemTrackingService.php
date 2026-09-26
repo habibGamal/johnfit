@@ -10,7 +10,8 @@ use Illuminate\Validation\ValidationException;
 class DailyItemTrackingService
 {
     public function __construct(
-        protected ProgressionService $progressionService
+        protected ProgressionService $progressionService,
+        protected PointsService $pointsService
     ) {}
 
     /**
@@ -28,6 +29,7 @@ class DailyItemTrackingService
             throw ValidationException::withMessages(['schedule' => 'This daily schedule is locked and cannot be edited.']);
         }
 
+        $wasCompleted = (bool) $item->is_completed;
         $newStatus = is_null($status) ? ! $item->is_completed : $status;
 
         $item->is_completed = $newStatus;
@@ -54,6 +56,21 @@ class DailyItemTrackingService
         $item->save();
 
         $item->schedule->recalculateScores();
+
+        // Award or deduct points based on completion transition
+        if ($newStatus && ! $wasCompleted) {
+            if ($item->type === 'workout') {
+                $this->pointsService->addWorkoutPoints($user, (int) $item->points);
+            } elseif ($item->type === 'meal') {
+                $this->pointsService->addMealPoints($user, (int) $item->points);
+            }
+        } elseif (! $newStatus && $wasCompleted) {
+            if ($item->type === 'workout') {
+                $this->pointsService->deductWorkoutPoints($user, (int) $item->points);
+            } elseif ($item->type === 'meal') {
+                $this->pointsService->deductMealPoints($user, (int) $item->points);
+            }
+        }
 
         if ($item->type === 'workout') {
             $this->progressionService->clearUserCache($user);
@@ -98,6 +115,8 @@ class DailyItemTrackingService
 
         $item->execution_payload = $payload;
 
+        $wasCompleted = (bool) $item->is_completed;
+
         // Check if all sets are completed
         $allCompleted = count($sets) > 0 && collect($sets)->every(function ($s) {
             return ! empty($s['completed']);
@@ -108,6 +127,13 @@ class DailyItemTrackingService
         $item->save();
 
         $item->schedule->recalculateScores();
+
+        // Award or deduct points
+        if ($allCompleted && ! $wasCompleted) {
+            $this->pointsService->addWorkoutPoints($user, (int) $item->points);
+        } elseif (! $allCompleted && $wasCompleted) {
+            $this->pointsService->deductWorkoutPoints($user, (int) $item->points);
+        }
 
         $this->progressionService->clearUserCache($user);
 
@@ -133,6 +159,8 @@ class DailyItemTrackingService
             throw ValidationException::withMessages(['item' => 'This item is not a meal.']);
         }
 
+        $wasCompleted = (bool) $item->is_completed;
+
         $payload = $item->execution_payload ?? [];
         $payload['consumed_option_id'] = $optionId;
         $payload['consumed_quantity'] = $quantity;
@@ -152,6 +180,10 @@ class DailyItemTrackingService
         $item->save();
 
         $item->schedule->recalculateScores();
+
+        if (! $wasCompleted) {
+            $this->pointsService->addMealPoints($user, (int) $item->points);
+        }
 
         return $item->fresh(['schedule']);
     }
