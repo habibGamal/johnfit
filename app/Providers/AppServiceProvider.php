@@ -17,7 +17,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            \App\Contracts\PlanGeneratorInterface::class,
+            \App\Services\PlanGenerationService::class
+        );
     }
 
     /**

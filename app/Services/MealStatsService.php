@@ -30,7 +30,7 @@ class MealStatsService
     /**
      * Get the weekly meal completion rate for a user.
      */
-    private function getWeeklyCompletionRate(User $user): array
+    public function getWeeklyCompletionRate(User $user): array
     {
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek = Carbon::now()->endOfWeek();
@@ -57,7 +57,7 @@ class MealStatsService
     /**
      * Get current streak of consecutive days with meal tracking
      */
-    private function getCurrentStreak(User $user): int
+    public function getCurrentStreak(User $user): int
     {
         $streak = 0;
         $date = Carbon::now();
