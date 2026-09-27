@@ -82,15 +82,17 @@ class UserDailyWaterLog extends Model
 
         $this->is_completed = $isNowCompleted;
 
+        $logDate = $this->date ? \Carbon\Carbon::parse($this->date) : \Carbon\Carbon::today();
+
         if ($isNowCompleted && ! $wasCompleted) {
             $this->completed_at = now();
             if ($this->user) {
-                app(\App\Services\PointsService::class)->addHydrationPoints($this->user);
+                app(\App\Services\PointsService::class)->recordHydrationPoints($this->user, \App\Services\PointsService::HYDRATION_GOAL_POINTS, $logDate);
             }
         } elseif (! $isNowCompleted && $wasCompleted) {
             $this->completed_at = null;
             if ($this->user) {
-                app(\App\Services\PointsService::class)->deductHydrationPoints($this->user);
+                app(\App\Services\PointsService::class)->deductHydrationPoints($this->user, \App\Services\PointsService::HYDRATION_GOAL_POINTS, $logDate);
             }
         }
 

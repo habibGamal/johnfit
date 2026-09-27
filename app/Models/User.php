@@ -87,11 +87,35 @@ class User extends Authenticatable
     }
 
     /**
+     * The AI plan generations performed for this user.
+     */
+    public function aiPlanGenerations(): HasMany
+    {
+        return $this->hasMany(AiPlanGeneration::class);
+    }
+
+    /**
+     * Determine if the user has already generated an AI plan.
+     */
+    public function hasGeneratedAiPlan(): bool
+    {
+        return $this->aiPlanGenerations()->exists();
+    }
+
+    /**
      * The daily schedules that belong to the user.
      */
     public function dailySchedules(): HasMany
     {
         return $this->hasMany(UserDailySchedule::class);
+    }
+
+    /**
+     * Daily points logged for the user.
+     */
+    public function dailyPoints(): HasMany
+    {
+        return $this->hasMany(UserDailyPoint::class)->orderBy('date', 'desc');
     }
 
     /**

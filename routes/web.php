@@ -43,7 +43,8 @@ Route::middleware(['auth', 'assessment.completed'])->group(function () {
     Route::post('/schedule/items/{item}/workout-sets', [App\Http\Controllers\ScheduleController::class, 'saveWorkoutSets'])->name('schedule.items.workout-sets');
     Route::post('/schedule/items/{item}/meal-consumption', [App\Http\Controllers\ScheduleController::class, 'saveMealConsumption'])->name('schedule.items.meal-consumption');
 
-    // Auto-Generate Plans Route
+    // Auto-Generate Plans Routes
+    Route::get('/plans/eligibility', [App\Http\Controllers\PlanGenerationController::class, 'eligibility'])->name('plans.eligibility');
     Route::post('/plans/generate', [App\Http\Controllers\PlanGenerationController::class, 'generate'])->name('plans.generate');
 
     // InBody Tracking Routes

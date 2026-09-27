@@ -118,11 +118,35 @@ class UserResource extends Resource
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                        $set('tier_id', null);
                                         if ($state) {
                                             $plan = SubscriptionPlan::find($state);
                                             $startDate = $get('start_date') ? Carbon::parse($get('start_date')) : now();
                                             if ($plan && $plan->duration_days) {
                                                 $set('end_date', $startDate->copy()->addDays($plan->duration_days)->toDateTimeString());
+                                            }
+                                        }
+                                    }),
+                                Forms\Components\Select::make('tier_id')
+                                    ->label('Duration Tier')
+                                    ->options(function (Forms\Get $get) {
+                                        $planId = $get('plan_id');
+                                        if (! $planId) return [];
+                                        $plan = SubscriptionPlan::with('activeTiers')->find($planId);
+                                        if (! $plan) return [];
+                                        return $plan->activeTiers->mapWithKeys(function ($tier) {
+                                            $label = "{$tier->months} Month" . ($tier->months > 1 ? 's' : '') . " ({$tier->price} EGP)";
+                                            if ($tier->tag) $label .= " - {$tier->tag}";
+                                            return [$tier->id => $label];
+                                        })->toArray();
+                                    })
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                        if ($state) {
+                                            $tier = \App\Models\SubscriptionPlanTier::find($state);
+                                            if ($tier) {
+                                                $startDate = $get('start_date') ? Carbon::parse($get('start_date')) : now();
+                                                $set('end_date', $startDate->copy()->addDays($tier->effective_days)->toDateTimeString());
                                             }
                                         }
                                     }),
@@ -132,6 +156,14 @@ class UserResource extends Resource
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                        $tierId = $get('tier_id');
+                                        if ($tierId) {
+                                            $tier = \App\Models\SubscriptionPlanTier::find($tierId);
+                                            if ($tier && $state) {
+                                                $set('end_date', Carbon::parse($state)->addDays($tier->effective_days)->toDateTimeString());
+                                                return;
+                                            }
+                                        }
                                         $planId = $get('plan_id');
                                         if ($state && $planId) {
                                             $plan = SubscriptionPlan::find($planId);
@@ -154,6 +186,13 @@ class UserResource extends Resource
                                     ->required(),
                             ])
                             ->action(function (User $record, array $data) {
+                                if (!empty($data['tier_id'])) {
+                                    $tier = \App\Models\SubscriptionPlanTier::find($data['tier_id']);
+                                    if ($tier) {
+                                        $data['duration_months'] = $tier->months;
+                                        $data['duration_days'] = $tier->effective_days;
+                                    }
+                                }
                                 $record->subscriptions()->create($data);
 
                                 Notification::make()
@@ -621,7 +660,7 @@ class UserResource extends Resource
                             ->columns(2)
                             ->contained(false),
                     ])
-                    ->visible(fn (User $record): bool => $record->hasCompletedAssessment()),
+                    ->visible(fn (?User $record): bool => (bool) $record?->hasCompletedAssessment()),
 
                 // 6. Hydration & Water Intake Section
                 Section::make('Hydration & Daily Water Target')
@@ -644,14 +683,20 @@ class UserResource extends Resource
                             }),
                         TextEntry::make('daily_water_target')
                             ->label('Effective Daily Target')
-                            ->state(function (User $record): string {
+                            ->state(function (?User $record): string {
+                                if (! $record) {
+                                    return '—';
+                                }
                                 $data = app(WaterIntakeService::class)->calculateDailyTarget($record);
                                 return number_format($data['target_ml']) . ' ml (' . $data['tier_name'] . ')';
                             })
                             ->weight('bold'),
                         TextEntry::make('today_water_intake')
                             ->label("Today's Consumed")
-                            ->state(function (User $record): string {
+                            ->state(function (?User $record): string {
+                                if (! $record) {
+                                    return '0 ml (0%)';
+                                }
                                 $log = $record->todayWaterLog;
                                 if (! $log) {
                                     return '0 ml (0%)';
@@ -659,7 +704,10 @@ class UserResource extends Resource
                                 return number_format($log->consumed_ml) . ' ml (' . $log->percentage . '%)';
                             })
                             ->badge()
-                            ->color(function (User $record): string {
+                            ->color(function (?User $record): string {
+                                if (! $record) {
+                                    return 'gray';
+                                }
                                 $log = $record->todayWaterLog;
                                 return ($log && $log->is_completed) ? 'success' : 'gray';
                             }),
@@ -682,42 +730,48 @@ class UserResource extends Resource
                     ->schema([
                         TextEntry::make('badges_unlocked')
                             ->label('Badges Unlocked')
-                            ->state(function (User $record): string {
+                            ->state(function (?User $record): string {
+                                if (! $record) {
+                                    return '0 / 0';
+                                }
                                 $unlocked = $record->userBadges()->count();
                                 $total = \App\Models\Badge::where('is_active', true)->count();
 
                                 return $unlocked . ' / ' . $total;
                             })
                             ->badge()
-                            ->color(fn (User $record): string => $record->userBadges()->count() > 0 ? 'success' : 'gray'),
+                            ->color(fn (?User $record): string => ($record?->userBadges()->count() ?? 0) > 0 ? 'success' : 'gray'),
 
                         TextEntry::make('streak_workout')
                             ->label('Workout Streak')
-                            ->state(fn (User $record): string => $this->streakText($record, 'workout'))
+                            ->state(fn (?User $record): string => static::streakText($record, 'workout'))
                             ->badge()
-                            ->color(fn (User $record): string => ($record->streaks->firstWhere('streak_type', 'workout')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
+                            ->color(fn (?User $record): string => ($record?->streaks?->firstWhere('streak_type', 'workout')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
 
                         TextEntry::make('streak_meal')
                             ->label('Meal Streak')
-                            ->state(fn (User $record): string => $this->streakText($record, 'meal'))
+                            ->state(fn (?User $record): string => static::streakText($record, 'meal'))
                             ->badge()
-                            ->color(fn (User $record): string => ($record->streaks->firstWhere('streak_type', 'meal')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
+                            ->color(fn (?User $record): string => ($record?->streaks?->firstWhere('streak_type', 'meal')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
 
                         TextEntry::make('streak_hydration')
                             ->label('Hydration Streak')
-                            ->state(fn (User $record): string => $this->streakText($record, 'hydration'))
+                            ->state(fn (?User $record): string => static::streakText($record, 'hydration'))
                             ->badge()
-                            ->color(fn (User $record): string => ($record->streaks->firstWhere('streak_type', 'hydration')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
+                            ->color(fn (?User $record): string => ($record?->streaks?->firstWhere('streak_type', 'hydration')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
 
                         TextEntry::make('streak_overall')
                             ->label('Perfect Day Streak')
-                            ->state(fn (User $record): string => $this->streakText($record, 'overall'))
+                            ->state(fn (?User $record): string => static::streakText($record, 'overall'))
                             ->badge()
-                            ->color(fn (User $record): string => ($record->streaks->firstWhere('streak_type', 'overall')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
+                            ->color(fn (?User $record): string => ($record?->streaks?->firstWhere('streak_type', 'overall')?->current_streak ?? 0) > 0 ? 'warning' : 'gray'),
 
                         TextEntry::make('earned_badges_list')
                             ->label('Badges Earned')
-                            ->state(function (User $record): string {
+                            ->state(function (?User $record): string {
+                                if (! $record) {
+                                    return 'None yet';
+                                }
                                 $names = $record->userBadges()
                                     ->with('badge')
                                     ->get()
@@ -736,9 +790,13 @@ class UserResource extends Resource
     /**
      * Format a user's streak as "current (best ever)".
      */
-    protected static function streakText(User $record, string $type): string
+    protected static function streakText(?User $record, string $type): string
     {
-        $streak = $record->streaks->firstWhere('streak_type', $type);
+        if (! $record) {
+            return '—';
+        }
+
+        $streak = $record->streaks?->firstWhere('streak_type', $type);
 
         if (! $streak) {
             return '—';

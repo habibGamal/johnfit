@@ -27,7 +27,9 @@ export type FitnessScoreData = PointsSummaryData;
 
 export interface PointsHistoryItem {
     date: string;
+    dayName?: string;
     fullDate: string;
+    isToday?: boolean;
     workout_points: number;
     meal_points: number;
     hydration_points: number;

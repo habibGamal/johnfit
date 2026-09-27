@@ -35,6 +35,7 @@ export default function ScheduleIndex({
     weeklyAdherence,
     currentStreak,
     waterData,
+    aiPlanEligibility,
 }: SchedulePageProps) {
     const [activeTab, setActiveTab] = useState<ScheduleTab>('workouts');
     const [selectedWorkoutItem, setSelectedWorkoutItem] = useState<UserDailyItem | null>(null);
@@ -95,7 +96,7 @@ export default function ScheduleIndex({
             const option = getMealOption(item);
             const ratio = item.is_completed
                 ? (item.execution_payload?.consumed_quantity || option.quantity || 100) /
-                  (option.quantity || 100)
+                (option.quantity || 100)
                 : 0;
             acc.calories += Math.round((option.calories || 0) * ratio);
             acc.protein += Math.round((option.protein || 0) * ratio * 10) / 10;
@@ -122,9 +123,9 @@ export default function ScheduleIndex({
     const caloriesConsumedPct =
         nutritionTotals.targetCalories > 0
             ? Math.min(
-                  100,
-                  Math.round((nutritionTotals.calories / nutritionTotals.targetCalories) * 100)
-              )
+                100,
+                Math.round((nutritionTotals.calories / nutritionTotals.targetCalories) * 100)
+            )
             : 0;
     const caloriesRemaining = Math.max(0, nutritionTotals.targetCalories - nutritionTotals.calories);
 
@@ -398,12 +399,21 @@ export default function ScheduleIndex({
                                         <button
                                             type="button"
                                             onClick={handleGeneratePlans}
-                                            disabled={isGenerating}
-                                            className="w-full bg-primary hover:bg-[#e6aa2e] disabled:opacity-50 text-primary-foreground font-black tracking-wide py-4 text-center text-sm uppercase transition-colors rounded-lg flex items-center justify-center gap-2"
+                                            disabled={isGenerating || (aiPlanEligibility?.can_generate === false)}
+                                            className="w-full bg-primary hover:bg-[#e6aa2e] disabled:opacity-50 text-primary-foreground font-black tracking-wide py-4 text-center text-sm uppercase transition-colors rounded-lg flex items-center justify-center gap-2 disabled:cursor-not-allowed"
                                         >
                                             <Sparkles className="h-4 w-4" />
-                                            {isGenerating ? 'GENERATING...' : 'GENERATE AI PLAN'}
+                                            {isGenerating
+                                                ? 'GENERATING...'
+                                                : aiPlanEligibility?.can_generate === false
+                                                    ? 'AI PLAN ALREADY GENERATED'
+                                                    : 'GENERATE AI PLAN'}
                                         </button>
+                                        {aiPlanEligibility?.can_generate === false && (
+                                            <p className="text-xs text-muted-foreground">
+                                                Each account is eligible for one AI plan generation. You have already generated your custom plan.
+                                            </p>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="flex flex-col gap-5">
@@ -436,7 +446,7 @@ export default function ScheduleIndex({
                                                     className={cn(
                                                         'bg-card border rounded-2xl p-0 overflow-hidden group transition-all',
                                                         !isEditable &&
-                                                            'opacity-60 saturate-[0.6] pointer-events-none select-none',
+                                                        'opacity-60 saturate-[0.6] pointer-events-none select-none',
                                                         isEditable && 'cursor-pointer hover:border-primary/40',
                                                         item.is_completed && isEditable
                                                             ? 'border-primary/30 shadow-lg shadow-black/50'
@@ -448,11 +458,11 @@ export default function ScheduleIndex({
                                                         style={
                                                             thumb
                                                                 ? {
-                                                                      backgroundImage:
-                                                                          'linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%), url(\'' +
-                                                                          thumb +
-                                                                          '\')',
-                                                                  }
+                                                                    backgroundImage:
+                                                                        'linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%), url(\'' +
+                                                                        thumb +
+                                                                        '\')',
+                                                                }
                                                                 : undefined
                                                         }
                                                     >
@@ -514,7 +524,7 @@ export default function ScheduleIndex({
                                                                 ? 'bg-primary/10 hover:bg-primary/20 text-primary border-border/60'
                                                                 : 'bg-primary hover:bg-[#e6aa2e] text-primary-foreground border-transparent',
                                                             !isEditable &&
-                                                                'opacity-50 cursor-not-allowed hover:bg-inherit'
+                                                            'opacity-50 cursor-not-allowed hover:bg-inherit'
                                                         )}
                                                     >
                                                         <Play className="h-4 w-4 fill-current" />
@@ -644,7 +654,7 @@ export default function ScheduleIndex({
                                             const isLast = index === mealItems.length - 1;
                                             const ratio = item.execution_payload?.consumed_quantity
                                                 ? item.execution_payload.consumed_quantity /
-                                                  (option.quantity || 100)
+                                                (option.quantity || 100)
                                                 : 1;
                                             const optionCalories = Math.round((option.calories || 0) * ratio);
                                             const protein = Math.round((option.protein || 0) * ratio * 10) / 10;
@@ -665,7 +675,7 @@ export default function ScheduleIndex({
                                                             'flex flex-1 flex-col py-3 transition-opacity',
                                                             !isLast && 'border-b border-border/60',
                                                             !isEditable &&
-                                                                'opacity-60 saturate-[0.6] pointer-events-none select-none',
+                                                            'opacity-60 saturate-[0.6] pointer-events-none select-none',
                                                             isEditable && 'cursor-pointer group'
                                                         )}
                                                     >

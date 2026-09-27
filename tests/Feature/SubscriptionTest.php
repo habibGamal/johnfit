@@ -180,4 +180,72 @@ describe('Kashier Webhook', function () {
         expect($payment->fresh()->status)->toBe('failed');
         expect($subscription->fresh()->status)->toBe('cancelled');
     });
+
+    it('activates subscription on real Kashier webhook payload format', function () {
+        $subscription = Subscription::create([
+            'user_id' => $this->user->id,
+            'plan_id' => $this->plan->id,
+            'status' => 'pending',
+        ]);
+
+        $payment = Payment::create([
+            'subscription_id' => $subscription->id,
+            'user_id' => $this->user->id,
+            'transaction_id' => 'sub-7-1790509580',
+            'amount' => 3899.00,
+            'status' => 'pending',
+        ]);
+
+        Event::dispatch(new KashierWebhookHandled([
+            'platform' => 'kashier',
+            'event' => 'pay',
+            'data' => [
+                'merchantOrderId' => 'sub-7-1790509580',
+                'kashierOrderId' => '41a16c50-d96e-4032-bb8b-1bdd8633b721',
+                'orderReference' => 'TEST-ORD-193517907',
+                'transactionId' => 'TX-29933712322',
+                'status' => 'SUCCESS',
+                'method' => 'card',
+                'creationDate' => '2026-09-27T11:46:31.723Z',
+                'amount' => 3899,
+                'currency' => 'EGP',
+            ],
+        ]));
+
+        expect($payment->fresh()->status)->toBe('paid');
+        expect($payment->fresh()->payment_method)->toBe('card');
+        expect($payment->fresh()->gateway_response)->not->toBeNull();
+        expect($subscription->fresh()->status)->toBe('active');
+        expect($subscription->fresh()->start_date)->not->toBeNull();
+        expect($subscription->fresh()->end_date)->not->toBeNull();
+    });
+
+    it('cancels subscription on real Kashier webhook payload format with failed status', function () {
+        $subscription = Subscription::create([
+            'user_id' => $this->user->id,
+            'plan_id' => $this->plan->id,
+            'status' => 'pending',
+        ]);
+
+        $payment = Payment::create([
+            'subscription_id' => $subscription->id,
+            'user_id' => $this->user->id,
+            'transaction_id' => 'sub-failed-123',
+            'amount' => 3899.00,
+            'status' => 'pending',
+        ]);
+
+        Event::dispatch(new KashierWebhookHandled([
+            'platform' => 'kashier',
+            'event' => 'pay',
+            'data' => [
+                'merchantOrderId' => 'sub-failed-123',
+                'status' => 'FAILURE',
+                'method' => 'card',
+            ],
+        ]));
+
+        expect($payment->fresh()->status)->toBe('failed');
+        expect($subscription->fresh()->status)->toBe('cancelled');
+    });
 });

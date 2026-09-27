@@ -93,6 +93,12 @@ PROMPT;
             $prompt .= "- {$key}: {$value}\n";
         }
 
+
+        $prompt .= "### Guidelines:\n";
+        $prompt .= "- you are not restricted to the Preferred Proteins, Carbohydrates, and Healthy Fats but try to include them in the plan\n";
+        $prompt .= "- every day should has its its meals and no repetition\n";
+
+
         $prompt .= "\n### RECOMMENDED BASELINE TARGETS:\n";
         $prompt .= sprintf(
             "- Daily Calories: %s kcal\n- Protein: %s g\n- Carbs: %s g\n- Healthy Fats: %s g\n- Active Workout Days Count: %d days\n\n",

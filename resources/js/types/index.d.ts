@@ -121,6 +121,11 @@ export interface SchedulePageProps extends PageProps {
     weeklyAdherence: WeeklyAdherence;
     currentStreak: number;
     waterData?: import('./water').WaterData;
+    aiPlanEligibility?: {
+        can_generate: boolean;
+        remaining: number | null;
+        reason: string | null;
+    };
 }
 
 export interface Workout {
@@ -297,6 +302,17 @@ export interface PageProps<T extends Record<string, unknown> = Record<string, un
 }
 
 // Subscription types
+export interface SubscriptionPlanTier {
+    id: number;
+    subscription_plan_id: number;
+    months: number;
+    duration_days: number | null;
+    price: string;
+    tag: string | null;
+    is_active: boolean;
+    order: number;
+}
+
 export interface SubscriptionPlan {
     id: number;
     name: string;
@@ -305,6 +321,8 @@ export interface SubscriptionPlan {
     features: { feature: string }[] | null;
     is_active: boolean;
     duration_days: number;
+    tiers?: SubscriptionPlanTier[];
+    active_tiers?: SubscriptionPlanTier[];
 }
 
 export interface Subscription {
@@ -312,6 +330,10 @@ export interface Subscription {
     user_id: number;
     plan_id: number;
     plan?: SubscriptionPlan;
+    tier_id?: number | null;
+    tier?: SubscriptionPlanTier | null;
+    duration_months?: number;
+    duration_days?: number;
     start_date: string | null;
     end_date: string | null;
     status: 'pending' | 'active' | 'expired' | 'cancelled';

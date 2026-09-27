@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Contracts\PlanGenerationEligibilityStrategyInterface;
 use App\Contracts\PlanGeneratorInterface;
+use App\Exceptions\PlanGenerationNotAllowedException;
 use App\Models\User;
 use App\Services\PlanGeneration\AiPlanGenerator;
 use App\Services\PlanGeneration\RuleBasedPlanGenerator;
@@ -14,6 +16,7 @@ class PlanGenerationService implements PlanGeneratorInterface
     public function __construct(
         protected RuleBasedPlanGenerator $ruleBasedGenerator,
         protected AiPlanGenerator $aiGenerator,
+        protected PlanGenerationEligibilityStrategyInterface $eligibilityStrategy,
     ) {
     }
 
@@ -28,12 +31,19 @@ class PlanGenerationService implements PlanGeneratorInterface
         $driver = config('plan_generation.driver', 'ai');
 
         if ($driver === 'ai') {
+            // Enforce Strategy Pattern: Validate eligibility before AI generation
+            $this->eligibilityStrategy->validate($user);
+
             try {
                 return $this->aiGenerator->generateForUser($user);
+            } catch (PlanGenerationNotAllowedException $e) {
+                // Policy limit reached: never fallback to rule-based on quota/eligibility restriction
+                throw $e;
             } catch (Throwable $e) {
                 Log::warning('AI Plan Generation encountered an error: ' . $e->getMessage(), [
                     'user_id' => $user->id,
                     'exception' => get_class($e),
+                    'message' => $e->getMessage(),
                 ]);
 
                 if (config('plan_generation.fallback_to_rule_based', true)) {
@@ -56,6 +66,28 @@ class PlanGenerationService implements PlanGeneratorInterface
         $result['summary']['engine'] = 'rule_based';
 
         return $result;
+    }
+
+    /**
+     * Check if the user is eligible for AI plan generation under the active strategy.
+     */
+    public function isUserEligibleForAiPlan(User $user): bool
+    {
+        return $this->eligibilityStrategy->isEligible($user);
+    }
+
+    /**
+     * Get detailed AI plan eligibility info for the user.
+     *
+     * @return array{can_generate: bool, remaining: ?int, reason: ?string}
+     */
+    public function getAiPlanEligibility(User $user): array
+    {
+        return [
+            'can_generate' => $this->eligibilityStrategy->isEligible($user),
+            'remaining' => $this->eligibilityStrategy->getRemainingGenerations($user),
+            'reason' => $this->eligibilityStrategy->getIneligibilityReason($user),
+        ];
     }
 
     /**

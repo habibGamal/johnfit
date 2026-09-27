@@ -2,6 +2,7 @@
 
 namespace App\Services\PlanGeneration;
 
+use App\Contracts\PlanGenerationEligibilityStrategyInterface;
 use App\Contracts\PlanGeneratorInterface;
 use App\Models\Meal;
 use App\Models\MealPlan;
@@ -18,7 +19,8 @@ use RuntimeException;
 class AiPlanGenerator implements PlanGeneratorInterface
 {
     public function __construct(
-        protected PlanAssignmentService $assignmentService
+        protected PlanAssignmentService $assignmentService,
+        protected PlanGenerationEligibilityStrategyInterface $eligibilityStrategy
     ) {
     }
 
@@ -29,6 +31,9 @@ class AiPlanGenerator implements PlanGeneratorInterface
      */
     public function generateForUser(User $user): array
     {
+        // Enforce Strategy Pattern: Validate if user is eligible for AI plan generation
+        $this->eligibilityStrategy->validate($user);
+
         $context = PlanGenerationContext::createForUser($user);
 
         if ($context->meals->isEmpty()) {
@@ -39,38 +44,44 @@ class AiPlanGenerator implements PlanGeneratorInterface
             throw new RuntimeException('No workouts found in database to generate plan.');
         }
 
-        $apiKey = config('prism.providers.openai.api_key') ?: env('OPENAI_API_KEY');
+        $apiKey = env('GEMINI_API_KEY');
+
         if (empty($apiKey)) {
             throw new RuntimeException('OpenAI API key is missing. Please set OPENAI_API_KEY in .env.');
         }
 
-        $providerName = config('plan_generation.ai.provider', 'openai');
+        $providerName = 'gemini';
         $model = config('plan_generation.ai.model', 'gpt-4o-mini');
-        $providerEnum = Provider::tryFrom($providerName) ?? Provider::OpenAI;
+        $providerEnum = Provider::tryFrom($providerName) ?? Provider::Gemini;
 
         Log::info('Initiating AI Plan Generation for user', [
             'user_id' => $user->id,
             'provider' => $providerEnum->value,
             'model' => $model,
+            'api_key' => $apiKey,
         ]);
 
         $schema = PlanSchemaDefinition::create();
         $systemPrompt = PlanPromptBuilder::buildSystemPrompt();
         $userPrompt = PlanPromptBuilder::buildUserPrompt($context);
 
-        $response = Prism::structured()
+        // dd(
+        //     Prism::text()
+        //         ->using($providerEnum, $model)
+        //         ->withPrompt('exlain what is ai')
+        //         ->asText()
+        // );
+
+        $response = Prism::structured()->withClientOptions(['timeout' => 30000])
             ->using($providerEnum, $model)
             ->withSchema($schema)
             ->withSystemPrompt($systemPrompt)
             ->withPrompt($userPrompt)
-            ->withClientOptions([
-                'timeout' => (int) config('plan_generation.ai.timeout', 60),
-            ])
             ->asStructured();
 
         $data = $response->structured;
 
-        if (empty($data) || ! isset($data['meal_plan']) || ! isset($data['workout_plan'])) {
+        if (empty($data) || !isset($data['meal_plan']) || !isset($data['workout_plan'])) {
             throw new RuntimeException('AI agent returned invalid or empty plan structure.');
         }
 
@@ -81,6 +92,16 @@ class AiPlanGenerator implements PlanGeneratorInterface
         $workoutPlan = $this->createWorkoutPlan($user, $data['workout_plan'], $context);
 
         $summaryData = $data['summary'] ?? [];
+
+        // Record usage via the strategy pattern
+        $this->eligibilityStrategy->recordUsage($user, [
+            'workout_plan_id' => $workoutPlan->id,
+            'meal_plan_id' => $mealPlan->id,
+            'summary' => $summaryData,
+            'model' => $model,
+            'provider' => $providerEnum->value,
+            'driver' => 'ai',
+        ]);
 
         return [
             'workout_plan' => $workoutPlan,
@@ -109,7 +130,7 @@ class AiPlanGenerator implements PlanGeneratorInterface
         $formattedDays = [];
 
         // Index raw days by day name
-        $daysByName = collect($rawDays)->keyBy(fn ($d) => trim($d['day'] ?? ''));
+        $daysByName = collect($rawDays)->keyBy(fn($d) => trim($d['day'] ?? ''));
 
         foreach ($expectedDays as $dayName) {
             $dayData = $daysByName->get($dayName) ?? ['time' => []];
@@ -124,7 +145,7 @@ class AiPlanGenerator implements PlanGeneratorInterface
                     foreach ($mealGroup['options'] ?? [] as $option) {
                         $mealId = (int) ($option['meal_id'] ?? 0);
                         // Validate ID existence against catalog to prevent hallucinated IDs
-                        if (! in_array($mealId, $validMealIds)) {
+                        if (!in_array($mealId, $validMealIds)) {
                             $mealId = $fallbackMealId;
                         }
 
@@ -136,12 +157,12 @@ class AiPlanGenerator implements PlanGeneratorInterface
                         ];
                     }
 
-                    if (! empty($options)) {
+                    if (!empty($options)) {
                         $mealsList[] = ['options' => $options];
                     }
                 }
 
-                if (! empty($mealsList)) {
+                if (!empty($mealsList)) {
                     $timeSlots[] = [
                         'meal_time' => $slotName,
                         'meals' => $mealsList,
@@ -188,7 +209,7 @@ class AiPlanGenerator implements PlanGeneratorInterface
         $expectedDays = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
         $formattedDays = [];
 
-        $daysByName = collect($rawDays)->keyBy(fn ($d) => trim($d['day'] ?? ''));
+        $daysByName = collect($rawDays)->keyBy(fn($d) => trim($d['day'] ?? ''));
 
         foreach ($expectedDays as $dayName) {
             $dayData = $daysByName->get($dayName) ?? ['workouts' => []];
@@ -196,12 +217,12 @@ class AiPlanGenerator implements PlanGeneratorInterface
 
             foreach ($dayData['workouts'] ?? [] as $workoutItem) {
                 $workoutId = (int) ($workoutItem['workout_id'] ?? 0);
-                if (! in_array($workoutId, $validWorkoutIds)) {
+                if (!in_array($workoutId, $validWorkoutIds)) {
                     $workoutId = $fallbackWorkoutId;
                 }
 
                 $presetId = (int) ($workoutItem['reps_preset_id'] ?? $fallbackPresetId);
-                if (! in_array($presetId, $validPresetIds)) {
+                if (!in_array($presetId, $validPresetIds)) {
                     $presetId = $fallbackPresetId;
                 }
 

@@ -71,6 +71,11 @@ interface DashboardProps {
     activeSubscription: Subscription | null;
     waterData?: WaterData;
     achievementJourney?: AchievementJourney;
+    aiPlanEligibility?: {
+        can_generate: boolean;
+        remaining: number | null;
+        reason: string | null;
+    };
 }
 
 function SectionHeading({ icon, title, description }: { icon: ReactNode; title: string; description?: string }) {
@@ -98,6 +103,7 @@ export default function Dashboard({
     activeSubscription,
     waterData,
     achievementJourney,
+    aiPlanEligibility,
 }: DashboardProps) {
     const [section, setSection] = useState<'workouts' | 'nutrition'>('workouts');
 
@@ -128,8 +134,8 @@ export default function Dashboard({
                 workoutRate.total === 0
                     ? 'Nothing scheduled'
                     : workoutRate.percentage >= 100
-                    ? 'Week complete'
-                    : `${Math.max(0, workoutRate.total - workoutRate.completed)} to go`,
+                        ? 'Week complete'
+                        : `${Math.max(0, workoutRate.total - workoutRate.completed)} to go`,
             icon: <Dumbbell className="h-4 w-4" />,
             iconClassName: 'bg-primary/10 text-primary',
             barClassName: 'bg-primary',
@@ -143,8 +149,8 @@ export default function Dashboard({
                 mealRate.total === 0
                     ? 'Nothing scheduled'
                     : mealRate.percentage >= 100
-                    ? 'Week complete'
-                    : `${Math.max(0, mealRate.total - mealRate.completed)} to go`,
+                        ? 'Week complete'
+                        : `${Math.max(0, mealRate.total - mealRate.completed)} to go`,
             icon: <Apple className="h-4 w-4" />,
             iconClassName: 'bg-emerald-500/10 text-emerald-500',
             barClassName: 'bg-emerald-500',
@@ -218,14 +224,8 @@ export default function Dashboard({
                         <p className="mt-1 text-sm text-muted-foreground">Here's how your week is going.</p>
                     </div>
 
-                    <AutoPlanGeneratorCard />
+                    <AutoPlanGeneratorCard eligibility={aiPlanEligibility} />
 
-                    {/* Answer-first summary */}
-                    <WeekAtGlance
-                        title="This week"
-                        subtitle="Your workouts, meals and water at a glance"
-                        tiles={glanceTiles}
-                    />
 
                     {/* Level & Points progression + trend */}
                     <section>
@@ -242,6 +242,12 @@ export default function Dashboard({
                         </div>
                     </section>
 
+                    {/* Answer-first summary */}
+                    <WeekAtGlance
+                        title="This week"
+                        subtitle="Your workouts, meals and water at a glance"
+                        tiles={glanceTiles}
+                    />
                     {/* Detailed progress — ONE level of tabs, no nesting */}
                     <section>
                         <SectionHeading
@@ -375,9 +381,8 @@ export default function Dashboard({
                         <SectionHeading
                             icon={<Trophy className="h-4 w-4" />}
                             title="Achievements"
-                            description={`${achievementJourney?.unlocked_count ?? 0} of ${
-                                achievementJourney?.total_count ?? 0
-                            } badges earned`}
+                            description={`${achievementJourney?.unlocked_count ?? 0} of ${achievementJourney?.total_count ?? 0
+                                } badges earned`}
                         />
                         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                             {featuredBadges.length > 0 ? (

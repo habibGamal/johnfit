@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\UserDailyItem;
+use App\Models\UserDailyPoint;
 use App\Models\UserDailyWaterLog;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -36,8 +37,6 @@ class PointsService
      * 5k^2 + 15k <= P
      * k = floor((-15 + sqrt(225 + 20P)) / 10)
      * Current Level L = k + 1
-     *
-     * (At P=0 -> k=0 -> Level 1. Reaching P=20 -> k=1 -> Level 2.)
      */
     public static function levelFromPoints(int $points): int
     {
@@ -113,25 +112,46 @@ class PointsService
     }
 
     /**
-     * Add workout points and update user totals.
+     * Record workout points for a specific date and update user totals.
      */
-    public function addWorkoutPoints(User $user, int $points): void
+    public function recordWorkoutPoints(User $user, int $points, ?Carbon $date = null): void
     {
         if ($points <= 0) {
             return;
         }
+
+        $dateStr = ($date ?? Carbon::today())->toDateString();
+
+        $daily = UserDailyPoint::firstOrCreate(
+            ['user_id' => $user->id, 'date' => $dateStr],
+            ['workout_points' => 0, 'meal_points' => 0, 'hydration_points' => 0, 'total_points' => 0]
+        );
+
+        $daily->workout_points += $points;
+        $daily->recalculateTotal();
 
         $user->workout_points += $points;
         $this->syncUserTotals($user);
     }
 
     /**
-     * Deduct workout points (when unchecked/undone).
+     * Deduct workout points for a specific date and update user totals.
      */
-    public function deductWorkoutPoints(User $user, int $points): void
+    public function deductWorkoutPoints(User $user, int $points, ?Carbon $date = null): void
     {
         if ($points <= 0) {
             return;
+        }
+
+        $dateStr = ($date ?? Carbon::today())->toDateString();
+
+        $daily = UserDailyPoint::where('user_id', $user->id)
+            ->whereDate('date', $dateStr)
+            ->first();
+
+        if ($daily) {
+            $daily->workout_points = max(0, $daily->workout_points - $points);
+            $daily->recalculateTotal();
         }
 
         $user->workout_points = max(0, $user->workout_points - $points);
@@ -139,25 +159,46 @@ class PointsService
     }
 
     /**
-     * Add meal points and update user totals.
+     * Record meal points for a specific date and update user totals.
      */
-    public function addMealPoints(User $user, int $points): void
+    public function recordMealPoints(User $user, int $points, ?Carbon $date = null): void
     {
         if ($points <= 0) {
             return;
         }
+
+        $dateStr = ($date ?? Carbon::today())->toDateString();
+
+        $daily = UserDailyPoint::firstOrCreate(
+            ['user_id' => $user->id, 'date' => $dateStr],
+            ['workout_points' => 0, 'meal_points' => 0, 'hydration_points' => 0, 'total_points' => 0]
+        );
+
+        $daily->meal_points += $points;
+        $daily->recalculateTotal();
 
         $user->meal_points += $points;
         $this->syncUserTotals($user);
     }
 
     /**
-     * Deduct meal points (when unchecked/undone).
+     * Deduct meal points for a specific date and update user totals.
      */
-    public function deductMealPoints(User $user, int $points): void
+    public function deductMealPoints(User $user, int $points, ?Carbon $date = null): void
     {
         if ($points <= 0) {
             return;
+        }
+
+        $dateStr = ($date ?? Carbon::today())->toDateString();
+
+        $daily = UserDailyPoint::where('user_id', $user->id)
+            ->whereDate('date', $dateStr)
+            ->first();
+
+        if ($daily) {
+            $daily->meal_points = max(0, $daily->meal_points - $points);
+            $daily->recalculateTotal();
         }
 
         $user->meal_points = max(0, $user->meal_points - $points);
@@ -165,29 +206,66 @@ class PointsService
     }
 
     /**
-     * Add hydration points and update user totals.
+     * Record hydration points for a specific date and update user totals.
      */
-    public function addHydrationPoints(User $user, int $points = self::HYDRATION_GOAL_POINTS): void
+    public function recordHydrationPoints(User $user, int $points = self::HYDRATION_GOAL_POINTS, ?Carbon $date = null): void
     {
         if ($points <= 0) {
             return;
         }
+
+        $dateStr = ($date ?? Carbon::today())->toDateString();
+
+        $daily = UserDailyPoint::firstOrCreate(
+            ['user_id' => $user->id, 'date' => $dateStr],
+            ['workout_points' => 0, 'meal_points' => 0, 'hydration_points' => 0, 'total_points' => 0]
+        );
+
+        $daily->hydration_points += $points;
+        $daily->recalculateTotal();
 
         $user->hydration_points += $points;
         $this->syncUserTotals($user);
     }
 
     /**
-     * Deduct hydration points (when water goal becomes uncompleted).
+     * Deduct hydration points for a specific date and update user totals.
      */
-    public function deductHydrationPoints(User $user, int $points = self::HYDRATION_GOAL_POINTS): void
+    public function deductHydrationPoints(User $user, int $points = self::HYDRATION_GOAL_POINTS, ?Carbon $date = null): void
     {
         if ($points <= 0) {
             return;
         }
 
+        $dateStr = ($date ?? Carbon::today())->toDateString();
+
+        $daily = UserDailyPoint::where('user_id', $user->id)
+            ->whereDate('date', $dateStr)
+            ->first();
+
+        if ($daily) {
+            $daily->hydration_points = max(0, $daily->hydration_points - $points);
+            $daily->recalculateTotal();
+        }
+
         $user->hydration_points = max(0, $user->hydration_points - $points);
         $this->syncUserTotals($user);
+    }
+
+    // Aliases for compatibility
+    public function addWorkoutPoints(User $user, int $points, ?Carbon $date = null): void
+    {
+        $this->recordWorkoutPoints($user, $points, $date);
+    }
+
+    public function addMealPoints(User $user, int $points, ?Carbon $date = null): void
+    {
+        $this->recordMealPoints($user, $points, $date);
+    }
+
+    public function addHydrationPoints(User $user, int $points = self::HYDRATION_GOAL_POINTS, ?Carbon $date = null): void
+    {
+        $this->recordHydrationPoints($user, $points, $date);
     }
 
     /**
@@ -199,40 +277,84 @@ class PointsService
         $user->level = self::levelFromPoints($user->total_points);
         $user->save();
 
-        // Refresh badge unlocks if BadgeService is available
         $this->syncBadges($user);
     }
 
     /**
-     * Recalculate all user points from scratch based on actual completed daily items and water logs.
+     * Recalculate all user points and populate user_daily_points from completed schedule items and water logs.
      */
     public function recalculateUserPoints(User $user): array
     {
-        $workoutPoints = (int) UserDailyItem::query()
-            ->whereHas('schedule', fn ($q) => $q->where('user_id', $user->id))
-            ->where('type', 'workout')
-            ->where('is_completed', true)
-            ->where('status', '!=', 'voided')
-            ->sum('points');
+        // 1. Group completed workouts by date
+        $workoutByDate = UserDailyItem::query()
+            ->join('user_daily_schedules', 'user_daily_items.daily_schedule_id', '=', 'user_daily_schedules.id')
+            ->where('user_daily_schedules.user_id', $user->id)
+            ->where('user_daily_items.type', 'workout')
+            ->where('user_daily_items.is_completed', true)
+            ->where('user_daily_items.status', '!=', 'voided')
+            ->groupBy('user_daily_schedules.date')
+            ->selectRaw('user_daily_schedules.date, SUM(user_daily_items.points) as total_pts')
+            ->pluck('total_pts', 'date');
 
-        $mealPoints = (int) UserDailyItem::query()
-            ->whereHas('schedule', fn ($q) => $q->where('user_id', $user->id))
-            ->where('type', 'meal')
-            ->where('is_completed', true)
-            ->where('status', '!=', 'voided')
-            ->sum('points');
+        // 2. Group completed meals by date
+        $mealsByDate = UserDailyItem::query()
+            ->join('user_daily_schedules', 'user_daily_items.daily_schedule_id', '=', 'user_daily_schedules.id')
+            ->where('user_daily_schedules.user_id', $user->id)
+            ->where('user_daily_items.type', 'meal')
+            ->where('user_daily_items.is_completed', true)
+            ->where('user_daily_items.status', '!=', 'voided')
+            ->groupBy('user_daily_schedules.date')
+            ->selectRaw('user_daily_schedules.date, SUM(user_daily_items.points) as total_pts')
+            ->pluck('total_pts', 'date');
 
-        $hydrationDaysCompleted = (int) UserDailyWaterLog::query()
+        // 3. Completed water logs by date
+        $waterByDate = UserDailyWaterLog::query()
             ->where('user_id', $user->id)
             ->where('is_completed', true)
-            ->count();
+            ->pluck('date')
+            ->mapWithKeys(fn ($d) => [Carbon::parse($d)->toDateString() => self::HYDRATION_GOAL_POINTS]);
 
-        $hydrationPoints = $hydrationDaysCompleted * self::HYDRATION_GOAL_POINTS;
+        // Merge all dates where user made progress
+        $allDates = collect()
+            ->merge($workoutByDate->keys())
+            ->merge($mealsByDate->keys())
+            ->merge($waterByDate->keys())
+            ->unique();
 
-        $user->workout_points = $workoutPoints;
-        $user->meal_points = $mealPoints;
-        $user->hydration_points = $hydrationPoints;
-        $user->total_points = $workoutPoints + $mealPoints + $hydrationPoints;
+        // Clear existing daily points for clean recalculation
+        UserDailyPoint::where('user_id', $user->id)->delete();
+
+        $totalWorkout = 0;
+        $totalMeal = 0;
+        $totalHydration = 0;
+
+        foreach ($allDates as $date) {
+            $dateStr = Carbon::parse($date)->toDateString();
+            $wPts = (int) ($workoutByDate[$dateStr] ?? 0);
+            $mPts = (int) ($mealsByDate[$dateStr] ?? 0);
+            $hPts = (int) ($waterByDate[$dateStr] ?? 0);
+            $tPts = $wPts + $mPts + $hPts;
+
+            if ($tPts > 0) {
+                UserDailyPoint::create([
+                    'user_id' => $user->id,
+                    'date' => $dateStr,
+                    'workout_points' => $wPts,
+                    'meal_points' => $mPts,
+                    'hydration_points' => $hPts,
+                    'total_points' => $tPts,
+                ]);
+
+                $totalWorkout += $wPts;
+                $totalMeal += $mPts;
+                $totalHydration += $hPts;
+            }
+        }
+
+        $user->workout_points = $totalWorkout;
+        $user->meal_points = $totalMeal;
+        $user->hydration_points = $totalHydration;
+        $user->total_points = $totalWorkout + $totalMeal + $totalHydration;
         $user->level = self::levelFromPoints($user->total_points);
         $user->save();
 
@@ -242,7 +364,7 @@ class PointsService
     }
 
     /**
-     * Get complete points and level summary for the authenticated user.
+     * Get complete points and level summary for the user.
      */
     public function getSummary(User $user): array
     {
@@ -272,94 +394,59 @@ class PointsService
     }
 
     /**
-     * Get points history aggregated by week for trend chart.
+     * Get points progression history reading directly from the user_daily_points table.
+     *
+     * Returns a day-by-day array of logged points for the given number of days (default 30).
      */
-    public function getPointsHistory(User $user, int $weeks = 12): array
+    public function getPointsHistory(User $user, int $days = 30): array
     {
-        $startDate = Carbon::today()->subWeeks($weeks)->startOfWeek();
-        $endDate = Carbon::today()->endOfWeek();
+        $days = max(7, min(180, $days));
+        $startDate = Carbon::today()->subDays($days - 1);
+        $endDate = Carbon::today();
 
-        // 1. Fetch completed items with date
-        $workoutItems = UserDailyItem::query()
-            ->join('user_daily_schedules', 'user_daily_items.daily_schedule_id', '=', 'user_daily_schedules.id')
-            ->where('user_daily_schedules.user_id', $user->id)
-            ->where('user_daily_items.type', 'workout')
-            ->where('user_daily_items.is_completed', true)
-            ->where('user_daily_items.status', '!=', 'voided')
-            ->whereBetween('user_daily_schedules.date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->select('user_daily_schedules.date', 'user_daily_items.points')
-            ->get();
-
-        $mealItems = UserDailyItem::query()
-            ->join('user_daily_schedules', 'user_daily_items.daily_schedule_id', '=', 'user_daily_schedules.id')
-            ->where('user_daily_schedules.user_id', $user->id)
-            ->where('user_daily_items.type', 'meal')
-            ->where('user_daily_items.is_completed', true)
-            ->where('user_daily_items.status', '!=', 'voided')
-            ->whereBetween('user_daily_schedules.date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->select('user_daily_schedules.date', 'user_daily_items.points')
-            ->get();
-
-        $waterLogs = UserDailyWaterLog::query()
+        // 1. Fetch all user_daily_points records for user in this range
+        $dailyRecords = UserDailyPoint::query()
             ->where('user_id', $user->id)
-            ->where('is_completed', true)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->get(['date']);
+            ->get()
+            ->keyBy(fn ($r) => Carbon::parse($r->date)->toDateString());
 
-        $weeklyMap = [];
-        $currentCursor = $startDate->copy();
+        // 2. Fetch cumulative points prior to startDate to establish the correct running baseline
+        $priorPoints = (int) UserDailyPoint::query()
+            ->where('user_id', $user->id)
+            ->where('date', '<', $startDate->toDateString())
+            ->sum('total_points');
 
-        while ($currentCursor <= $endDate) {
-            $weekKey = $currentCursor->format('Y-W');
-            $weekEnd = $currentCursor->copy()->endOfWeek();
+        $runningTotal = $priorPoints;
+        $history = [];
+        $cursor = $startDate->copy();
 
-            $weeklyMap[$weekKey] = [
-                'date' => $weekEnd->format('M d'),
-                'fullDate' => $weekEnd->format('Y-m-d'),
-                'workout_points' => 0,
-                'meal_points' => 0,
-                'hydration_points' => 0,
-                'points_earned' => 0,
-                'total_score' => 0, // for backwards-friendly chart axis if needed
+        while ($cursor <= $endDate) {
+            $dateStr = $cursor->toDateString();
+            $record = $dailyRecords->get($dateStr);
+
+            $wPts = (int) ($record?->workout_points ?? 0);
+            $mPts = (int) ($record?->meal_points ?? 0);
+            $hPts = (int) ($record?->hydration_points ?? 0);
+            $earned = $wPts + $mPts + $hPts;
+
+            $runningTotal += $earned;
+
+            $history[] = [
+                'date' => $cursor->format('M d'),
+                'dayName' => $cursor->format('D'),
+                'fullDate' => $dateStr,
+                'isToday' => $cursor->isToday(),
+                'workout_points' => $wPts,
+                'meal_points' => $mPts,
+                'hydration_points' => $hPts,
+                'points_earned' => $earned,
+                'total_points' => $runningTotal,
+                'total_score' => $earned,
+                'level' => self::levelFromPoints($runningTotal),
             ];
 
-            $currentCursor->addWeek();
-        }
-
-        foreach ($workoutItems as $item) {
-            $key = Carbon::parse($item->date)->format('Y-W');
-            if (isset($weeklyMap[$key])) {
-                $weeklyMap[$key]['workout_points'] += (int) $item->points;
-                $weeklyMap[$key]['points_earned'] += (int) $item->points;
-            }
-        }
-
-        foreach ($mealItems as $item) {
-            $key = Carbon::parse($item->date)->format('Y-W');
-            if (isset($weeklyMap[$key])) {
-                $weeklyMap[$key]['meal_points'] += (int) $item->points;
-                $weeklyMap[$key]['points_earned'] += (int) $item->points;
-            }
-        }
-
-        foreach ($waterLogs as $log) {
-            $key = Carbon::parse($log->date)->format('Y-W');
-            if (isset($weeklyMap[$key])) {
-                $weeklyMap[$key]['hydration_points'] += self::HYDRATION_GOAL_POINTS;
-                $weeklyMap[$key]['points_earned'] += self::HYDRATION_GOAL_POINTS;
-            }
-        }
-
-        // Calculate cumulative points curve over time
-        $runningTotal = 0;
-        $history = [];
-
-        foreach ($weeklyMap as $entry) {
-            $runningTotal += $entry['points_earned'];
-            $entry['total_points'] = $runningTotal;
-            $entry['total_score'] = $entry['points_earned']; // primary metric plotted on chart
-            $entry['level'] = self::levelFromPoints($runningTotal);
-            $history[] = $entry;
+            $cursor->addDay();
         }
 
         return $history;
@@ -374,7 +461,7 @@ class PointsService
             $badgeService = $this->badgeService ?? app(BadgeService::class);
             $badgeService->syncUnlocks($user);
         } catch (\Throwable $e) {
-            // Silently capture any badge sync issues so core item tracking does not fail
+            // Silently capture any badge sync issues
         }
     }
 }

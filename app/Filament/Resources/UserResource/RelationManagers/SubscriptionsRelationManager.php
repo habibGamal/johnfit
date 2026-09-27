@@ -32,6 +32,7 @@ class SubscriptionsRelationManager extends RelationManager
                     ->required()
                     ->live()
                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                        $set('tier_id', null);
                         if ($state) {
                             $plan = SubscriptionPlan::find($state);
                             $startDate = $get('start_date') ? Carbon::parse($get('start_date')) : now();
@@ -40,6 +41,39 @@ class SubscriptionsRelationManager extends RelationManager
                             }
                         }
                     }),
+                Forms\Components\Select::make('tier_id')
+                    ->label('Duration Tier')
+                    ->options(function (Get $get) {
+                        $planId = $get('plan_id');
+                        if (! $planId) return [];
+                        $plan = SubscriptionPlan::with('activeTiers')->find($planId);
+                        if (! $plan) return [];
+                        return $plan->activeTiers->mapWithKeys(function ($tier) {
+                            $label = "{$tier->months} Month" . ($tier->months > 1 ? 's' : '') . " ({$tier->price} EGP)";
+                            if ($tier->tag) $label .= " - {$tier->tag}";
+                            return [$tier->id => $label];
+                        })->toArray();
+                    })
+                    ->live()
+                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                        if ($state) {
+                            $tier = \App\Models\SubscriptionPlanTier::find($state);
+                            if ($tier) {
+                                $set('duration_months', $tier->months);
+                                $set('duration_days', $tier->effective_days);
+                                $startDate = $get('start_date') ? Carbon::parse($get('start_date')) : now();
+                                $set('end_date', $startDate->copy()->addDays($tier->effective_days)->toDateTimeString());
+                            }
+                        }
+                    }),
+                Forms\Components\TextInput::make('duration_months')
+                    ->label('Months')
+                    ->numeric()
+                    ->default(1),
+                Forms\Components\TextInput::make('duration_days')
+                    ->label('Days')
+                    ->numeric()
+                    ->default(30),
                 Forms\Components\Select::make('status')
                     ->options([
                         'active' => 'Active',
@@ -55,6 +89,14 @@ class SubscriptionsRelationManager extends RelationManager
                     ->required()
                     ->live()
                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                        $tierId = $get('tier_id');
+                        if ($tierId) {
+                            $tier = \App\Models\SubscriptionPlanTier::find($tierId);
+                            if ($tier && $state) {
+                                $set('end_date', Carbon::parse($state)->addDays($tier->effective_days)->toDateTimeString());
+                                return;
+                            }
+                        }
                         $planId = $get('plan_id');
                         if ($state && $planId) {
                             $plan = SubscriptionPlan::find($planId);

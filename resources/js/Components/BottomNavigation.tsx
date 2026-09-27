@@ -24,12 +24,6 @@ export default function BottomNavigation() {
             isActive: route().current('schedule.*'),
         },
         {
-            name: 'Analytics',
-            href: route('analytics.index'),
-            icon: TrendingUp,
-            isActive: route().current('analytics.*'),
-        },
-        {
             name: 'Journey',
             href: route('achievements.index'),
             icon: Trophy,

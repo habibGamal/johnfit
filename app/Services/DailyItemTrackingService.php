@@ -57,18 +57,20 @@ class DailyItemTrackingService
 
         $item->schedule->recalculateScores();
 
+        $itemDate = $item->schedule?->date ? Carbon::parse($item->schedule->date) : Carbon::today();
+
         // Award or deduct points based on completion transition
         if ($newStatus && ! $wasCompleted) {
             if ($item->type === 'workout') {
-                $this->pointsService->addWorkoutPoints($user, (int) $item->points);
+                $this->pointsService->recordWorkoutPoints($user, (int) $item->points, $itemDate);
             } elseif ($item->type === 'meal') {
-                $this->pointsService->addMealPoints($user, (int) $item->points);
+                $this->pointsService->recordMealPoints($user, (int) $item->points, $itemDate);
             }
         } elseif (! $newStatus && $wasCompleted) {
             if ($item->type === 'workout') {
-                $this->pointsService->deductWorkoutPoints($user, (int) $item->points);
+                $this->pointsService->deductWorkoutPoints($user, (int) $item->points, $itemDate);
             } elseif ($item->type === 'meal') {
-                $this->pointsService->deductMealPoints($user, (int) $item->points);
+                $this->pointsService->deductMealPoints($user, (int) $item->points, $itemDate);
             }
         }
 
@@ -128,11 +130,13 @@ class DailyItemTrackingService
 
         $item->schedule->recalculateScores();
 
+        $itemDate = $item->schedule?->date ? Carbon::parse($item->schedule->date) : Carbon::today();
+
         // Award or deduct points
         if ($allCompleted && ! $wasCompleted) {
-            $this->pointsService->addWorkoutPoints($user, (int) $item->points);
+            $this->pointsService->recordWorkoutPoints($user, (int) $item->points, $itemDate);
         } elseif (! $allCompleted && $wasCompleted) {
-            $this->pointsService->deductWorkoutPoints($user, (int) $item->points);
+            $this->pointsService->deductWorkoutPoints($user, (int) $item->points, $itemDate);
         }
 
         $this->progressionService->clearUserCache($user);
@@ -182,7 +186,8 @@ class DailyItemTrackingService
         $item->schedule->recalculateScores();
 
         if (! $wasCompleted) {
-            $this->pointsService->addMealPoints($user, (int) $item->points);
+            $itemDate = $item->schedule?->date ? Carbon::parse($item->schedule->date) : Carbon::today();
+            $this->pointsService->recordMealPoints($user, (int) $item->points, $itemDate);
         }
 
         return $item->fresh(['schedule']);

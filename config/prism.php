@@ -6,10 +6,10 @@ return [
         'middleware' => [],
         'enabled' => env('PRISM_SERVER_ENABLED', false),
     ],
-    'request_timeout' => env('PRISM_REQUEST_TIMEOUT', 30), // The timeout for requests in seconds.
+    'request_timeout' => env('PRISM_REQUEST_TIMEOUT', 3000), // The timeout for requests in seconds.
     'providers' => [
         'openai' => [
-            'url' => env('OPENAI_URL', 'https://api.openai.com/v1'),
+            'url' => env('OPENAI_URL', 'https://integrate.api.nvidia.com/v1'),
             'api_key' => env('OPENAI_API_KEY', ''),
             'organization' => env('OPENAI_ORGANIZATION', null),
             'project' => env('OPENAI_PROJECT', null),

@@ -31,6 +31,7 @@ class SubscriptionPlanResource extends Resource
                             ->required()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('price')
+                            ->label('Base Price (1 Month fallback)')
                             ->required()
                             ->numeric()
                             ->prefix('EGP')
@@ -40,6 +41,7 @@ class SubscriptionPlanResource extends Resource
                             ->placeholder('e.g. Most Popular, Best Value')
                             ->hint('Optional badge shown on plan card'),
                         Forms\Components\TextInput::make('duration_days')
+                            ->label('Base Duration (Days)')
                             ->required()
                             ->numeric()
                             ->default(30)
@@ -50,6 +52,45 @@ class SubscriptionPlanResource extends Resource
                             ->default(true)
                             ->columnSpanFull(),
                     ]),
+
+                Forms\Components\Section::make('Duration & Pricing Tiers')
+                    ->description('Dynamically configure duration options (e.g. 1 month, 3 months, 6 months) and their respective prices.')
+                    ->schema([
+                        Forms\Components\Repeater::make('tiers')
+                            ->relationship('tiers')
+                            ->schema([
+                                Forms\Components\TextInput::make('months')
+                                    ->label('Months')
+                                    ->numeric()
+                                    ->required()
+                                    ->minValue(1)
+                                    ->placeholder('1, 3, 6, 12...'),
+                                Forms\Components\TextInput::make('price')
+                                    ->label('Price')
+                                    ->numeric()
+                                    ->required()
+                                    ->prefix('EGP')
+                                    ->minValue(0),
+                                Forms\Components\TextInput::make('tag')
+                                    ->label('Badge / Tag')
+                                    ->placeholder('e.g. Save 15%'),
+                                Forms\Components\TextInput::make('duration_days')
+                                    ->label('Days')
+                                    ->numeric()
+                                    ->placeholder('Auto (months * 30)')
+                                    ->helperText('Empty = months * 30'),
+                                Forms\Components\Toggle::make('is_active')
+                                    ->label('Active')
+                                    ->default(true),
+                            ])
+                            ->columns(5)
+                            ->addActionLabel('Add Duration Tier')
+                            ->reorderable('order')
+                            ->collapsible()
+                            ->defaultItems(0)
+                            ->columnSpanFull(),
+                    ]),
+
                 Forms\Components\Section::make('Features')
                     ->schema([
                         Forms\Components\Repeater::make('features')
@@ -72,15 +113,23 @@ class SubscriptionPlanResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('price')
-                    ->money()
+                    ->label('Base Price')
+                    ->money('EGP')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('tiers_summary')
+                    ->label('Duration Tiers')
+                    ->state(function (SubscriptionPlan $record): string {
+                        $tiers = $record->activeTiers;
+                        if ($tiers->isEmpty()) {
+                            return 'No tiers (using base price)';
+                        }
+
+                        return $tiers->map(fn ($t) => "{$t->months}M: {$t->price} EGP")->join(' | ');
+                    }),
                 Tables\Columns\TextColumn::make('tag')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('duration_days')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

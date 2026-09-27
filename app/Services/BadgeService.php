@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Enums\BadgeMetric;
 use App\Models\Badge;
 use App\Models\BadgeRequirement;
-use App\Models\FitnessScore;
 use App\Models\User;
 use App\Models\UserBadge;
 use App\Models\UserStreak;

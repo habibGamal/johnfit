@@ -36,4 +36,23 @@ return [
     |
     */
     'fallback_to_rule_based' => env('PLAN_GENERATION_FALLBACK_ON_ERROR', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI Plan Generation Eligibility Strategy
+    |--------------------------------------------------------------------------
+    |
+    | Controls which strategy governs access / quotas for AI plan generation.
+    | - 'once_per_user': User can only generate an AI plan once.
+    | - 'unlimited': Unlimited generations (useful for local dev/admin).
+    | - 'subscription_tier': Tier-based limits based on active subscriptions.
+    |
+    */
+    'eligibility_strategy' => env('AI_PLAN_ELIGIBILITY_STRATEGY', 'once_per_user'),
+
+    'eligibility_strategies' => [
+        'once_per_user' => \App\Services\PlanGeneration\Strategies\OncePerUserStrategy::class,
+        'unlimited' => \App\Services\PlanGeneration\Strategies\UnlimitedEligibilityStrategy::class,
+        'subscription_tier' => \App\Services\PlanGeneration\Strategies\SubscriptionTierEligibilityStrategy::class,
+    ],
 ];

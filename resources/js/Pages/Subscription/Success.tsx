@@ -31,7 +31,11 @@ export default function Success({ subscription }: SuccessProps) {
                         You're All Set!
                     </h1>
                     <p className="text-muted-foreground mb-8">
-                        Your <span className="text-primary font-bold">{subscription.plan?.name}</span> subscription is now active.
+                        Your <span className="text-primary font-bold">{subscription.plan?.name}</span>
+                        {subscription.tier && (
+                            <span className="text-foreground font-semibold"> ({subscription.tier.months} {subscription.tier.months === 1 ? 'Month' : 'Months'})</span>
+                        )}{' '}
+                        subscription is now active.
                     </p>
 
                     {subscription.end_date && (

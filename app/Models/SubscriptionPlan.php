@@ -34,4 +34,38 @@ class SubscriptionPlan extends Model
     {
         return $this->hasMany(Subscription::class, 'plan_id');
     }
+
+    public function tiers(): HasMany
+    {
+        return $this->hasMany(SubscriptionPlanTier::class, 'subscription_plan_id')
+            ->orderBy('order')
+            ->orderBy('months');
+    }
+
+    public function activeTiers(): HasMany
+    {
+        return $this->hasMany(SubscriptionPlanTier::class, 'subscription_plan_id')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->orderBy('months');
+    }
+
+    public function getTierForMonths(int $months): ?SubscriptionPlanTier
+    {
+        return $this->activeTiers()->where('months', $months)->first();
+    }
+
+    public function getPriceForMonths(int $months): float
+    {
+        $tier = $this->getTierForMonths($months);
+
+        return $tier ? (float) $tier->price : (float) $this->price;
+    }
+
+    public function getDaysForMonths(int $months): int
+    {
+        $tier = $this->getTierForMonths($months);
+
+        return $tier ? $tier->effective_days : ($months * 30);
+    }
 }

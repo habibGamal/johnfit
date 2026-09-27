@@ -15,6 +15,9 @@ class Subscription extends Model
     protected $fillable = [
         'user_id',
         'plan_id',
+        'tier_id',
+        'duration_months',
+        'duration_days',
         'start_date',
         'end_date',
         'status',
@@ -23,6 +26,8 @@ class Subscription extends Model
     protected function casts(): array
     {
         return [
+            'duration_months' => 'integer',
+            'duration_days' => 'integer',
             'start_date' => 'datetime',
             'end_date' => 'datetime',
         ];
@@ -36,6 +41,11 @@ class Subscription extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(SubscriptionPlan::class, 'plan_id');
+    }
+
+    public function tier(): BelongsTo
+    {
+        return $this->belongsTo(SubscriptionPlanTier::class, 'tier_id');
     }
 
     public function payments(): HasMany

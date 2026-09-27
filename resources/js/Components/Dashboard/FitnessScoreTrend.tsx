@@ -1,38 +1,46 @@
 import { ReactNode, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Activity, ArrowDownRight, ArrowUpRight, Dumbbell, Minus, Utensils, Droplets } from 'lucide-react';
+import { Activity, ArrowDownRight, ArrowUpRight, Dumbbell, Minus, Utensils, Droplets, Calendar, Sparkles } from 'lucide-react';
 import type { PointsHistoryItem } from '@/types/fitness-score';
 
 interface FitnessScoreTrendProps {
     history?: PointsHistoryItem[];
-    weeks?: number;
+    weeks?: number; // Kept for interface backward-compatibility
     isLoading?: boolean;
 }
 
-const RANGES = [
-    { label: '4W', weeks: 4 },
-    { label: '12W', weeks: 12 },
+type RangeOption = '7D' | '14D' | '30D';
+
+const RANGES: { label: RangeOption; days: number; description: string }[] = [
+    { label: '7D', days: 7, description: 'Last 7 Days' },
+    { label: '14D', days: 14, description: 'Last 2 Weeks' },
+    { label: '30D', days: 30, description: 'Last 30 Days' },
 ];
 
-/** Builds a short, human sentence about points progression. */
-function buildSummary(currentPoints: number, previousPoints: number | null, rangeLabel: string): string {
-    if (previousPoints === null) {
-        return `You earned ${Math.round(currentPoints)} points this week. Keep logging activities to build your trend!`;
+/** Builds a short, human sentence about daily points progression. */
+function buildDailySummary(selected: PointsHistoryItem, previous: PointsHistoryItem | null, rangeTotal: number): string {
+    const isToday = Boolean(selected.isToday);
+    const dateLabel = isToday ? 'today' : `on ${selected.date}`;
+
+    if (selected.points_earned > 0) {
+        const parts: string[] = [];
+        if (selected.workout_points > 0) parts.push(`${selected.workout_points} workout`);
+        if (selected.meal_points > 0) parts.push(`${selected.meal_points} nutrition`);
+        if (selected.hydration_points > 0) parts.push(`${selected.hydration_points} hydration`);
+
+        const breakdown = parts.length ? ` (${parts.join(', ')} pts)` : '';
+        return `You earned ${selected.points_earned} points ${dateLabel}${breakdown}. Total in this range: ${rangeTotal} pts.`;
     }
 
-    const delta = Math.round(currentPoints - previousPoints);
+    if (previous && previous.points_earned > 0) {
+        return `No points logged ${dateLabel}. Rest day or pending activities? Complete items to earn points!`;
+    }
 
-    if (delta === 0) {
-        return `Consistent pace: ${Math.round(currentPoints)} points earned this week. Consistency beats spikes.`;
-    }
-    if (delta > 0) {
-        return `Up +${delta} points compared to last week (${Math.round(currentPoints)} total). You're leveling up fast!`;
-    }
-    return `${Math.round(currentPoints)} points earned this week (${delta} vs previous). Keep going to gain momentum!`;
+    return `No points logged ${dateLabel}. Check off your scheduled workouts, meals, or water goal to start earning!`;
 }
 
-/** A single contributor row, e.g. "Workouts  18 pts". */
+/** A single contributor row, e.g. "Workouts  6 pts". */
 function ContributorRow({
     icon,
     label,
@@ -46,8 +54,7 @@ function ContributorRow({
     delta: number | null;
     colorClass: string;
 }) {
-    if (points === null || points === undefined) return null;
-
+    const currentPts = points ?? 0;
     const DeltaIcon = delta === null || delta === 0 ? Minus : delta > 0 ? ArrowUpRight : ArrowDownRight;
     const deltaTone =
         delta === null || delta === 0
@@ -69,25 +76,51 @@ function ContributorRow({
                 </span>
             ) : null}
 
-            <span className="w-14 text-right text-sm font-extrabold text-foreground tabular-nums">
-                {Math.round(points)} <span className="text-[10px] font-normal text-muted-foreground">pts</span>
+            <span className="w-16 text-right text-sm font-extrabold text-foreground tabular-nums">
+                {currentPts} <span className="text-[10px] font-normal text-muted-foreground">pts</span>
             </span>
         </div>
     );
 }
 
-export default function FitnessScoreTrend({ history = [], weeks = 12, isLoading }: FitnessScoreTrendProps) {
-    const [range, setRange] = useState(weeks);
+export default function FitnessScoreTrend({ history = [], isLoading }: FitnessScoreTrendProps) {
+    const [range, setRange] = useState<RangeOption>('7D');
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-    // The API returns entries, take the latest N weeks
-    const pointsList = useMemo(() => history.slice(-range), [history, range]);
+    const activeRange = useMemo(() => {
+        return RANGES.find((r) => r.label === range) ?? RANGES[0];
+    }, [range]);
 
-    const current = pointsList.length ? pointsList[pointsList.length - 1] : null;
-    const previous = pointsList.length > 1 ? pointsList[pointsList.length - 2] : null;
+    // Slice history by chosen days count
+    const pointsList = useMemo(() => {
+        return history.slice(-activeRange.days);
+    }, [history, activeRange.days]);
 
-    const currentWeekly = current?.points_earned ?? current?.total_score ?? 0;
-    const previousWeekly = previous ? (previous.points_earned ?? previous.total_score ?? 0) : null;
-    const delta = previousWeekly === null ? null : currentWeekly - previousWeekly;
+    // Sum of points in current viewed range
+    const rangeTotal = useMemo(() => {
+        return pointsList.reduce((acc, p) => acc + (p.points_earned ?? 0), 0);
+    }, [pointsList]);
+
+    // Active selected point (hovered/clicked day or fallback to latest/today)
+    const activePoint = useMemo(() => {
+        if (!pointsList.length) return null;
+        if (selectedDate) {
+            const found = pointsList.find((p) => p.fullDate === selectedDate);
+            if (found) return found;
+        }
+        return pointsList[pointsList.length - 1];
+    }, [pointsList, selectedDate]);
+
+    // Previous point relative to active selected point
+    const previousPoint = useMemo(() => {
+        if (!activePoint || pointsList.length <= 1) return null;
+        const index = pointsList.findIndex((p) => p.fullDate === activePoint.fullDate);
+        return index > 0 ? pointsList[index - 1] : null;
+    }, [pointsList, activePoint]);
+
+    const activePointsEarned = activePoint?.points_earned ?? 0;
+    const previousPointsEarned = previousPoint?.points_earned ?? 0;
+    const delta = previousPoint ? activePointsEarned - previousPointsEarned : null;
 
     const DeltaIcon = delta === null || delta === 0 ? Minus : delta > 0 ? ArrowUpRight : ArrowDownRight;
     const deltaTone =
@@ -96,8 +129,6 @@ export default function FitnessScoreTrend({ history = [], weeks = 12, isLoading 
             : delta > 0
             ? 'bg-emerald-500/10 text-emerald-500'
             : 'bg-rose-500/10 text-rose-500';
-
-    const rangeLabel = RANGES.find((r) => r.weeks === range)?.label ?? `${range}W`;
 
     if (isLoading) {
         return (
@@ -108,7 +139,7 @@ export default function FitnessScoreTrend({ history = [], weeks = 12, isLoading 
         );
     }
 
-    if (!current) {
+    if (!pointsList.length) {
         return (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 px-6 py-14 text-center">
                 <div className="mb-3 rounded-full bg-muted p-3">
@@ -116,7 +147,7 @@ export default function FitnessScoreTrend({ history = [], weeks = 12, isLoading 
                 </div>
                 <h3 className="text-base font-semibold text-foreground">No points history yet</h3>
                 <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-                    Complete workouts, meals, and hydration — your points curve will appear here.
+                    Complete workouts, meals, and hydration — your daily points progress will appear here.
                 </p>
             </div>
         );
@@ -132,19 +163,27 @@ export default function FitnessScoreTrend({ history = [], weeks = 12, isLoading 
             {/* Header + range switch */}
             <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
-                    <h3 className="text-base font-bold text-foreground sm:text-lg">Points Progression</h3>
-                    <p className="text-xs text-muted-foreground">Weekly points earned across all activities</p>
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-base font-bold text-foreground sm:text-lg">Daily Points Progression</h3>
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                            Daily Logs
+                        </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Points logged per day across workouts, nutrition &amp; water</p>
                 </div>
 
                 <div className="flex shrink-0 gap-1 rounded-lg bg-muted p-1">
                     {RANGES.map((r) => (
                         <button
-                            key={r.weeks}
+                            key={r.label}
                             type="button"
-                            onClick={() => setRange(r.weeks)}
+                            onClick={() => {
+                                setRange(r.label);
+                                setSelectedDate(null);
+                            }}
                             className={[
                                 'rounded-md px-2.5 py-1 text-xs font-bold transition-colors',
-                                range === r.weeks
+                                range === r.label
                                     ? 'bg-card text-foreground shadow-sm'
                                     : 'text-muted-foreground hover:text-foreground',
                             ].join(' ')}
@@ -155,28 +194,39 @@ export default function FitnessScoreTrend({ history = [], weeks = 12, isLoading 
                 </div>
             </div>
 
-            {/* Headline: points earned this week + delta */}
+            {/* Headline: Points earned on the active selected day */}
             <div className="mb-4 flex items-end gap-3">
                 <span className="text-4xl font-extrabold leading-none text-foreground sm:text-5xl tabular-nums">
-                    {Math.round(currentWeekly)}
+                    {activePointsEarned}
                 </span>
                 <div className="flex flex-col gap-1 pb-1">
                     <span className={`inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${deltaTone}`}>
                         <DeltaIcon className="h-3.5 w-3.5" />
-                        {delta === null ? 'New' : `${delta > 0 ? '+' : ''}${Math.round(delta)} pts`}
+                        {delta === null ? 'Selected' : `${delta > 0 ? '+' : ''}${delta} pts vs prev day`}
                     </span>
-                    <span className="text-[11px] font-medium text-muted-foreground">
-                        Earned this week &middot; {rangeLabel} view
+                    <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-muted-foreground" />
+                        {activePoint?.isToday ? 'Today' : activePoint?.dayName} &middot; {activePoint?.date}
                     </span>
                 </div>
             </div>
 
-            {/* Area chart */}
+            {/* Daily Area Chart with interactive hover */}
             <div className="-mx-1">
                 <ResponsiveContainer width="100%" height={190}>
-                    <AreaChart data={pointsList} margin={{ top: 10, right: 8, left: -22, bottom: 0 }}>
+                    <AreaChart
+                        data={pointsList}
+                        margin={{ top: 10, right: 8, left: -22, bottom: 0 }}
+                        onMouseMove={(e: any) => {
+                            if (e && e.activePayload && e.activePayload.length) {
+                                const payload = e.activePayload[0].payload as PointsHistoryItem;
+                                setSelectedDate(payload.fullDate);
+                            }
+                        }}
+                        onMouseLeave={() => setSelectedDate(null)}
+                    >
                         <defs>
-                            <linearGradient id="scoreFill" x1="0" y1="0" x2="0" y2="1">
+                            <linearGradient id="pointsFill" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.45} />
                                 <stop offset="100%" stopColor="#F59E0B" stopOpacity={0.02} />
                             </linearGradient>
@@ -187,7 +237,7 @@ export default function FitnessScoreTrend({ history = [], weeks = 12, isLoading 
                             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                             tickLine={false}
                             axisLine={false}
-                            minTickGap={18}
+                            minTickGap={14}
                         />
                         <YAxis
                             domain={[0, 'auto']}
@@ -197,22 +247,42 @@ export default function FitnessScoreTrend({ history = [], weeks = 12, isLoading 
                             width={44}
                         />
                         <Tooltip
-                            cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1 }}
+                            cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1.5, strokeDasharray: '2 2' }}
                             content={({ active, payload }: any) => {
                                 if (!active || !payload?.length) return null;
                                 const p = payload[0].payload as PointsHistoryItem;
                                 return (
-                                    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
-                                        <p className="text-xs font-bold text-foreground">{p.fullDate}</p>
-                                        <p className="mt-0.5 text-sm font-extrabold text-amber-500">
-                                            {p.points_earned ?? p.total_score ?? 0}{' '}
-                                            <span className="text-[10px] font-medium text-muted-foreground">pts earned</span>
-                                        </p>
-                                        {p.total_points !== undefined && (
-                                            <p className="text-[11px] text-muted-foreground">
-                                                Cumulative: {p.total_points} pts (Level {p.level})
+                                    <div className="rounded-xl border border-border bg-card/95 backdrop-blur-md px-3.5 py-2.5 shadow-xl">
+                                        <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-1.5 mb-1.5">
+                                            <p className="text-xs font-bold text-foreground">
+                                                {p.dayName ? `${p.dayName}, ` : ''}{p.date}
+                                                {p.isToday ? ' (Today)' : ''}
                                             </p>
-                                        )}
+                                            <span className="text-[10px] font-semibold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                                                Level {p.level}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm font-extrabold text-foreground flex items-center justify-between gap-4">
+                                            <span className="text-xs font-medium text-muted-foreground">Points Earned:</span>
+                                            <span className="text-amber-500 tabular-nums">+{p.points_earned} pts</span>
+                                        </p>
+                                        <div className="mt-1 space-y-0.5 text-[11px] text-muted-foreground border-t border-border/40 pt-1">
+                                            <div className="flex justify-between gap-3">
+                                                <span>🏋️ Workouts:</span>
+                                                <span className="font-semibold text-foreground tabular-nums">{p.workout_points} pts</span>
+                                            </div>
+                                            <div className="flex justify-between gap-3">
+                                                <span>🥗 Nutrition:</span>
+                                                <span className="font-semibold text-foreground tabular-nums">{p.meal_points} pts</span>
+                                            </div>
+                                            <div className="flex justify-between gap-3">
+                                                <span>💧 Hydration:</span>
+                                                <span className="font-semibold text-foreground tabular-nums">{p.hydration_points} pts</span>
+                                            </div>
+                                        </div>
+                                        <p className="mt-1.5 text-[10px] text-muted-foreground/80 border-t border-border/40 pt-1 text-right">
+                                            Cumulative: {p.total_points} pts
+                                        </p>
                                     </div>
                                 );
                             }}
@@ -222,44 +292,64 @@ export default function FitnessScoreTrend({ history = [], weeks = 12, isLoading 
                             dataKey="points_earned"
                             stroke="#F59E0B"
                             strokeWidth={3}
-                            fill="url(#scoreFill)"
-                            dot={false}
-                            activeDot={{ r: 5, fill: '#F59E0B', stroke: 'hsl(var(--card))', strokeWidth: 2 }}
+                            fill="url(#pointsFill)"
+                            dot={(props: any) => {
+                                const { cx, cy, payload } = props;
+                                if (!payload || payload.points_earned <= 0) return null;
+                                return (
+                                    <circle
+                                        key={`dot-${payload.fullDate}`}
+                                        cx={cx}
+                                        cy={cy}
+                                        r={3.5}
+                                        fill="#F59E0B"
+                                        stroke="hsl(var(--card))"
+                                        strokeWidth={1.5}
+                                    />
+                                );
+                            }}
+                            activeDot={{ r: 6, fill: '#F59E0B', stroke: 'hsl(var(--card))', strokeWidth: 2 }}
                         />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* Plain-English takeaway */}
+            {/* Plain-English takeaway for selected day */}
             <p className="mt-3 rounded-xl bg-muted/50 p-3 text-xs font-medium leading-relaxed text-foreground">
-                {buildSummary(currentWeekly, previousWeekly, rangeLabel)}
+                {activePoint ? buildDailySummary(activePoint, previousPoint, rangeTotal) : ''}
             </p>
 
-            {/* What's moving your score */}
+            {/* Selected Day's Point Breakdown */}
             <div className="mt-4 border-t border-border pt-3">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    This Week's Point Breakdown
-                </p>
+                <div className="mb-1 flex items-center justify-between">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {activePoint?.isToday ? "Today's" : `${activePoint?.date}'s`} Point Breakdown
+                    </p>
+                    <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-500" />
+                        Hover chart to inspect any day
+                    </span>
+                </div>
                 <div className="divide-y divide-border">
                     <ContributorRow
                         icon={<Dumbbell className="h-4 w-4" />}
                         label="Workouts"
-                        points={current.workout_points ?? 0}
-                        delta={previous ? (current.workout_points ?? 0) - (previous.workout_points ?? 0) : null}
+                        points={activePoint?.workout_points ?? 0}
+                        delta={previousPoint ? (activePoint?.workout_points ?? 0) - (previousPoint?.workout_points ?? 0) : null}
                         colorClass="bg-blue-500/10 text-blue-500"
                     />
                     <ContributorRow
                         icon={<Utensils className="h-4 w-4" />}
                         label="Nutrition"
-                        points={current.meal_points ?? 0}
-                        delta={previous ? (current.meal_points ?? 0) - (previous.meal_points ?? 0) : null}
+                        points={activePoint?.meal_points ?? 0}
+                        delta={previousPoint ? (activePoint?.meal_points ?? 0) - (previousPoint?.meal_points ?? 0) : null}
                         colorClass="bg-emerald-500/10 text-emerald-500"
                     />
                     <ContributorRow
                         icon={<Droplets className="h-4 w-4" />}
                         label="Hydration"
-                        points={current.hydration_points ?? 0}
-                        delta={previous ? (current.hydration_points ?? 0) - (previous.hydration_points ?? 0) : null}
+                        points={activePoint?.hydration_points ?? 0}
+                        delta={previousPoint ? (activePoint?.hydration_points ?? 0) - (previousPoint?.hydration_points ?? 0) : null}
                         colorClass="bg-cyan-500/10 text-cyan-500"
                     />
                 </div>

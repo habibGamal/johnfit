@@ -23,13 +23,29 @@ interface GenerationResult {
     };
 }
 
-export default function AutoPlanGeneratorCard() {
+export interface AiPlanEligibility {
+    can_generate: boolean;
+    remaining: number | null;
+    reason: string | null;
+}
+
+interface AutoPlanGeneratorCardProps {
+    eligibility?: AiPlanEligibility;
+}
+
+export default function AutoPlanGeneratorCard({ eligibility }: AutoPlanGeneratorCardProps) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [stepMessage, setStepMessage] = useState('Generating...');
     const [result, setResult] = useState<GenerationResult | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [canGenerate, setCanGenerate] = useState(eligibility ? eligibility.can_generate : true);
 
     const handleGenerate = async () => {
+        if (!canGenerate) {
+            setError(eligibility?.reason || 'The AI Plan Generator can only be used once per account.');
+            return;
+        }
+
         setIsGenerating(true);
         setError(null);
         setStepMessage('Analyzing Assessment & InBody metrics...');
@@ -49,10 +65,14 @@ export default function AutoPlanGeneratorCard() {
                     meal_plan_id: data.meal_plan_id,
                     summary: data.summary,
                 });
+                setCanGenerate(false);
             } else {
                 setError(data.message || 'Failed to generate plan. Please try again.');
             }
         } catch (err: any) {
+            if (err?.response?.status === 403 || err?.response?.data?.code === 'AI_PLAN_LIMIT_REACHED') {
+                setCanGenerate(false);
+            }
             setError(err?.response?.data?.message || err?.message || 'An unexpected error occurred.');
         } finally {
             setIsGenerating(false);
@@ -70,18 +90,27 @@ export default function AutoPlanGeneratorCard() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     {/* Header Info */}
                     <div className="min-w-0">
-                        <h2 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-                            <Sparkles className="h-4.5 w-4.5 text-primary shrink-0" />
-                            AI Plan Generator
-                        </h2>
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
+                                <Sparkles className="h-4.5 w-4.5 text-primary shrink-0" />
+                                AI Plan Generator
+                            </h2>
+                            {!canGenerate && (
+                                <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                                    1/1 Used
+                                </span>
+                            )}
+                        </div>
                         <p className="mt-1 text-sm text-muted-foreground leading-snug">
-                            Tailored 7-day workout + meal plan from your <strong className="text-foreground">InBody</strong> & assessment data.
+                            {canGenerate
+                                ? 'Tailored 7-day workout + meal plan from your InBody & assessment data.'
+                                : 'You have already generated your 1-time personalized AI plan.'}
                         </p>
                     </div>
 
                     {/* Action Area */}
                     <div className="flex items-center gap-3 shrink-0">
-                        {result && (
+                        {result && canGenerate && (
                             <button
                                 onClick={handleGenerate}
                                 disabled={isGenerating}
@@ -92,14 +121,23 @@ export default function AutoPlanGeneratorCard() {
                         )}
                         <button
                             onClick={handleGenerate}
-                            disabled={isGenerating}
-                            className="group relative rounded-xl bg-primary hover:bg-primary/90 px-5 py-2.5 text-primary-foreground font-semibold text-sm shadow-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-75 disabled:pointer-events-none"
+                            disabled={isGenerating || !canGenerate}
+                            className={`group relative rounded-xl px-5 py-2.5 font-semibold text-sm shadow-sm transition-all duration-200 ${
+                                canGenerate
+                                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-[1.02] active:scale-[0.98]'
+                                    : 'bg-muted text-muted-foreground cursor-not-allowed opacity-75'
+                            } disabled:pointer-events-none`}
                         >
                             <div className="flex items-center gap-2">
                                 {isGenerating ? (
                                     <>
                                         <Loader2 className="h-4 w-4 animate-spin" />
                                         <span>{stepMessage}</span>
+                                    </>
+                                ) : !canGenerate ? (
+                                    <>
+                                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                        <span>Plan Generated</span>
                                     </>
                                 ) : (
                                     <>

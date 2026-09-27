@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\PlanGenerationNotAllowedException;
 use App\Services\PlanGenerationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,25 @@ class PlanGenerationController extends Controller
     public function __construct(PlanGenerationService $planGenerationService)
     {
         $this->planGenerationService = $planGenerationService;
+    }
+
+    /**
+     * Check if the authenticated user is eligible to generate an AI plan.
+     */
+    public function eligibility(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $eligibility = $this->planGenerationService->getAiPlanEligibility($user);
+
+        return response()->json([
+            'success' => true,
+            'eligibility' => $eligibility,
+        ]);
     }
 
     /**
@@ -37,6 +57,12 @@ class PlanGenerationController extends Controller
                 'meal_plan_id' => $result['meal_plan']->id,
                 'summary' => $result['summary'],
             ]);
+        } catch (PlanGenerationNotAllowedException $e) {
+            return response()->json([
+                'success' => false,
+                'code' => 'AI_PLAN_LIMIT_REACHED',
+                'message' => $e->getMessage(),
+            ], 403);
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,

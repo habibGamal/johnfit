@@ -21,7 +21,8 @@ class ScheduleController extends Controller
         protected DailyScheduleService $scheduleService,
         protected DailyItemTrackingService $itemTrackingService,
         protected PlanAssignmentService $assignmentService,
-        protected WaterIntakeService $waterService
+        protected WaterIntakeService $waterService,
+        protected \App\Services\PlanGenerationService $planGenerationService
     ) {}
 
     /**
@@ -93,6 +94,7 @@ class ScheduleController extends Controller
                 'calculation' => $this->waterService->calculateDailyTarget($user, $currentDate),
                 'weekly_stats' => $this->waterService->getWeeklyStats($user, $currentDate),
             ],
+            'aiPlanEligibility' => $this->planGenerationService->getAiPlanEligibility($user),
         ]);
     }
 

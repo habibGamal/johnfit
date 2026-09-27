@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Services\BadgeService;
-use App\Services\FitnessScoreService;
 use App\Services\MealStatsService;
 use App\Services\PointsService;
 use App\Services\WaterIntakeService;
@@ -17,28 +16,28 @@ class DashboardController extends Controller
 
     protected MealStatsService $mealStatsService;
 
-    protected FitnessScoreService $fitnessScoreService;
-
     protected WaterIntakeService $waterIntakeService;
 
     protected BadgeService $badgeService;
 
     protected PointsService $pointsService;
 
+    protected \App\Services\PlanGenerationService $planGenerationService;
+
     public function __construct(
         WorkoutStatsService $workoutStatsService,
         MealStatsService $mealStatsService,
-        FitnessScoreService $fitnessScoreService,
         WaterIntakeService $waterIntakeService,
         BadgeService $badgeService,
-        PointsService $pointsService
+        PointsService $pointsService,
+        \App\Services\PlanGenerationService $planGenerationService
     ) {
         $this->workoutStatsService = $workoutStatsService;
         $this->mealStatsService = $mealStatsService;
-        $this->fitnessScoreService = $fitnessScoreService;
         $this->waterIntakeService = $waterIntakeService;
         $this->badgeService = $badgeService;
         $this->pointsService = $pointsService;
+        $this->planGenerationService = $planGenerationService;
     }
 
     /**
@@ -59,8 +58,8 @@ class DashboardController extends Controller
         // Get points summary & progression details
         $pointsSummary = $this->pointsService->getSummary($user);
 
-        // Get points history for progression trend chart
-        $pointsHistory = $this->pointsService->getPointsHistory($user, 12);
+        // Get daily points history for progression trend chart (last 30 days)
+        $pointsHistory = $this->pointsService->getPointsHistory($user, 30);
 
         // Get water intake data
         $waterLog = $this->waterIntakeService->getOrCreateDailyLog($user);
@@ -78,13 +77,14 @@ class DashboardController extends Controller
             'pointsSummary' => $pointsSummary,
             'pointsHistory' => $pointsHistory,
             'hasActiveSubscription' => $user->hasActiveSubscription(),
-            'activeSubscription' => $user->activeSubscription()?->load('plan'),
+            'activeSubscription' => $user->activeSubscription()?->load(['plan', 'tier']),
             'achievementJourney' => $this->badgeService->getJourney($user),
             'waterData' => [
                 'log' => $waterLog,
                 'calculation' => $waterCalculation,
                 'weekly_stats' => $waterWeeklyStats,
             ],
+            'aiPlanEligibility' => $this->planGenerationService->getAiPlanEligibility($user),
         ]);
     }
 }
